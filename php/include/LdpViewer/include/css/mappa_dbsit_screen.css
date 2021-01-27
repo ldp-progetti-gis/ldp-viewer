@@ -1,0 +1,181 @@
+
+
+/* ************************************************************* *
+ * ******* STILI GLOBALI COMUNI A TUTTE LE APPLICAZIONI ******** *
+ * ************************************************************* */
+
+	@import url('/share/include/css/stile.css');
+	/* @import url('/share/include/css/toolbar.css'); */
+	/* @import url('/share/include/css/title.css'); */
+
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ *
+ *                               PERSONALIZZAZIONI PER LA TOOLBAR                                 *
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+
+
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ *
+ *                          PERSONALIZZAZIONI PER IL TITLE DELLA PAGINA                           *
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+	
+	#ldpolviewer_title h1 {
+		color: #9FCFFF;
+	}
+	
+	#ldpolviewer_title a.exit, 
+	#ldpolviewer_title a.info,
+	#ldpolviewer_title a.ricerca {
+		color: #FFF;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ *
+ *                          PERSONALIZZAZIONI PER LDPLOGGER                                       *
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+	
+	
+	
+	
+/*
+	body {
+				background-color: #ffffff;
+				background-image:url('http://<?php echo $vhost; ?>/include/img/bkg_testata.jpg');
+				background-position: bottom left;
+				background-repeat: repeat-x;
+				color: #003B77;
+				font-family: Arial;
+				margin: 0;
+				padding: .2em 0 0 1em;
+				height: 47px;
+			}
+*/
+/*
+			div#intesta { float: left; margin: 0; padding: 0; }
+			
+			p.nome-comune {
+				float: left;
+				margin: 0 0 0.3em;
+				padding: 0;
+				width: auto;
+			}
+
+			a.ricerca {
+				font-size: .8em;
+				color: #ffffff;
+				font-weight: bold;
+				background-image:url('http://<?php echo $vhost; ?>/include/img/search.gif');
+				background-position: center right;
+				background-repeat: no-repeat;
+				padding: 2px 20px 2px 0;
+				margin: 0 .7em 0 0;
+				text-decoration: none;
+			}
+			
+			a.ricerca:link, a.ricerca:visited, a.ricerca:active {
+				background-image:url('http://<?php echo $vhost; ?>/include/img/search.gif');
+			}
+			a.ricerca:hover {
+				background-image:url('http://<?php echo $vhost; ?>/include/img/search.gif');
+				text-decoration: underline;
+			}
+			
+			a.info {
+				clear: right;
+				font-size: .8em;
+				color: #ffffff;
+				font-weight: bold;
+				background-image:url('http://<?php echo $vhost; ?>/include/img/info.gif');
+				background-position: center right;
+				background-repeat: no-repeat;
+				padding: 2px 20px 2px 0;
+				margin: 0 .7em 0 0;
+				text-decoration: none;
+			}
+			
+			a.exit:link {
+				background-image:url('http://<?php echo $vhost; ?>/include/img/back1.gif');
+				background-position: center left;
+				background-repeat: no-repeat;
+			}
+			a.exit {
+				background-image:url('http://<?php echo $vhost; ?>/include/img/back1.gif');
+				background-position: center left;
+				background-repeat: no-repeat;
+				padding: 0 0 0 20px;
+				margin: 0;
+				text-decoration: none;
+				color: #FFF;
+				font-weight: bold;
+				font-size: .8em;
+			}
+			a.exit:visited {
+				background-image:url('http://<?php echo $vhost; ?>/include/img/back1.gif');
+			}
+			a.exit:hover {
+				background-image:url('http://<?php echo $vhost; ?>/include/img/back2.gif');
+				text-decoration: underline;
+			}
+			a.exit:active {
+				background-image:url('http://<?php echo $vhost; ?>/include/img/back1.gif');
+			}
+			
+			h1 {
+				font-size: 1em; 
+				margin:5px 0 0 130px;
+				text-transform: uppercase;
+				color: #9FCFFF;
+			}
+*/
+
+/*			
+			a.ricerca:link, a.ricerca:visited, a.ricerca:active {
+				background-image:url('http://<?php echo $vhost; ?>/include/img/search.gif');
+			}
+			a.ricerca:hover {
+				background-image:url('http://<?php echo $vhost; ?>/include/img/search.gif');
+				text-decoration: underline;
+			}
+			
+			a.info {
+				font-size: .8em;
+				color: #FFF;
+				font-weight: bold;
+				background-image:url('http://<?php echo $vhost; ?>/include/img/info.gif');
+				background-position: center right;
+				background-repeat: no-repeat;
+				padding: 2px 20px 2px 0;
+				margin: 7px .7em 0 0;
+				text-decoration: none;
+			}
+			a.info:link, a.info:visited, a.info:active {
+				background-image:url('http://<?php echo $vhost; ?>/include/img/info.gif');
+			}
+			a.info:hover {
+				background-image:url('http://<?php echo $vhost; ?>/include/img/info.gif');
+				text-decoration: underline;
+			}
+			
+			div.linktestata {float: right; margin: 0; padding: 0; color: Silver;}
+			
+			img.logo {
+			    height: 30px;
+				float: left;
+				margin: 0;
+				padding: 0;
+			}
+			
+*/
+

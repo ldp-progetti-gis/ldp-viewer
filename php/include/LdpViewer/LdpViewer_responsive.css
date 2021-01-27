@@ -1,0 +1,522 @@
+/* media queries generiche prese da http://www.javascriptkit.com/dhtmltutors/cssmediaqueries2.shtml */
+
+
+/* 
+  ##Device = Desktops
+  ##Screen = 1281px to higher resolution desktops
+*/
+
+@media (min-width: 1281px) {
+	#ldpviewer_toolbar .ldpviewer-icon-wrap.mobile {display: none;} /* nasconde icone specifiche per mobile */
+}
+
+/* 
+  ##Device = Laptops, Desktops
+  ##Screen = B/w 1025px to 1280px
+*/
+
+@media (min-width: 1025px) and (max-width: 1280px) {
+	#ldpviewer_toolbar .ldpviewer-icon-wrap.mobile {display: none;} /* nasconde icone specifiche per mobile */
+}
+
+/* 
+  ##Device = Tablets, Ipads (portrait)
+  ##Screen = B/w 768px to 1024px
+*/
+
+@media (min-width: 768px) and (max-width: 1024px) {
+	
+	div#ldp_viewer_tabs_container {
+		position: absolute;
+		top: -1px;
+		left: 0px !important;
+		padding: 0;
+		border-radius: 0px;
+		border-right: 4px solid #c0c0c0;
+		border-left: none;
+		/*height: 100vh !important;*/
+		z-index: 100;
+	}
+	
+	#ldpviewer_toolbar, #ldpviewer_toolbar_right {
+		padding: 0 5px 5px 5px;
+		border: 0;
+		-webkit-box-shadow: none;
+		-moz-box-shadow: none;
+		box-shadow: none;
+		background-color: transparent;
+		background-image: none;
+	}
+	
+	#ldpviewer_info_tabs .ui-widget-header{
+		left:47px;
+	}
+	
+	#ldpviewer_toolbar .ldpviewer-icon-wrap.desktop,
+	span.separator {display: none;} /* nasconde icone della toolbar non utilizzate su smartphone */
+	
+	.mobile {display: initial !important;}/* mostra icone specifiche per smartphone */
+	
+	#ldpviewer_toolbar .ldpviewer-icon-wrap, #ldpviewer_toolbar_right .ldpviewer-icon-wrap{margin: 5px 0;} /* icone toolbar ravvicinate */
+	
+	#ldpviewer_toolbar .ldpviewer-icon-wrap, #ldpviewer_toolbar_right .ldpviewer-icon-wrap {
+		padding: 2px;
+		border-radius: 4px 4px 4px 4px;
+		border: 1px solid rgba(0, 0, 0, 0);
+		background-color: rgba(245, 245, 245, 0.68);
+	}
+	
+	#ldpviewer_toolbar #ldpviewer_trova_posizione {
+		display: block;
+		position: absolute;
+		bottom: 25px;
+	}
+
+	/* tasti di chiusura dei pannelli a sinistra della mappa */
+	div#ldp_viewer_tabs_container #ldpviewer_close_panel,
+	div#ldpviewer_info_tabs_header #ldpviewer_close_panel_right {
+		margin: 0 0 5px 0;
+		color: #fff;
+		margin-right: 19px;
+	}
+	div#ldpviewer_info_tabs_header #ldpviewer_close_panel_right {
+		position:absolute;
+		left: 10px;
+	}
+	div#ldp_viewer_tabs_container #ldpviewer_close_panel{
+		float: right;
+	}
+	
+	/* #ldpviewer_info_container prende tutta la larghezza dello schermo, coprono la mappa */
+	#ldpviewer_info_container {
+		right:0px;
+		/* top: 57px; */
+	}
+	
+	h1 {font-size: 15px;}
+	
+	#menu li {margin: 0 0 5px 0;}
+	
+
+	#ldpviewer_footer #footer_mouse_coordinates,
+	#ldpviewer_footer #footer_info_selezione {display: none;}
+	
+	#ldpviewer_footer #footer_scala {
+		margin: 0 20px;
+		position: relative;
+		top: -3px;
+	}
+	
+	#footer_scala input[type="text"] {
+		font-size: 14px;
+		border: 0;
+	}
+}
+
+/* 
+  ##Device = Tablets, Ipads (landscape)
+  ##Screen = B/w 768px to 1024px
+*/
+
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: landscape) {
+	div#ldp_viewer_tabs_container {
+		position: absolute;
+		top: 0;
+		left: 0px !important;
+		padding: 0;
+		border-radius: 0px;
+		border-right: 4px solid #c0c0c0;
+		border-left: none;
+		/*height: 100vh !important;*/
+		z-index:100
+	}
+	
+	#ldpviewer_toolbar, #ldpviewer_toolbar_right {
+		padding: 0 5px 5px 5px;
+		border: 0;
+		-webkit-box-shadow: none;
+		-moz-box-shadow: none;
+		box-shadow: none;
+		background-color: transparent;
+		background-image: none;
+	}
+	
+	#ldpviewer_info_tabs .ui-widget-header {
+		left:47px;
+	}
+	
+	#ldpviewer_toolbar .ldpviewer-icon-wrap.desktop,
+	span.separator {display: none;} /* nasconde icone della toolbar non utilizzate su smartphone */
+	
+	.mobile {display: initial !important;}/* mostra icone specifiche per smartphone */
+	
+	#ldpviewer_toolbar .ldpviewer-icon-wrap, #ldpviewer_info_tabs_header .ldpviewer-icon-wrap {margin: 5px 0;} /* icone toolbar ravvicinate */
+	
+	#ldpviewer_toolbar .ldpviewer-icon-wrap, #ldpviewer_info_tabs_header .ldpviewer-icon-wrap, #ldpviewer_toolbar_right .ldpviewer-icon-wrap{
+		padding: 2px;
+		border-radius: 4px 4px 4px 4px;
+		border: 1px solid rgba(0, 0, 0, 0);
+		background-color: rgba(245, 245, 245, 0.68);
+	}
+	
+	#ldpviewer_toolbar #ldpviewer_trova_posizione {
+		display: block;
+		position: absolute;
+		bottom: 25px;
+	}
+
+	#ldpviewer_info_tabs .ui-widget-header{
+		left:47px;
+	}
+		
+	/* tasti di chiusura dei pannelli a sinistra della mappa */
+	div#ldp_viewer_tabs_container #ldpviewer_close_panel,
+	div#ldpviewer_info_tabs_header #ldpviewer_close_panel_right {
+		margin: 0 1px 5px 0;
+		color: #fff;
+		/*margin-right: 19px;*/
+	}
+	div#ldpviewer_info_tabs_header #ldpviewer_close_panel_right {
+		position:absolute;
+		left: 10px;
+	}
+	div#ldp_viewer_tabs_container #ldpviewer_close_panel{
+		float: right;
+	}
+	
+	/* #ldpviewer_info_container prende tutta la larghezza dello schermo, coprono la mappa */
+	#ldpviewer_info_container {
+		right: 0px !important;
+		/* top: 58px; */
+	}
+	
+	#ldpviewer_info_container .ui-resizable-w {
+		/* top: 59px; */
+	}
+	
+	h1 {
+		font-size: 15px;
+	}
+	
+	#menu li {
+		margin: 0 0 5px 0;
+	}
+	
+
+	#ldpviewer_footer #footer_mouse_coordinates,
+	#ldpviewer_footer #footer_info_selezione {display: none;}
+	
+	#ldpviewer_footer #footer_scala {
+		margin: 0 20px;
+		position: relative;
+		top: -3px;
+	}
+	
+	#footer_scala input[type="text"] {
+		font-size: 14px;
+		border: 0;
+	}
+}
+
+/* 
+  ##Device = Low Resolution Tablets, Mobiles (Landscape)
+  ##Screen = B/w 481px to 767px
+*/
+
+@media (min-width: 481px) and (max-width: 767px) {
+	/* #ldpviewer_title {
+		padding: 5px;
+		height: 48px;
+	}
+	
+	#intesta {
+		display: inline-block;
+		max-width: 92%;
+	}
+	
+	.titolo_cliente {
+		margin: 0;
+		max-width: 86%;
+	} */
+	
+	#titolo_gruppo {
+		display: none;
+	}
+	
+	span#nome_cliente {
+		display: block;
+		margin: 0;
+		font-size: 12px;
+	}	
+		
+	/* #intesta a.exit .webicon {
+		top: 0;
+	} */
+	
+	span#nome_cliente {
+		display: block;
+		font-size: 14px;
+		margin: 0;
+	}
+	
+	#title_right a#help,
+	#title_right .webicon {
+		margin: 0 !important;
+	}
+	
+	#titolo_progetto {
+		font-size: 16px;
+	}
+	
+	#ldpviewer_toolbar {
+		padding: 5px;
+		border: 0;
+		-webkit-box-shadow: none;
+		-moz-box-shadow: none;
+		box-shadow: none;
+		background-color: transparent;
+		background-image: none;
+		top: 0px;
+	}
+	
+	#ldpviewer_toolbar_right {
+		padding: 0 5px 5px 5px;
+		border: 0;
+		-webkit-box-shadow: none;
+		-moz-box-shadow: none;
+		box-shadow: none;
+		background-color: transparent;
+		background-image: none;
+		/* top: 51px; */
+	}
+	
+	#ldpviewer_info_tabs .ui-widget-header{
+		left:47;
+	}
+	
+	#ldpviewer_toolbar .ldpviewer-icon-wrap.desktop,
+	span.separator {display: none;} /* nasconde icone della toolbar non utilizzate su smartphone */
+	
+	.mobile {display: initial !important;}/* mostra icone specifiche per smartphone */
+	
+	#ldpviewer_toolbar .ldpviewer-icon-wrap, #ldpviewer_info_tabs_header .ldpviewer-icon-wrap {margin: 5px 0;} /* icone toolbar ravvicinate */
+	
+	#ldpviewer_toolbar .ldpviewer-icon-wrap, #ldpviewer_info_tabs_header .ldpviewer-icon-wrap, #ldpviewer_toolbar_right .ldpviewer-icon-wrap {
+		padding: 2px;
+		border-radius: 4px 4px 4px 4px;
+		border: 1px solid rgba(0, 0, 0, 0);
+		background-color: rgba(245, 245, 245, 0.85);
+	}
+	
+	#ldpviewer_toolbar #ldpviewer_trova_posizione {
+		display: block;
+		position: absolute;
+		bottom: 25px;
+	}
+
+	/* tasti di chiusura dei pannelli a sinistra della mappa */
+	div#ldp_viewer_tabs_container #ldpviewer_close_panel {margin: 5px 19px 0 0;}
+	
+	div#ldpviewer_info_tabs_header #ldpviewer_close_panel_right {
+		margin: 0 0 5px 0;
+		color: #fff;
+		margin-right: 19px;
+	}
+	div#ldpviewer_info_tabs_header #ldpviewer_close_panel_right {
+		position:absolute;
+		left: 10px;
+	}
+	div#ldp_viewer_tabs_container #ldpviewer_close_panel {
+		float: right;
+	}
+	
+	/* #ldpviewer_info_container prende tutta la larghezza dello schermo, coprono la mappa */
+	#ldp_viewer_tabs_container {
+		width: 100%;
+		z-index: 99;
+		box-shadow: none;
+		left: 0px !important;
+	}
+	
+	#ldpviewer_info_container {
+		right: 0px;
+		/* top: 40px; */
+	}
+	
+	#ldpviewer_info_container .ui-resizable-w {
+		/* top: 41px; */
+	}
+	
+	#ldpviewer_info_tabs .ui-widget-header {
+		left: 47px;
+	}
+	
+	h1 {
+		font-size: 15px;
+	}
+	
+	#menu li {
+		margin: 0 0 5px 0;
+	}
+	
+
+	#ldpviewer_footer #footer_mouse_coordinates,
+	#ldpviewer_footer #footer_info_selezione {display: none;}
+	
+	#ldpviewer_footer #footer_scala {
+		margin: 0 20px;
+		position: relative;
+		top: -3px;
+	}
+	
+	#footer_scala input[type="text"] {
+		font-size: 14px;
+		border: 0;
+	}
+}
+
+/* 
+  ##Device = Most of the Smartphones Mobiles (Portrait)
+  ##Screen = B/w 320px to 479px
+*/
+
+@media (min-width: 320px) and (max-width: 480px) {
+	/* #ldpviewer_title {
+		padding: 5px;
+		height: 48px;
+	} */
+	
+	/* #intesta {
+		display: inline-block;
+		max-width: 92%;
+	}
+	
+	.titolo_cliente {
+		margin: 0;
+		max-width: 86%;
+	} */
+	
+	#titolo_gruppo {
+		display: none;
+	}
+		
+	span#nome_cliente {
+		display: block;
+		margin: 0;
+		font-size: 12px;
+	}	
+		
+	/* #intesta a.exit .webicon {
+		top: 0;
+	} */
+	
+	span#nome_cliente {
+		display: block;
+		font-size: 14px;
+		margin: 0;
+	}
+	
+	#title_right a#help,
+	#title_right .webicon {
+		margin: 0 !important;
+	}
+
+	#titolo_progetto {
+		font-size: 14px;
+	}
+	
+	#ldpviewer_toolbar,
+	#ldpviewer_toolbar_right {
+		padding: 0 5px 5px 5px;
+		border: 0;
+		-webkit-box-shadow: none;
+		-moz-box-shadow: none;
+		box-shadow: none;
+		background-color: transparent;
+		background-image: none;
+	}
+	
+	#ldpviewer_info_tabs .ui-widget-header{
+		left:47px;
+	}
+	
+	#ldpviewer_toolbar .ldpviewer-icon-wrap.desktop,
+	span.separator {display: none;} /* nasconde icone della toolbar non utilizzate su smartphone */
+	
+	.mobile {display: initial !important;}/* mostra icone specifiche per smartphone */
+	
+	#ldpviewer_toolbar .ldpviewer-icon-wrap,
+	#ldpviewer_info_tabs_header .ldpviewer-icon-wrap {margin: 5px 0;} /* icone toolbar ravvicinate */
+	
+	#ldpviewer_toolbar .ldpviewer-icon-wrap,
+	#ldpviewer_info_tabs_header .ldpviewer-icon-wrap,
+	#ldpviewer_toolbar_right .ldpviewer-icon-wrap {
+		padding: 2px;
+		border-radius: 4px 4px 4px 4px;
+		border: 1px solid rgba(0, 0, 0, 0);
+		background-color: rgba(245, 245, 245, 0.68);
+	}
+	
+	#ldpviewer_toolbar #ldpviewer_trova_posizione {
+		display: block;
+		position: absolute;
+		bottom: 25px;
+	}
+	
+	/* tasti di chiusura dei pannelli a sinistra della mappa */
+	div#ldp_viewer_tabs_container #ldpviewer_close_panel, 
+	div#ldpviewer_info_tabs_header #ldpviewer_close_panel_right {
+		margin: 3px 0 0px 0;
+		color: #fff;
+		margin-right: 13px;
+	}
+	div#ldpviewer_info_tabs_header #ldpviewer_close_panel_right {
+		position:absolute;
+		left: 10px;
+	}
+	div#ldp_viewer_tabs_container #ldpviewer_close_panel{
+		float: right;
+	}
+	
+	/* #ldpviewer_info_container prende tutta la larghezza dello schermo, coprono la mappa */
+	#ldp_viewer_tabs_container {
+		z-index: 99;
+		box-shadow: none;
+		left: 0px !important;
+		top: 0px !important;
+	}
+	
+	#ldpviewer_info_container {
+		right: 0px;
+		/* top: 56px; */
+	}
+	
+	#ldpviewer_info_container .ui-resizable-w {
+		/* top: 57px; */
+	}
+	
+	h1 {
+		font-size: 15px;
+	}
+	
+	#menu li {
+		margin: 0 0 5px 0;
+	}
+	
+
+	#ldpviewer_footer #footer_mouse_coordinates,
+	#ldpviewer_footer #footer_info_selezione {
+		display: none;
+	}
+	
+	#ldpviewer_footer #footer_scala {
+		margin: 0 20px;
+		position: relative;
+		top: -3px;
+	}
+	
+	#footer_scala input[type="text"] {
+		font-size: 14px;
+		border: 0;
+	}
+}
