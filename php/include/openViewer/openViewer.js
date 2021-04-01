@@ -137,7 +137,7 @@ var openViewer = function(params) {
 	// CREATION OF THE OPENLAYERS MAP OBJECT
     // -------------------------------------
     // parameters setting
-	var mapParams = { 
+	var mapParams = {  
 		'stato':				params.stato,
 		'mapOptions':			params.mapOptions, 
 		'mapDiv':				this.mapDiv[0],
@@ -341,7 +341,7 @@ openViewer.prototype.getMapGuideVisibleLayersNames = function(a,b) {
 	return visible_layer_array;
 }
 */
-/* OVD CURRENTLY UNUSED: getMainLayerByName (retrieve a "main layer" - from MapGuide, default WMS - by its name)
+/** getMainLayerByName (retrieve a "main layer" - from MapGuide, default WMS - by its name) */
 openViewer.prototype.getMainLayerByName = function(layer_name) {
 	var stato = this.getStato();
 	
@@ -362,7 +362,6 @@ openViewer.prototype.getMainLayerByName = function(layer_name) {
 	// if it is not found
 	return false;
 }
-*/
 /* OVD CURRENTLY UNUSED: getMainLayerNameByFeature (retrieve a "main layer" - from MapGuide, default WMS - by its feature name)
 openViewer.prototype.getMainLayerNameByFeature = function(feature_name) {
 	var stato = this.getStato();
@@ -1041,7 +1040,7 @@ openViewer.prototype.ev_map_mouse_down = function(event) {
 };
 /** OVD CURRENTLY UNUSED - MAIN LAYERS (MAPGUIDE, DEFAULT WMS) INTEGRATION - Selection of geographical features */
 openViewer.prototype.ev_map_select = function(event) {
-//if(this.showConsoleMsg) console.log('MAP SELECT EVENT',this.map.getStatusInteraction())
+if(this.showConsoleMsg) console.log('MAP SELECT EVENT',this.map.getStatusInteraction())
 	event.preventDefault();
 	switch (this.map.getStatusInteraction()) {
 		case "draw":
@@ -1059,7 +1058,7 @@ openViewer.prototype.ev_map_select = function(event) {
 			var ctrlKeyPressed = event.originalEvent.ctrlKey;
 			var shiftKeyPressed = event.originalEvent.shiftKey;
 			
-			
+			console.log('MAP SELECT EVENT 1',stato);
 			// the selection takes into account only the first OL layer (of the "main layers" defined inside "stato")
 			var a_ol_layers=Object.keys(stato);
 			// start looping over the "main layers"
@@ -1278,7 +1277,7 @@ openViewer.prototype.ev_map_select = function(event) {
 											var info_format=null;
 										}
 									}
-									
+									console.log('INFO----------------------')
 									if(pointerType=='mouse') {
 										var url = source.getGetFeatureInfoUrl(
 											event.coordinate, this.map.getMapView().getResolution(), this.map.mapProjection,
@@ -2826,8 +2825,9 @@ openViewer.prototype.mapAddFeatureSelection = function(response) {
 	this.footerUpdateText();
 }
 */
-/* OVD CURRENTLY UNUSED: openInfo (callback after CTRL+click or after holding tap)
+/* OVD CURRENTLY UNUSED: openInfo (callback after CTRL+click or after holding tap) */
 openViewer.prototype.openInfo = function(response) {
+console.log ('dentro OpenINFO');    
 	var stato = this.getStato();
 	var geojsonFormat = new ol.format.GeoJSON();
 	//response è un oggetto geoJson
@@ -2887,7 +2887,7 @@ openViewer.prototype.openInfo = function(response) {
 		}
 	}
 }
-*/
+
 /* OVD CURRENTLY UNUSED: mapRefresh
 openViewer.prototype.mapRefresh = function() {
 	var centro = ol.proj.transform([this.getMapCenter().X , this.getMapCenter().Y], this.map.mapProjection,this.map.dataProjection);
