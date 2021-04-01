@@ -1,0 +1,1 @@
+proj4.defs("EPSG:32634","+proj=utm +zone=34 +datum=WGS84 +units=m +no_defs");

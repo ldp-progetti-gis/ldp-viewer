@@ -323,13 +323,13 @@ function WKTToPoint(wkt){
 }
 
 
-if (typeof ldp_viewer == 'object' && typeof ldp_viewer.scalaForFit == 'function') {
-	scalaForFit=$.proxy(ldp_viewer.scalaForFit,ldp_viewer);
+if (typeof open_viewer == 'object' && typeof open_viewer.getScaleToFit == 'function') {
+	getScaleToFit=$.proxy(open_viewer.getScaleToFit,open_viewer);
 } else {
 
 /**
  * 
- * Function: scalaForFit
+ * Function: getScaleToFit
  * 
  * *Mobile: yes* Dato il bounding box rende la scala da applicare facendo zoom nel centro della geometria, per farne il fit
  * 
@@ -337,9 +337,9 @@ if (typeof ldp_viewer == 'object' && typeof ldp_viewer.scalaForFit == 'function'
  * 
  * 
  */
-function scalaForFit(xmin, xmax, ymin, ymax, marginFactor) {
+function getScaleToFit(xmin, xmax, ymin, ymax, marginFactor) {
 	
-	if ( typeof logger != 'undefined' ) { logger.i("scalaForFit()"); }
+	if ( typeof logger != 'undefined' ) { logger.i("getScaleToFit()"); }
 	
 	try {
 		if (isNaN(parseFloat(xmin)) || isNaN(parseFloat(xmax)) || isNaN(parseFloat(ymin)) || isNaN(parseFloat(ymax)))
@@ -397,7 +397,7 @@ function isMapReady() {
 	}
 }
 
-if (typeof ldp_viewer == 'object') {
+if (typeof open_viewer == 'object') {
 	function getSelectionXML() {
 		return null;
 	}
@@ -409,9 +409,9 @@ if (typeof ldp_viewer == 'object') {
 
 
 
-if (typeof ldp_viewer == 'object') {
+if (typeof open_viewer == 'object') {
 	
-	getLayers=$.proxy(ldp_viewer.getLayers,ldp_viewer);
+	getLayers=$.proxy(open_viewer.getMapGuideVisibleLayersNames,open_viewer);
 	
 } else {
 	function getLayers(a,b) {
@@ -432,8 +432,8 @@ if (typeof ldp_viewer == 'object') {
  * @param primary_key
  * @param extra_field
  */
-if (typeof ldp_viewer == 'object' && typeof ldp_viewer.mapGetSelectedFeatures == 'function') {
-	getSelectedFeatures=$.proxy(ldp_viewer.mapGetSelectedFeatures,ldp_viewer);
+if (typeof open_viewer == 'object' && typeof open_viewer.mapGetSelectedFeatures == 'function') {
+	getSelectedFeatures=$.proxy(open_viewer.mapGetSelectedFeatures,open_viewer);
 } else {
 
 	function getSelectedFeatures(xml,a_layers,callback,primary_key,extra_field) {
@@ -481,8 +481,8 @@ if (typeof ldp_viewer == 'object' && typeof ldp_viewer.mapGetSelectedFeatures ==
  * 
  * 
  */
-if (typeof ldp_viewer == 'object' && typeof ldp_viewer.setSelection_legacy == 'function') {
-	setSelection_multilayer=$.proxy(ldp_viewer.setSelection_multilayer_legacy,ldp_viewer);
+if (typeof open_viewer == 'object' && typeof open_viewer.setSelection_legacy == 'function') {
+	setSelection_multilayer=$.proxy(open_viewer.setSelection_multilayer_legacy,open_viewer);
 } else {
 	function setSelection_multilayer(selection_string) {
 		
@@ -553,8 +553,8 @@ function setSelection_multi(layer,ids,primary_key) {
  * 
  */
 
-if (typeof ldp_viewer == 'object' && typeof ldp_viewer.setSelection_legacy == 'function') {
-	setSelection=$.proxy(ldp_viewer.setSelection_legacy,ldp_viewer);
+if (typeof open_viewer == 'object' && typeof open_viewer.setSelection_legacy == 'function') {
+	setSelection=$.proxy(open_viewer.setSelection_legacy,open_viewer);
 } else {
 
 	function setSelection(layer, ids, primary_key) {
@@ -594,8 +594,8 @@ if (typeof ldp_viewer == 'object' && typeof ldp_viewer.setSelection_legacy == 'f
  * 
  * 
  */
-if (typeof ldp_viewer == 'object' && typeof ldp_viewer.mapClearSelection == 'function') {
-	clearSelection=$.proxy(ldp_viewer.mapClearSelection,ldp_viewer);
+if (typeof open_viewer == 'object' && typeof open_viewer.mapClearSelection == 'function') {
+	clearSelection=$.proxy(open_viewer.mapClearSelection,open_viewer);
 } else {
 	function clearSelection() {
 		if ( (typeof onMobile == 'undefined') || (onMobile == false) ) {
@@ -637,8 +637,8 @@ function drawRectangle(bbox) {
  * Introdotta con il nuovo visualizzatore
  * 
  */
-if (typeof ldp_viewer == 'object' && typeof ldp_viewer.startDrawPolygon == 'function') {
-	startDrawPolygon=$.proxy(ldp_viewer.startDrawPolygon,ldp_viewer);
+if (typeof open_viewer == 'object' && typeof open_viewer.startDrawPolygon == 'function') {
+	startDrawPolygon=$.proxy(open_viewer.startDrawPolygon,open_viewer);
 } else {
 	function startDrawPolygon() {
 		///Old viewer - Not implemented
@@ -659,8 +659,8 @@ if (typeof ldp_viewer == 'object' && typeof ldp_viewer.startDrawPolygon == 'func
  * 
  */
 
-if (typeof ldp_viewer == 'object' ) {
-	cancelDigitization=$.proxy(ldp_viewer.cancelDigitization,ldp_viewer);
+if (typeof open_viewer == 'object' ) {
+	cancelDigitization=$.proxy(open_viewer.cancelDigitization,open_viewer);
 } else {
 
 	function cancelDigitization() {
@@ -686,9 +686,9 @@ if (typeof ldp_viewer == 'object' ) {
  * 
  */
 
-if (typeof ldp_viewer == 'object' && typeof ldp_viewer.digitizePoint == 'function') {
+if (typeof open_viewer == 'object' && typeof open_viewer.digitizePoint == 'function') {
 	
-	isDigitizing=$.proxy(ldp_viewer.isDigitizing,ldp_viewer);
+	isDigitizing=$.proxy(open_viewer.isDigitizing,open_viewer);
 } else {
 
 	function isDigitizing() {
@@ -715,9 +715,9 @@ if (typeof ldp_viewer == 'object' && typeof ldp_viewer.digitizePoint == 'functio
  * 
  */
 
-if (typeof ldp_viewer == 'object' && typeof ldp_viewer.digitizePoint == 'function') {
+if (typeof open_viewer == 'object' && typeof open_viewer.digitizePoint == 'function') {
 	
-	DigitizePoint=$.proxy(ldp_viewer.digitizePoint,ldp_viewer);
+	DigitizePoint=$.proxy(open_viewer.digitizePoint,open_viewer);
 } else {
 
 	function DigitizePoint(f) {
@@ -805,8 +805,8 @@ function creaPointLayerFont(nome, colore, spessore, rotation, fontname, characte
  * Returns:
  * 	@return true se la richiesta di creazione del nuovo layer è stata inviata correttamente, false altrimenti
  */
-if (typeof ldp_viewer == 'object' && typeof ldp_viewer.creaPointLayer_legacy == 'function') {
-	creaPointLayer=$.proxy(ldp_viewer.creaPointLayer_legacy,ldp_viewer);
+if (typeof open_viewer == 'object' && typeof open_viewer.creaPointLayer_legacy == 'function') {
+	creaPointLayer=$.proxy(open_viewer.creaPointLayer_legacy,open_viewer);
 } else {
 function creaPointLayer(nome, colore, spessore, angolo, height, group, groupLabel, onSuccess, onFail) {
 	
@@ -873,8 +873,8 @@ function creaPointLayer(nome, colore, spessore, angolo, height, group, groupLabe
  * Returns:
  * 	@return true se la richiesta di creazione del nuovo layer è stata inviata correttamente, false altrimenti
  */
-if (typeof ldp_viewer == 'object' && typeof ldp_viewer.creaLineLayer_legacy == 'function') {
-	creaLineLayer=$.proxy(ldp_viewer.creaLineLayer_legacy,ldp_viewer);
+if (typeof open_viewer == 'object' && typeof open_viewer.creaLineLayer_legacy == 'function') {
+	creaLineLayer=$.proxy(open_viewer.creaLineLayer_legacy,open_viewer);
 } else {
 function creaLineLayer(nome, colore, spessore, group, groupLabel, onSuccess, onFail) {
 	
@@ -936,8 +936,8 @@ function creaLineLayer(nome, colore, spessore, group, groupLabel, onSuccess, onF
  * Returns:
  * 	@return true se la richiesta di creazione del nuovo layer è stata inviata correttamente, false altrimenti
  */
-if (typeof ldp_viewer == 'object' && typeof ldp_viewer.creaPolygonLayer_legacy == 'function') {
-	creaPolygonLayer=$.proxy(ldp_viewer.creaPolygonLayer_legacy,ldp_viewer);
+if (typeof open_viewer == 'object' && typeof open_viewer.creaPolygonLayer_legacy == 'function') {
+	creaPolygonLayer=$.proxy(open_viewer.creaPolygonLayer_legacy,open_viewer);
 } else {
 function creaPolygonLayer(nome, colore, spessore_bordo, colore_bordo, group, groupLabel, onSuccess, onFail, setVisible) {
 	
@@ -996,8 +996,8 @@ function creaPolygonLayer(nome, colore, spessore_bordo, colore_bordo, group, gro
  * Returns:
  * 	@return true se la richiesta di creazione dei nuovi layer è stata inviata correttamente, false altrimenti
  */
-if (typeof ldp_viewer == 'object' && typeof ldp_viewer.creaGeneralLayers_legacy == 'function') {
-	creaGeneralLayers=$.proxy(ldp_viewer.creaGeneralLayers_legacy,ldp_viewer);
+if (typeof open_viewer == 'object' && typeof open_viewer.creaGeneralLayers_legacy == 'function') {
+	creaGeneralLayers=$.proxy(open_viewer.creaGeneralLayers_legacy,open_viewer);
 } else {
 
 function creaGeneralLayers(nomi, tipologie, colori, spessori_bordo, colori_bordo, nomiGruppi, onSuccess) {
@@ -1054,7 +1054,7 @@ function evidenziaBox(x_coord, y_coord, nomeLayer, lunghezzaLato, colore, spesso
 	
 	var wkt = "LINESTRING(" + x_min + " " + y_min + "," +    x_max + " " + y_min + "," +     x_max + " " + y_max + "," +     x_min + " " + y_max + "," +     x_min + " " + y_min + ")";
 
-	if (typeof ldp_viewer == 'object' && typeof ldp_viewer.addPointsInLayer_legacy == 'function') {
+	if (typeof open_viewer == 'object' && typeof open_viewer.addPointsInLayer_legacy == 'function') {
 		addLinesInLayer(wkt, nomeLayer, true, null, gruppo, null);
 	} else {
 		creaGeneralLayers(nomeLayer, 'line', colore, spessore, colore, gruppo, function() { addLinesInLayer(wkt, nomeLayer, true, null, gruppo, null) } );
@@ -1081,8 +1081,8 @@ function evidenziaBox(x_coord, y_coord, nomeLayer, lunghezzaLato, colore, spesso
  * Returns:
  * 	@return true se la richiesta è stata inviata correttamente, false altrimenti
  */
-if (typeof ldp_viewer == 'object' && typeof ldp_viewer.addPointsInLayer_legacy == 'function') {
-	addPointsInLayer=$.proxy(ldp_viewer.addPointsInLayer_legacy,ldp_viewer);
+if (typeof open_viewer == 'object' && typeof open_viewer.addPointsInLayer_legacy == 'function') {
+	addPointsInLayer=$.proxy(open_viewer.addPointsInLayer_legacy,open_viewer);
 } else {
 	function addPointsInLayer(wkt, nomeLayer, dorefresh, onsuccess, labelText, groupName, onFail, stopRecursion) {
 			
@@ -1151,8 +1151,8 @@ if (typeof ldp_viewer == 'object' && typeof ldp_viewer.addPointsInLayer_legacy =
  * Returns:
  * 	@return true se la richiesta di è stata inviata correttamente, false altrimenti
  */
-if (typeof ldp_viewer == 'object' && typeof ldp_viewer.addLinesInLayer_legacy == 'function') {
-	addLinesInLayer=$.proxy(ldp_viewer.addLinesInLayer_legacy,ldp_viewer);
+if (typeof open_viewer == 'object' && typeof open_viewer.addLinesInLayer_legacy == 'function') {
+	addLinesInLayer=$.proxy(open_viewer.addLinesInLayer_legacy,open_viewer);
 } else {
 	function addLinesInLayer(wkt, nomeLayer, doRefresh, onSuccess, groupName, onFail, stopRecursion) {
 	
@@ -1219,9 +1219,9 @@ if (typeof ldp_viewer == 'object' && typeof ldp_viewer.addLinesInLayer_legacy ==
  * Returns:
  * 	@return true se la richiesta è stata inviata correttamente, false altrimenti
  */
-if (typeof ldp_viewer == 'object' && typeof ldp_viewer.addPolygonsInLayer_legacy == 'function') {
+if (typeof open_viewer == 'object' && typeof open_viewer.addPolygonsInLayer_legacy == 'function') {
 	
-	addPolygonsInLayer=$.proxy(ldp_viewer.addPolygonsInLayer_legacy,ldp_viewer);
+	addPolygonsInLayer=$.proxy(open_viewer.addPolygonsInLayer_legacy,open_viewer);
 } else {
 	function addPolygonsInLayer (wkt, nomeLayer, doRefresh, onSuccess, onFail) {
 		
@@ -1273,9 +1273,9 @@ if (typeof ldp_viewer == 'object' && typeof ldp_viewer.addPolygonsInLayer_legacy
  * 	onFail - funzione da eseguire in caso ci sia un errore
  * 
  */
-if (typeof ldp_viewer == 'object' && typeof ldp_viewer.emptyLayers_legacy == 'function') {
+if (typeof open_viewer == 'object' && typeof open_viewer.emptyLayers_legacy == 'function') {
 	
-	emptyLayer=$.proxy(ldp_viewer.emptyLayers_legacy,ldp_viewer);
+	emptyLayer=$.proxy(open_viewer.emptyLayers_legacy,open_viewer);
 	
 } else {
 	function emptyLayer (layer, doRefresh, onSuccess, onFail) {
@@ -1338,9 +1338,9 @@ if (typeof ldp_viewer == 'object' && typeof ldp_viewer.emptyLayers_legacy == 'fu
  * Returns:
  * 	@returns {Boolean} *true* on success request, *false* otherwise
  */
-if (typeof ldp_viewer == 'object' && typeof ldp_viewer.emptyLayers_legacy == 'function') {
+if (typeof open_viewer == 'object' && typeof open_viewer.emptyLayers_legacy == 'function') {
 
-	emptyLayers=$.proxy(ldp_viewer.emptyLayers_legacy,ldp_viewer);
+	emptyLayers=$.proxy(open_viewer.emptyLayers_legacy,open_viewer);
 	
 } else {
 function emptyLayers(list_layers, dorefresh, onsuccess, async, onFail) {
@@ -1518,8 +1518,8 @@ function snapPoint(point, strati, tipo, tolleranza, sottrai, callback) {
  * Returns:
  * 	@returns {Boolean}
  */
-if (typeof ldp_viewer == 'object' && typeof ldp_viewer.creaLabelLayer_legacy == 'function') {
-	creaLabelLayer=$.proxy(ldp_viewer.creaLabelLayer_legacy,ldp_viewer);
+if (typeof open_viewer == 'object' && typeof open_viewer.creaLabelLayer_legacy == 'function') {
+	creaLabelLayer=$.proxy(open_viewer.creaLabelLayer_legacy,open_viewer);
 } else {
 
 function creaLabelLayer(nome,colore,spessore,dorefresh,onsuccess) {
@@ -1626,8 +1626,8 @@ function addLabelInLayer(nomeLayer, wkt, labelText, size, angle, sizex, dorefres
  * Returns:
  * 	@returns {Boolean}
  */
-if (typeof ldp_viewer == 'object' && typeof ldp_viewer.putLabelInLayer_legacy == 'function') {
-	putLabelInLayer=$.proxy(ldp_viewer.putLabelInLayer_legacy,ldp_viewer);
+if (typeof open_viewer == 'object' && typeof open_viewer.putLabelInLayer_legacy == 'function') {
+	putLabelInLayer=$.proxy(open_viewer.putLabelInLayer_legacy,open_viewer);
 } else {
 
 	function putLabelInLayer(nomeLayer, wkt, labelText, size, angle, sizex, dorefresh,onsuccess ) {
@@ -1682,8 +1682,8 @@ if (typeof ldp_viewer == 'object' && typeof ldp_viewer.putLabelInLayer_legacy ==
  * Returns:
  * 	@returns {Boolean}
  */
-if (typeof ldp_viewer == 'object' && typeof ldp_viewer.putLabelsInLayer_legacy == 'function') {
-	putLabelsInLayer=$.proxy(ldp_viewer.putLabelsInLayer_legacy,ldp_viewer);
+if (typeof open_viewer == 'object' && typeof open_viewer.putLabelsInLayer_legacy == 'function') {
+	putLabelsInLayer=$.proxy(open_viewer.putLabelsInLayer_legacy,open_viewer);
 } else {
 
 function putLabelsInLayer(nomeLayer, params, sizex, dorefresh,onsuccess ) {
@@ -1719,8 +1719,8 @@ function putLabelsInLayer(nomeLayer, params, sizex, dorefresh,onsuccess ) {
 }
 /**** FINE SEZIONE REDLINING ****/
 
-if (typeof ldp_viewer == 'object' && typeof ldp_viewer.zoomToView == 'function') {
-	zoomToView=$.proxy(ldp_viewer.zoomToView,ldp_viewer);
+if (typeof open_viewer == 'object' && typeof open_viewer.zoomToView == 'function') {
+	zoomToView=$.proxy(open_viewer.zoomToView,open_viewer);
 } else {
 /**
  * 
@@ -1774,15 +1774,15 @@ function zoomToView(cx, cy, scala) {
  *
  * Parameters:
  * 	@param polygonWkt - well formed wkt polygon as a string
- * 	@param scalaForFitMargin - margin for scalaForFit function
+ * 	@param getScaleToFitMargin - margin for getScaleToFit function
  * 	@param scalaMinima - min scale for zoom
  *
  */
-function zoomToPolygon(polygonWkt, scalaForFitMargin, scalaMinima) {
+function zoomToPolygon(polygonWkt, getScaleToFitMargin, scalaMinima) {
 	if ( typeof logger != 'undefined' && isset(logger) ) { logger.i("zoomToPolygon()"); }
 
 	if (!empty(polygonWkt)) {
-		if (empty(scalaForFitMargin)) scalaForFitMargin = 1;
+		if (empty(getScaleToFitMargin)) getScaleToFitMargin = 1;
 
 		// WKT parsing from https://github.com/arthur-e/Wicket
 		$.getScript('/include/js/wicket.js', function() {
@@ -1807,7 +1807,7 @@ function zoomToPolygon(polygonWkt, scalaForFitMargin, scalaMinima) {
 			}
 
 			if (xmin != Number.MAX_VALUE && ymin != Number.MAX_VALUE && xmax != Number.MIN_VALUE && ymax != Number.MIN_VALUE) {
-				var scala = scalaForFit(xmin, xmax, ymin, ymax, scalaForFitMargin);
+				var scala = getScaleToFit(xmin, xmax, ymin, ymax, getScaleToFitMargin);
 				if (!empty(scalaMinima) && parseInt(scalaMinima) && scala < scalaMinima) {
 					scala = scalaMinima;
 				}
@@ -1863,9 +1863,9 @@ function zoomToViewFalse(cx,cy,scala) {
  * 	@param useRefreshSenzaLegenda: - true se non si vuole aggiornare anche la leggenda, false altrimenti
  * 
  */
-if (typeof ldp_viewer == 'object' && typeof ldp_viewer.mapRefresh == 'function') {
+if (typeof open_viewer == 'object' && typeof open_viewer.mapRefresh == 'function') {
 	
-	mapRefresh=$.proxy(ldp_viewer.mapRefresh,ldp_viewer);
+	mapRefresh=$.proxy(open_viewer.mapRefresh,open_viewer);
 // 	//Non c'è bisogno di fare chiamate dirette al nuovo viewer, si sfruttano le funzioni già mappate
 //  	function mapRefresh(onSuccess, onFail, useRefreshSenzaLegenda) {
 // 		zoomToView(getMapCenter().X-0.01,getMapCenter().Y, getMapScale(),true);
@@ -1912,9 +1912,9 @@ function mapRefresh(onSuccess, onFail, useRefreshSenzaLegenda) {
  * 	@returns
  */
 
-if (typeof ldp_viewer == 'object' && typeof ldp_viewer.getMapCenter == 'function') {
+if (typeof open_viewer == 'object' && typeof open_viewer.getMapCenter == 'function') {
 	
-	getMapCenter=$.proxy(ldp_viewer.getMapCenter,ldp_viewer);
+	getMapCenter=$.proxy(open_viewer.getMapCenter,open_viewer);
 } else {
 
 function getMapCenter() {
@@ -1950,9 +1950,9 @@ function getMapCenter() {
  * 	@returns
  */
 
-if (typeof ldp_viewer == 'object' && typeof ldp_viewer.getMapCenterDataProjection == 'function') {
+if (typeof open_viewer == 'object' && typeof open_viewer.getMapCenterDataProjection == 'function') {
 	
-	getMapCenterDataProjection=$.proxy(ldp_viewer.getMapCenterDataProjection,ldp_viewer);
+	getMapCenterDataProjection=$.proxy(open_viewer.getMapCenterDataProjection,open_viewer);
 } else {
 
 function getMapCenterDataProjection() {
@@ -1975,9 +1975,9 @@ function getMapCenterDataProjection() {
  * Returns:
  * 	@returns the width of the map
  */
-if (typeof ldp_viewer == 'object' && typeof ldp_viewer.getMapWidth == 'function') {
+if (typeof open_viewer == 'object' && typeof open_viewer.getMapWidth == 'function') {
 	
-	getMapWidth=$.proxy(ldp_viewer.getMapWidth,ldp_viewer);
+	getMapWidth=$.proxy(open_viewer.getMapWidth,open_viewer);
 } else {
 
 
@@ -2002,9 +2002,9 @@ if (typeof ldp_viewer == 'object' && typeof ldp_viewer.getMapWidth == 'function'
  * Returns:
  * 	@returns the height of the map
  */
-if (typeof ldp_viewer == 'object' && typeof ldp_viewer.getMapHeight == 'function') {
+if (typeof open_viewer == 'object' && typeof open_viewer.getMapHeight == 'function') {
 	
-	getMapHeight=$.proxy(ldp_viewer.getMapHeight,ldp_viewer);
+	getMapHeight=$.proxy(open_viewer.getMapHeight,open_viewer);
 } else {
 
 	function getMapHeight() {
@@ -2027,8 +2027,8 @@ if (typeof ldp_viewer == 'object' && typeof ldp_viewer.getMapHeight == 'function
  * Returns:
  * 	@returns the actual scale of the map
  */
-if (typeof ldp_viewer == 'object' && typeof ldp_viewer.getMapScale == 'function') {
-	getMapScale=$.proxy(ldp_viewer.getMapScale,ldp_viewer);
+if (typeof open_viewer == 'object' && typeof open_viewer.getMapScale == 'function') {
+	getMapScale=$.proxy(open_viewer.getMapScale,open_viewer);
 } else {
 	function getMapScale() {
 		
@@ -2195,16 +2195,16 @@ function _getIDs(xml, ret) {
  * 
  * Get an object with selected features id and relative layers id
  * ids member is an array of feature id (the selected ones)
- * lys member is an array of layers id (use getLayerNames to get layer names)
+ * lys member is an array of layers id (use getMapGuideLayersNamesByIDs to get layer names)
  * 
  * Returns:
  * 	@returns null if no feature selected
  */
 
-if (typeof ldp_viewer == 'object' && typeof ldp_viewer.mapGetMapSelection == 'function') {
-	getMapSelection=$.proxy(ldp_viewer.mapGetMapSelection,ldp_viewer);
+if (typeof open_viewer == 'object' && typeof open_viewer.getMapGuideSelection == 'function') {
+	getMapGuideSelection=$.proxy(open_viewer.getMapGuideSelection,open_viewer);
 } else {
-function getMapSelection() {
+function getMapGuideSelection() {
 	if ( istrue(onMobile) ) {
 		if ( typeof logger != 'undefined' && isset(logger) ) { logger.i("getSelection() not yet implemented on mobile"); }
 		return null;
@@ -2239,7 +2239,7 @@ function getMapSelection() {
 
 /**
  * 
- * Function: getLayerNames
+ * Function: getMapGuideLayersNamesByIDs
  * 
  * Converts and array of layer ids to an array of layer names
  * N.B. This is a client-only method
@@ -2250,14 +2250,14 @@ function getMapSelection() {
  * Returns:
  * 	@returns the names arrays
  */
-if (typeof ldp_viewer == 'object' && typeof ldp_viewer.getLayerNames == 'function') {
-	getLayerNames=$.proxy(ldp_viewer.getLayerNames,ldp_viewer);
+if (typeof open_viewer == 'object' && typeof open_viewer.getMapGuideLayersNamesByIDs == 'function') {
+	getMapGuideLayersNamesByIDs=$.proxy(open_viewer.getMapGuideLayersNamesByIDs,open_viewer);
 } else {
-function getLayerNames(ids) {
+function getMapGuideLayersNamesByIDs(ids) {
 	var res=null;
 	
 	if ( istrue(onMobile) ) {
-		if ( typeof logger != 'undefined' && isset(logger) ) { logger.i("getLayerNames() not yet implemented on mobile"); }
+		if ( typeof logger != 'undefined' && isset(logger) ) { logger.i("getMapGuideLayersNamesByIDs() not yet implemented on mobile"); }
 		return null;
 	}
 	
@@ -2344,7 +2344,7 @@ function filterSelection(sel, layerName) {
 	
 	
 	if (sel == null) return null;
-	var ids=[], lys=sel.translated ? sel.lys : getLayerNames(sel.lys), lay=[];
+	var ids=[], lys=sel.translated ? sel.lys : getMapGuideLayersNamesByIDs(sel.lys), lay=[];
 	
 	for (var i=0; i<lys.length; i++)
 		if ((typeof layerName == 'string' && lys[i] == layerName) || layerName.test &&  layerName.test(lys[i]))
@@ -3364,8 +3364,8 @@ function setLayerGroupExpandable(layerGroupName, expandable, onSuccess, onFail) 
 
 /**** SEZIONE UTILITY WRAPPER JAVASCRIPT FUNCTIONS ****/
 function documentLocationWrapper(url) {
-	if (typeof ldp_viewer == 'object') {
-		ldp_viewer.documentLocationWrapper(url);
+	if (typeof open_viewer == 'object') {
+		open_viewer.documentLocationWrapper(url);
 	}else{
 		document.location=url;
 	}

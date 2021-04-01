@@ -1,0 +1,522 @@
+/* media queries generiche prese da http://www.javascriptkit.com/dhtmltutors/cssmediaqueries2.shtml */
+
+
+/* 
+  ##Device = Desktops
+  ##Screen = 1281px to higher resolution desktops
+*/
+
+@media (min-width: 1281px) {
+	#ov_toolbar .ov-icon-wrap.mobile {display: none;} /* nasconde icone specifiche per mobile */
+}
+
+/* 
+  ##Device = Laptops, Desktops
+  ##Screen = B/w 1025px to 1280px
+*/
+
+@media (min-width: 1025px) and (max-width: 1280px) {
+	#ov_toolbar .ov-icon-wrap.mobile {display: none;} /* nasconde icone specifiche per mobile */
+}
+
+/* 
+  ##Device = Tablets, Ipads (portrait)
+  ##Screen = B/w 768px to 1024px
+*/
+
+@media (min-width: 768px) and (max-width: 1024px) {
+	
+	div#ov_tabs_container {
+		position: absolute;
+		top: -1px;
+		left: 0px !important;
+		padding: 0;
+		border-radius: 0px;
+		border-right: 4px solid #c0c0c0;
+		border-left: none;
+		/*height: 100vh !important;*/
+		z-index: 100;
+	}
+	
+	#ov_toolbar, #ov_toolbar_right {
+		padding: 0 5px 5px 5px;
+		border: 0;
+		-webkit-box-shadow: none;
+		-moz-box-shadow: none;
+		box-shadow: none;
+		background-color: transparent;
+		background-image: none;
+	}
+	
+	#ov_info_tabs .ui-widget-header{
+		left:47px;
+	}
+	
+	#ov_toolbar .ov-icon-wrap.desktop,
+	span.separator {display: none;} /* nasconde icone della toolbar non utilizzate su smartphone */
+	
+	.mobile {display: initial !important;}/* mostra icone specifiche per smartphone */
+	
+	#ov_toolbar .ov-icon-wrap, #ov_toolbar_right .ov-icon-wrap{margin: 5px 0;} /* icone toolbar ravvicinate */
+	
+	#ov_toolbar .ov-icon-wrap, #ov_toolbar_right .ov-icon-wrap {
+		padding: 2px;
+		border-radius: 4px 4px 4px 4px;
+		border: 1px solid rgba(0, 0, 0, 0);
+		background-color: rgba(245, 245, 245, 0.68);
+	}
+	
+	#ov_toolbar #ov_trova_posizione {
+		display: block;
+		position: absolute;
+		bottom: 25px;
+	}
+
+	/* tasti di chiusura dei pannelli a sinistra della mappa */
+	div#ov_tabs_container #ov_close_panel,
+	div#ov_info_tabs_header #ov_close_info_panel {
+		margin: 0 0 5px 0;
+		color: #fff;
+		margin-right: 19px;
+	}
+	div#ov_info_tabs_header #ov_close_info_panel {
+		position:absolute;
+		left: 10px;
+	}
+	div#ov_tabs_container #ov_close_panel{
+		float: right;
+	}
+	
+	/* #ov_info_container prende tutta la larghezza dello schermo, coprono la mappa */
+	#ov_info_container {
+		right:0px;
+		/* top: 57px; */
+	}
+	
+	h1 {font-size: 15px;}
+	
+	#menu li {margin: 0 0 5px 0;}
+	
+
+	#ov_footer #footer_mouse_coordinates,
+	#ov_footer #footer_info_selezione {display: none;}
+	
+	#ov_footer #footer_scala {
+		margin: 0 20px;
+		position: relative;
+		top: -3px;
+	}
+	
+	#footer_scala input[type="text"] {
+		font-size: 14px;
+		border: 0;
+	}
+}
+
+/* 
+  ##Device = Tablets, Ipads (landscape)
+  ##Screen = B/w 768px to 1024px
+*/
+
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: landscape) {
+	div#ov_tabs_container {
+		position: absolute;
+		top: 0;
+		left: 0px !important;
+		padding: 0;
+		border-radius: 0px;
+		border-right: 4px solid #c0c0c0;
+		border-left: none;
+		/*height: 100vh !important;*/
+		z-index:100
+	}
+	
+	#ov_toolbar, #ov_toolbar_right {
+		padding: 0 5px 5px 5px;
+		border: 0;
+		-webkit-box-shadow: none;
+		-moz-box-shadow: none;
+		box-shadow: none;
+		background-color: transparent;
+		background-image: none;
+	}
+	
+	#ov_info_tabs .ui-widget-header {
+		left:47px;
+	}
+	
+	#ov_toolbar .ov-icon-wrap.desktop,
+	span.separator {display: none;} /* nasconde icone della toolbar non utilizzate su smartphone */
+	
+	.mobile {display: initial !important;}/* mostra icone specifiche per smartphone */
+	
+	#ov_toolbar .ov-icon-wrap, #ov_info_tabs_header .ov-icon-wrap {margin: 5px 0;} /* icone toolbar ravvicinate */
+	
+	#ov_toolbar .ov-icon-wrap, #ov_info_tabs_header .ov-icon-wrap, #ov_toolbar_right .ov-icon-wrap{
+		padding: 2px;
+		border-radius: 4px 4px 4px 4px;
+		border: 1px solid rgba(0, 0, 0, 0);
+		background-color: rgba(245, 245, 245, 0.68);
+	}
+	
+	#ov_toolbar #ov_trova_posizione {
+		display: block;
+		position: absolute;
+		bottom: 25px;
+	}
+
+	#ov_info_tabs .ui-widget-header{
+		left:47px;
+	}
+		
+	/* tasti di chiusura dei pannelli a sinistra della mappa */
+	div#ov_tabs_container #ov_close_panel,
+	div#ov_info_tabs_header #ov_close_info_panel {
+		margin: 0 1px 5px 0;
+		color: #fff;
+		/*margin-right: 19px;*/
+	}
+	div#ov_info_tabs_header #ov_close_info_panel {
+		position:absolute;
+		left: 10px;
+	}
+	div#ov_tabs_container #ov_close_panel{
+		float: right;
+	}
+	
+	/* #ov_info_container prende tutta la larghezza dello schermo, coprono la mappa */
+	#ov_info_container {
+		right: 0px !important;
+		/* top: 58px; */
+	}
+	
+	#ov_info_container .ui-resizable-w {
+		/* top: 59px; */
+	}
+	
+	h1 {
+		font-size: 15px;
+	}
+	
+	#menu li {
+		margin: 0 0 5px 0;
+	}
+	
+
+	#ov_footer #footer_mouse_coordinates,
+	#ov_footer #footer_info_selezione {display: none;}
+	
+	#ov_footer #footer_scala {
+		margin: 0 20px;
+		position: relative;
+		top: -3px;
+	}
+	
+	#footer_scala input[type="text"] {
+		font-size: 14px;
+		border: 0;
+	}
+}
+
+/* 
+  ##Device = Low Resolution Tablets, Mobiles (Landscape)
+  ##Screen = B/w 481px to 767px
+*/
+
+@media (min-width: 481px) and (max-width: 767px) {
+	/* #ov_title {
+		padding: 5px;
+		height: 48px;
+	}
+	
+	#intesta {
+		display: inline-block;
+		max-width: 92%;
+	}
+	
+	.titolo_cliente {
+		margin: 0;
+		max-width: 86%;
+	} */
+	
+	#titolo_gruppo {
+		display: none;
+	}
+	
+	span#nome_cliente {
+		display: block;
+		margin: 0;
+		font-size: 12px;
+	}	
+		
+	/* #intesta a.exit .webicon {
+		top: 0;
+	} */
+	
+	span#nome_cliente {
+		display: block;
+		font-size: 14px;
+		margin: 0;
+	}
+	
+	#title_right a#help,
+	#title_right .webicon {
+		margin: 0 !important;
+	}
+	
+	#titolo_progetto {
+		font-size: 16px;
+	}
+	
+	#ov_toolbar {
+		padding: 5px;
+		border: 0;
+		-webkit-box-shadow: none;
+		-moz-box-shadow: none;
+		box-shadow: none;
+		background-color: transparent;
+		background-image: none;
+		top: 0px;
+	}
+	
+	#ov_toolbar_right {
+		padding: 0 5px 5px 5px;
+		border: 0;
+		-webkit-box-shadow: none;
+		-moz-box-shadow: none;
+		box-shadow: none;
+		background-color: transparent;
+		background-image: none;
+		/* top: 51px; */
+	}
+	
+	#ov_info_tabs .ui-widget-header{
+		left:47;
+	}
+	
+	#ov_toolbar .ov-icon-wrap.desktop,
+	span.separator {display: none;} /* nasconde icone della toolbar non utilizzate su smartphone */
+	
+	.mobile {display: initial !important;}/* mostra icone specifiche per smartphone */
+	
+	#ov_toolbar .ov-icon-wrap, #ov_info_tabs_header .ov-icon-wrap {margin: 5px 0;} /* icone toolbar ravvicinate */
+	
+	#ov_toolbar .ov-icon-wrap, #ov_info_tabs_header .ov-icon-wrap, #ov_toolbar_right .ov-icon-wrap {
+		padding: 2px;
+		border-radius: 4px 4px 4px 4px;
+		border: 1px solid rgba(0, 0, 0, 0);
+		background-color: rgba(245, 245, 245, 0.85);
+	}
+	
+	#ov_toolbar #ov_trova_posizione {
+		display: block;
+		position: absolute;
+		bottom: 25px;
+	}
+
+	/* tasti di chiusura dei pannelli a sinistra della mappa */
+	div#ov_tabs_container #ov_close_panel {margin: 5px 19px 0 0;}
+	
+	div#ov_info_tabs_header #ov_close_info_panel {
+		margin: 0 0 5px 0;
+		color: #fff;
+		margin-right: 19px;
+	}
+	div#ov_info_tabs_header #ov_close_info_panel {
+		position:absolute;
+		left: 10px;
+	}
+	div#ov_tabs_container #ov_close_panel {
+		float: right;
+	}
+	
+	/* #ov_info_container prende tutta la larghezza dello schermo, coprono la mappa */
+	#ov_tabs_container {
+		width: 100%;
+		z-index: 99;
+		box-shadow: none;
+		left: 0px !important;
+	}
+	
+	#ov_info_container {
+		right: 0px;
+		/* top: 40px; */
+	}
+	
+	#ov_info_container .ui-resizable-w {
+		/* top: 41px; */
+	}
+	
+	#ov_info_tabs .ui-widget-header {
+		left: 47px;
+	}
+	
+	h1 {
+		font-size: 15px;
+	}
+	
+	#menu li {
+		margin: 0 0 5px 0;
+	}
+	
+
+	#ov_footer #footer_mouse_coordinates,
+	#ov_footer #footer_info_selezione {display: none;}
+	
+	#ov_footer #footer_scala {
+		margin: 0 20px;
+		position: relative;
+		top: -3px;
+	}
+	
+	#footer_scala input[type="text"] {
+		font-size: 14px;
+		border: 0;
+	}
+}
+
+/* 
+  ##Device = Most of the Smartphones Mobiles (Portrait)
+  ##Screen = B/w 320px to 479px
+*/
+
+@media (min-width: 320px) and (max-width: 480px) {
+	/* #ov_title {
+		padding: 5px;
+		height: 48px;
+	} */
+	
+	/* #intesta {
+		display: inline-block;
+		max-width: 92%;
+	}
+	
+	.titolo_cliente {
+		margin: 0;
+		max-width: 86%;
+	} */
+	
+	#titolo_gruppo {
+		display: none;
+	}
+		
+	span#nome_cliente {
+		display: block;
+		margin: 0;
+		font-size: 12px;
+	}	
+		
+	/* #intesta a.exit .webicon {
+		top: 0;
+	} */
+	
+	span#nome_cliente {
+		display: block;
+		font-size: 14px;
+		margin: 0;
+	}
+	
+	#title_right a#help,
+	#title_right .webicon {
+		margin: 0 !important;
+	}
+
+	#titolo_progetto {
+		font-size: 14px;
+	}
+	
+	#ov_toolbar,
+	#ov_toolbar_right {
+		padding: 0 5px 5px 5px;
+		border: 0;
+		-webkit-box-shadow: none;
+		-moz-box-shadow: none;
+		box-shadow: none;
+		background-color: transparent;
+		background-image: none;
+	}
+	
+	#ov_info_tabs .ui-widget-header{
+		left:47px;
+	}
+	
+	#ov_toolbar .ov-icon-wrap.desktop,
+	span.separator {display: none;} /* nasconde icone della toolbar non utilizzate su smartphone */
+	
+	.mobile {display: initial !important;}/* mostra icone specifiche per smartphone */
+	
+	#ov_toolbar .ov-icon-wrap,
+	#ov_info_tabs_header .ov-icon-wrap {margin: 5px 0;} /* icone toolbar ravvicinate */
+	
+	#ov_toolbar .ov-icon-wrap,
+	#ov_info_tabs_header .ov-icon-wrap,
+	#ov_toolbar_right .ov-icon-wrap {
+		padding: 2px;
+		border-radius: 4px 4px 4px 4px;
+		border: 1px solid rgba(0, 0, 0, 0);
+		background-color: rgba(245, 245, 245, 0.68);
+	}
+	
+	#ov_toolbar #ov_trova_posizione {
+		display: block;
+		position: absolute;
+		bottom: 25px;
+	}
+	
+	/* tasti di chiusura dei pannelli a sinistra della mappa */
+	div#ov_tabs_container #ov_close_panel, 
+	div#ov_info_tabs_header #ov_close_info_panel {
+		margin: 3px 0 0px 0;
+		color: #fff;
+		margin-right: 13px;
+	}
+	div#ov_info_tabs_header #ov_close_info_panel {
+		position:absolute;
+		left: 10px;
+	}
+	div#ov_tabs_container #ov_close_panel{
+		float: right;
+	}
+	
+	/* #ov_info_container prende tutta la larghezza dello schermo, coprono la mappa */
+	#ov_tabs_container {
+		z-index: 99;
+		box-shadow: none;
+		left: 0px !important;
+		top: 0px !important;
+	}
+	
+	#ov_info_container {
+		right: 0px;
+		/* top: 56px; */
+	}
+	
+	#ov_info_container .ui-resizable-w {
+		/* top: 57px; */
+	}
+	
+	h1 {
+		font-size: 15px;
+	}
+	
+	#menu li {
+		margin: 0 0 5px 0;
+	}
+	
+
+	#ov_footer #footer_mouse_coordinates,
+	#ov_footer #footer_info_selezione {
+		display: none;
+	}
+	
+	#ov_footer #footer_scala {
+		margin: 0 20px;
+		position: relative;
+		top: -3px;
+	}
+	
+	#footer_scala input[type="text"] {
+		font-size: 14px;
+		border: 0;
+	}
+}

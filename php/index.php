@@ -1,8 +1,9 @@
 <?php
 	session_start();
 
-	$_SESSION['viewer']="ldp";
+	$_SESSION['viewer']="myOV";
 	require_once "etc/config.app.inc.php";
+	//require_once $GLOBALS['resources_file'];
 	require_once "include/smarty/Smarty.class.php";
 	
 	try {
@@ -28,15 +29,15 @@
 		if($_GET['x']!="" && $_GET['y']!="" && $_GET['zoom']!="") {
 
 			//Fallback nel caso si arrivi dal vistasu del nuovo viewer ma non siano definiti i parametri di configurazione per il nuovo viewer
-			if (!is_array($GLOBALS[$GLOBALS['package']]['LdpViewer_map_options'])) {
+			if (!is_array($GLOBALS[$GLOBALS['package']]['map_options'])) {
 				header("Status: 301 Moved Permanently");
-				header("Location:".$_SERVER['PHP_SELF']."?". str_replace("viewer=ldp","viewer=ajax",$_SERVER['QUERY_STRING']));
+				header("Location:".$_SERVER['PHP_SELF']."?". str_replace("viewer=myOV","viewer=ajax",$_SERVER['QUERY_STRING']));
 				exit;
 			}
 
 
-			$GLOBALS[$GLOBALS['package']]['LdpViewer_map_options']['centro_override']=array(floatval($_GET['x']),floatval($_GET['y']));
-			$GLOBALS[$GLOBALS['package']]['LdpViewer_map_options']['zoom_override']=floatval($_GET['zoom']);
+			$GLOBALS[$GLOBALS['package']]['map_options']['center_override']=array(floatval($_GET['x']),floatval($_GET['y']));
+			$GLOBALS[$GLOBALS['package']]['map_options']['zoom_override']=floatval($_GET['zoom']);
 		}
 
 
@@ -60,5 +61,7 @@
 		$l = new LdpException($e);
 		$l->dieWithHtml();
 	}
+
+	
 ?>
 

@@ -1,7 +1,7 @@
 
-{extends file="{$GLOBALS['PATHBaseInclude']}/LdpViewer/LdpViewer.page.tpl"}
+{extends file="{$GLOBALS['PATHBaseInclude']}/openViewer/openViewer.page.tpl"}
 
-{block head_title}Catasto{/block}
+{block head_title}{$GLOBALS[$GLOBALS['package']]['app_title_short']} - Open Viewer ({$GLOBALS['app_version']}){/block}
 
 {block head_css}
 <!--<link rel="stylesheet" type="text/css" href="{$GLOBALS.mappa._dbsit.css.screen}" media="screen" />
