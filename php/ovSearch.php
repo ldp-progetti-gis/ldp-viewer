@@ -4,7 +4,7 @@
 	
 	$pageTitle		= $GLOBALS['app_name'].' - '.$GLOBALS['strings']['interface']['sentence_searchpage'];
 	$appLanguage	= $GLOBALS[$GLOBALS['package']]['language'];
-	$appCopyright	= 'Copyright (C) '.$GLOBALS['year'].' '.$GLOBALS['app_name'].' '.$GLOBALS['app_maintainer'];
+	$appCopyright	= 'Copyright (C) '.$GLOBALS['release_year'].' '.$GLOBALS['app_name'].' '.$GLOBALS['app_maintainer'];
 	
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
@@ -22,7 +22,7 @@
 
 	<body>
 		<div class="page_container">
-			<h4><?php echo $GLOBALS['strings']['interface']['sentence_searchpage'] ?></h4>
+			<h1 class='page_container_title'><?php echo $GLOBALS['strings']['interface']['sentence_searchpage'] ?></h1>
 		</div>
 	</body>
 </html>

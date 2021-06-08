@@ -76,6 +76,11 @@ a {
 	cursor: pointer;
 }
 
+pre {
+    font-size: 10px;
+    font-style: italic;
+}
+
 html,
 body {
 	font-family: 'Roboto Condensed', sans-serif !important;
@@ -667,6 +672,67 @@ ul.vistasu_ul_gruppo {
 }
 
 
+/****************************/
+/* PAGES FOR INFO/FUNC TABS */
+
+h1.page_container_title {
+	font-size: 100%;
+	line-height: 100%;
+	text-transform: uppercase;
+}
+
+h1.page_container {
+	font-size: 100%;
+    font-weight: bold;
+	line-height: 100%;
+	text-transform: uppercase;
+}
+
+h2.page_container {
+	font-size: 100%;
+    font-weight: bold;
+	line-height: 100%;
+}
+
+h3.page_container {
+	font-size: 90%;
+	line-height: 100%;
+    text-decoration: underline;
+}
+
+p.page_about,
+p.page_container {
+	font-size: 90%;
+	line-height: 100%;
+    margin-top: 2px;
+    margin-bottom: 4px;
+}
+
+li.page_about,
+ul.page_about,
+ul.page_container,
+li.page_container,
+label.page_container {
+	font-size: 90%;
+	line-height: 100%;
+    margin-top: 2px;
+    margin-bottom: 0px;
+    margin-left: -8px;
+}
+
+span.page_container {
+	font-size: 90%;
+	line-height: 100%;
+    margin-top: 2px;
+    margin-bottom: 0px;
+}
+
+h1.page_about {
+	font-size: 100%;
+    font-weight: bold;
+	line-height: 100%;
+}
+
 /**********/
 /* LEGEND */
 
@@ -683,6 +749,7 @@ ul.vistasu_ul_gruppo {
 	border: 1px solid #d0d0d0;
 	border-left: 0;
 	color: #353535;
+	clear: left;
 }
 
 
@@ -771,6 +838,16 @@ button.ov_legend_tool_container:hover:before {color: #007fff;}
 	display:inline-block;
     max-height: 18px;
 }
+#ov_legend_item_container_div {
+}
+#ov_legend_item_label_div {
+	float: left;
+	width : 75%;
+    overflow: hidden;
+}
+#ov_legend_item_tools_div {
+	float: right;
+}
 button.ov_legend_item_tool_container { /*span:nth-of-type(5) {*/
 	height: 14px;
 	width: 18px;
@@ -779,17 +856,20 @@ button.ov_legend_item_tool_container { /*span:nth-of-type(5) {*/
 	font-family: "Font Awesome 5 Pro"; */
 	font-size: 18px;    /* 11px; */
 	border-width: 0px;/* 2px; */
-	float: right;
+	/* float: right; */
 }
+#ov_button_opacity {background-color: #ffffff}
 button.ov_legend_item_tool_container.setopacityplus {content: "\f0eb"; color: #2a8aa1; background-color: #ffffff}
 button.ov_legend_item_tool_container.setopacityplus:before {content: "\f0eb"; color: #2a8aa1; background-color: #ffffff}
 button.ov_legend_item_tool_container.setopacityminus {content: "\f672"; color: #dddddd; background-color: #ffffff}
 button.ov_legend_item_tool_container.setopacityminus:before {content: "\f672"; color: #dddddd; background-color: #ffffff}
+
 button.ov_legend_item_tool_container.showstyle {content: "\f06e"; color: #2a8aa1; background-color: #ffffff}
 button.ov_legend_item_tool_container.showstyle:before {content: "\f06e"; color: #2a8aa1; background-color: #ffffff}
+/*
 button.ov_legend_item_tool_container:hover {cursor: pointer;}  
 button.ov_legend_item_tool_container:hover:before {color: #007fff;}
-
+*/
 
 #ov_legend_container ul {
 	margin: 0px;
@@ -825,7 +905,7 @@ button.ov_legend_item_tool_container:hover:before {color: #007fff;}
 	margin-left: 0;
 }
 
-#ov_legend_container ul.childrenof {margin: 0 0 10px 15px;}
+#ov_legend_container ul.childrenof {margin: 0 0 10px 15px; clear: left;}
 
 #ov_legend_container ul li label {font-size: 14px; white-space: nowrap;}
 
@@ -843,14 +923,14 @@ button.ov_legend_item_tool_container:hover:before {color: #007fff;}
 }
 
 #ov_legend_container li.layer {
-	background-image: url('/share/include/img/openViewer/layer.png');
+	background-image: url('/include/img/openViewer/layer.png'); /* /share/include... */
 	padding-left: 20px;
 }
 
 /* Layer che identifica un gruppo nella legenda, espanso */
 #ov_legend_container a.group_expanded {
 	display: inline-block;
-	background-image: url('/share/include/img/openViewer/group_expanded.png');
+	background-image: url('/include/img/openViewer/group_expanded.png'); /* /share/include... */
 	height: 22px;
 	width: 22px;
 	border: 0px;
@@ -859,26 +939,26 @@ button.ov_legend_item_tool_container:hover:before {color: #007fff;}
 /* Layer che identifica un gruppo nella legenda, chiuso */
 #ov_legend_container a.group_collapsed {
 	display: inline-block;
-	background-image: url('/share/include/img/openViewer/group_collapsed.png');
+	background-image: url('/include/img/openViewer/group_collapsed.png'); /* /share/include... */
 	height: 22px;
 	width: 22px;
 	border: 0px;
 }
 
 div.ov_legend_undocked .header .actions .collapse_closed {
-	background-image: url('/share/include/img/openViewer/apps/collapse_menu_closed.png');
+	background-image: url('/include/img/openViewer/apps/collapse_menu_closed.png'); /* /share/include... */
 }
 
 div.ov_legend_undocked .header .actions .collapse_closed:hover {
-	background-image: url('/share/include/img/openViewer/apps/collapse_menu_closed_hover.png');
+	background-image: url('/include/img/openViewer/apps/collapse_menu_closed_hover.png'); /* /share/include... */
 }
 
 div.ov_legend_undocked .header .actions .collapse_opened {
-	background-image: url('/share/include/img/openViewer/apps/collapse_menu_open.png');
+	background-image: url('/include/img/openViewer/apps/collapse_menu_open.png'); /* /share/include... */
 }
 
 div.ov_legend_undocked .header .actions .collapse_opened:hover {
-	background-image: url('/share/include/img/openViewer/apps/collapse_menu_open_hover.png');
+	background-image: url('/include/img/openViewer/apps/collapse_menu_open_hover.png'); /* /share/include... */
 }
 
 /* Quadratino di fianco al nome del layer che riporta lo stile dello stesso */
@@ -889,7 +969,7 @@ div.ov_legend_undocked .header .actions .collapse_opened:hover {
 
 #ov_legend_container .plus,
 #ov_legend_container .plus_stile {
-	background: url('/share/include/img/openViewer/legend/lc_expand.gif') no-repeat 0 0 transparent;
+	background: url('/include/img/openViewer/legend/lc_expand.gif') no-repeat 0 0 transparent; /* /share/include... */
 	width: 9px;
 	height: 9px;
 	display: inline-block;
@@ -900,7 +980,7 @@ div.ov_legend_undocked .header .actions .collapse_opened:hover {
 
 #ov_legend_container .minus,
 #ov_legend_container .minus_stile {
-	background: url('/share/include/img/openViewer/legend/lc_collapse.gif') no-repeat 0 0 transparent;
+	background: url('/include/img/openViewer/legend/lc_collapse.gif') no-repeat 0 0 transparent; /* /share/include... */
 	width: 9px;
 	height: 9px;
 	display: inline-block;
@@ -1511,6 +1591,7 @@ code {
 
 #overlay_wms_selector_layers table {
 	border: 0;
+    width: 100%;
 }
 
 #overlay_wms_selector_layers_table th {
@@ -1519,13 +1600,25 @@ code {
 	text-align: left;
 	vertical-align: bottom;
 	font-weight: 600;
-	line-height: 100%;
-	padding: 8px;
+	/*line-height: 100%;*/
+	padding: 9px;
 	text-transform: uppercase;
 	background-color: #fff;
 	color: #000;
 }
 
+#overlay_wms_selector_layers_table_spec_getcapabilities {
+	border: 0;
+	border-bottom: 2px solid #ddd;
+	text-align: right;
+	vertical-align: bottom;
+	font-weight: 600;
+	line-height: 100%;
+	padding: 8px;
+	text-transform: uppercase;
+	background-color: #fff;
+	color: #aaa;
+}
 #overlay_wms_selector_layers_table td {
 	white-space: normal;
 	text-align: left;
@@ -1540,6 +1633,7 @@ code {
 #overlay_wms_selector_layers_table td.nowrap {white-space: nowrap;}
 
 #overlay_wms_selector_layers_table_description,
+#overlay_wms_selector_layers_get_capabilities,
 #overlay_wms_selector_layers_table_crs_supported{
 	font-size: small; /* xx-small; */
 	line-height: 100%;

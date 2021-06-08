@@ -12,10 +12,14 @@
 
 /** MAIN CLASS: ovMap */
 var ovMap = function (params) {
+	
+	// show console messages
+	this.showConsoleMsg = params.showConsoleMsg; // show console messages
+	
 	this.stato = params.stato;	// "stato" inherits the "map_definition" object defined in the PHP configuration
 								// and contains the definition of the "main layers" (all layers but the basemap layers and the user WMS layers)
 	this.mapOptions = params.mapOptions; // contains the basic settings for the map:° projection, units, initial view, etc. (= map_options defined in the PHP configuration file)
-    this.mapCenter
+	this.mapCenter
 	this.mapDiv = params.mapDiv;
 	this.tooltipDiv = params.tooltipDiv;
 	this.drawWKTDiv = params.drawWKTDiv;
@@ -58,36 +62,41 @@ var ovMap = function (params) {
 	this.baseLayers = params.baseLayers;
 	this.baseLayersDefinition = params.baseLayersDefinition;
 	
-	this.showConsoleMsg = params.showConsoleMsg; // show console messages
-	
 };
 
-
-/** PROPERTIES (get/set/is) */
-ovMap.prototype.getMapOptions = function() { return this.mapOptions; } // Return the "basemap" layers settings
-ovMap.prototype.getMapView = function() { return this.map.getView(); } // Return the OpenLayers map view object
-ovMap.prototype.getStato = function() { return this.stato; } // Return the "MapGuide" layers settings
-ovMap.prototype.setStato = function(stato) { this.stato = stato; } // Set the "MapGuide" layers settings
-ovMap.prototype.getMapLayers = function() { return this.map.getLayers(); } // Return the array of layers
-ovMap.prototype.getMapLayerByName = function(ol_layer) { // Return the OL "layer" object identified by the name
+/** PROPERTIES (get/set/is)
+ * ---------------------------------------------------------------
+ */
+/** Return the "basemap" layers settings */
+ovMap.prototype.getMapOptions = function() { return this.mapOptions; }
+ /** Return the OpenLayers map view object */
+ovMap.prototype.getMapView = function() { return this.map.getView(); }
+ /** Return the "Main layers" settings */
+ovMap.prototype.getStato = function() { return this.stato; }
+ /** Set the "Main layers" settings */
+ovMap.prototype.setStato = function(stato) { this.stato = stato; }
+ /** Return the array of layers */
+ovMap.prototype.getMapLayers = function() { return this.map.getLayers(); }
+ /** Return the OL "layer" object identified by the name */
+ovMap.prototype.getMapLayerByName = function(olLayerName) {
 	var layer=null;
 	var map_ol_layers=this.map.getLayers();
 	map_ol_layers.forEach(function(item,index){
-		if(item.get('name')==ol_layer) {
+		if(item.get('name')==olLayerName) {
 			layer=item;
 		}
 		
 	},this);
-
 	return layer;
 }
-ovMap.prototype.getMapLayerSourceByName = function(ol_layer) { // Return the OL "source" object of the layer identified by the name
+/** Return the OL "source" object of the layer identified by name */
+ovMap.prototype.getMapLayerSourceByName = function(olLayerName) {
 	var source=null;
 	var map_ol_layers=this.map.getLayers();
 
 	map_ol_layers.forEach(function(item,index){
 
-		if(item.get('name')==ol_layer) {
+		if(item.get('name')==olLayerName) {
 			source=item.getSource();
 		}
 
@@ -95,22 +104,25 @@ ovMap.prototype.getMapLayerSourceByName = function(ol_layer) { // Return the OL 
 
 	return source;
 }
-ovMap.prototype.setStatusInteraction = function(interactionStatus) { // Set the user interaction status
+/** Set the user interaction status */
+ovMap.prototype.setStatusInteraction = function(interactionStatus) {
 	this.statusInteraction=interactionStatus;
 	return;
 };
-ovMap.prototype.getStatusInteraction = function() { return this.statusInteraction; }; // Return the user interaction status
-ovMap.prototype.isLayerVisibleOnMap = function(ol_layer,layer_name) { // Return the visibility of a "layer", taking into account the visibility of the parent group too
+/** Return the user interaction status */
+ovMap.prototype.getStatusInteraction = function() { return this.statusInteraction; };
+/** Return the visibility of a "layer", taking into account the visibility of the parent group too */
+ovMap.prototype.isLayerVisibleOnMap = function(olLayer,layerName) {
 	// Layer belong to a group ?
-	if(ol_layer.layers_info[layer_name].group!=undefined) {
-		parentGroup=ol_layer.layers_info[layer_name].group;
+	if(olLayer.layers_info[layerName].group!=undefined) {
+		parentGroup=olLayer.layers_info[layerName].group;
 
 		while (parentGroup!=null) {
 			// check if the group is visible
-			if(ol_layer.groups_info[parentGroup].visible==true) {
+			if(olLayer.groups_info[parentGroup].visible==true) {
 				// check if the group belong to another group
-				if(ol_layer.groups_info[parentGroup].group!=undefined) {
-					parentGroup=ol_layer.groups_info[parentGroup].group;
+				if(olLayer.groups_info[parentGroup].group!=undefined) {
+					parentGroup=olLayer.groups_info[parentGroup].group;
 				} else {
 					// the group is visible
 					parentGroup=null;
@@ -123,17 +135,18 @@ ovMap.prototype.isLayerVisibleOnMap = function(ol_layer,layer_name) { // Return 
 	}
 	
 	// check if the layer (not belonging to any group) is visible
-	return (ol_layer.layers_info[layer_name].visible===true);
+	return (olLayer.layers_info[layerName].visible===true);
 }
-ovMap.prototype.isGroupVisibleOnMap = function(ol_layer,group_name) {	// Return the visibility of a "group", taking into account the visibility of the parent group too
-	parentGroup=group_name;
+/** Return the visibility of a "group", taking into account the visibility of the parent group too */
+ovMap.prototype.isGroupVisibleOnMap = function(olLayer,groupName) {
+	parentGroup=groupName;
 
 	while (parentGroup!=null) {
 		// check if the group is visible
-		if(ol_layer.groups_info[parentGroup].visible==true) {
+		if(olLayer.groups_info[parentGroup].visible==true) {
 			// check if the group belong to another group
-			if(ol_layer.groups_info[parentGroup].group!=undefined) {
-				parentGroup=ol_layer.groups_info[parentGroup].group;
+			if(olLayer.groups_info[parentGroup].group!=undefined) {
+				parentGroup=olLayer.groups_info[parentGroup].group;
 			} else {
 				// the group is visible
 				parentGroup=null;
@@ -146,33 +159,71 @@ ovMap.prototype.isGroupVisibleOnMap = function(ol_layer,group_name) {	// Return 
 	}
 	
 	// check if the group (not belonging to any group) is visible
-	return (ol_layer.groups_info[group_name].visible);
+	return (olLayer.groups_info[groupName].visible);
 }
-ovMap.prototype.getScale = function() {									// Return the current scale 
-// if(this.showConsoleMsg) console.log("pixelRatio: "+window.devicePixelRatio);
+/** Return the current scale */
+ovMap.prototype.getScale = function(flagMetricScale) {
+	if(typeof flagMetricScale === 'undefined') flagMetricScale = true;
+// console.log("flagMetricScale: "+flagMetricScale);
+// console.log("pixelRatio: "+window.devicePixelRatio);
 	var view = this.map.getView();
 	var resolution = view.getResolution();
-	var metricResolution=ol.proj.getPointResolution(view.getProjection(),resolution,view.getCenter());
-	var units = view.getProjection().getUnits();
-	//var mpu = ol.proj.METERS_PER_UNIT[units];
-	var mpu = ol.proj.Units.METERS_PER_UNIT[units];
-	//var scale = metricResolution * mpu * this.ipm * this.dpi;
-	var scale = mpu * this.ipm * this.dpi * resolution;
+	var scaleMapUnits = this.ipm * this.dpi * resolution;
+// console.log("scaleMapUnits: "+scaleMapUnits);
 	
-	return Math.round(scale);
+	//var metricResolution=ol.proj.getPointResolution(view.getProjection(),resolution,view.getCenter());
+	//var mpu = ol.proj.METERS_PER_UNIT[units];
+	//var scale = metricResolution * mpu * this.ipm * this.dpi;
+	var units = view.getProjection().getUnits();
+	var mpu = ol.proj.Units.METERS_PER_UNIT[units];
+	var scaleMeters = mpu * this.ipm * this.dpi * resolution;
+// console.log("scaleMeters: "+Math.round(scaleMeters));
+	
+	if(flagMetricScale) return Math.round(scaleMeters)
+	else return scaleMapUnits;
 };
-ovMap.prototype.setScale = function(scale) {							// Set the scale of the current view
+/** Set the scale of the current view */
+ovMap.prototype.setScale = function(scale) {
 	var view = this.map.getView();
 	var curRes = this.getResolutionFromProjectionAndScale(scale, view.getProjection());
     view.setResolution(curRes);
 }
-ovMap.prototype.getZoom = function() {									// Return the current zoom level
-// if(this.showConsoleMsg) console.log("getScale: ",window.devicePixelRatio);
+/** Calculate the resolution from defined projection and scale */
+ovMap.prototype.getResolutionFromProjectionAndScale = function(scale, projection) {
+	var view = this.map.getView();
+	if ( typeof projection == "undefined" ) projection = view.getProjection();
+	
+	var resolution = view.getResolution();
+	var metricResolution=ol.proj.getPointResolution(projection,resolution,view.getCenter());
+	var metricResolutionRatio=metricResolution/resolution;
+	var units = projection.getUnits();
+	//var mpu = ol.proj.METERS_PER_UNIT[units];
+	var mpu = ol.proj.Units.METERS_PER_UNIT[units];
+	var resolution = scale / this.ipm / mpu / this.dpi;
+// console.log('Scale: '+scale+'\nResolution: '+resolution);
+	return resolution;
+}
+/** Calculate the scale form the view resolution */
+ovMap.prototype.getScaleFromResolution = function(resolution, flagRoundInteger) {
+	if ( typeof flagRoundInteger == "undefined" ) flagRoundInteger=false;
+    
+	var view = this.map.getView();
+	var projection = view.getProjection();
+	var units = projection.getUnits();
+	var mpu = ol.proj.Units.METERS_PER_UNIT[units];
+	var calcScale = resolution * this.ipm * this.dpi / mpu;
+    if (flagRoundInteger) calcScale = Math.round(calcScale);
+	return calcScale;
+}
+/** Return the current zoom level */
+ovMap.prototype.getZoom = function() {
+// console.log("getScale: ",window.devicePixelRatio);
 	var view = this.map.getView();
 	var zoom = view.getZoom();
 	return zoom;
 };
-ovMap.prototype.getCenter = function() {								// Return the coordinates of the center of the current view, according to the "map projection"
+/** Return the coordinates of the center of the current view, according to the "map projection" */
+ovMap.prototype.getCenter = function() {
 	var view = this.map.getView();
 	var center = view.getCenter();
 
@@ -182,7 +233,8 @@ ovMap.prototype.getCenter = function() {								// Return the coordinates of the
 	
 	return centro;
 }
-ovMap.prototype.getCenterProjected = function(aProjection) {			// Return the projected coordinates of the center of the current view (default this.dataProjection)
+/** Return the projected coordinates of the center of the current view (default this.dataProjection) */
+ovMap.prototype.getCenterProjected = function(aProjection) {
     if (typeof aProjection === 'undefined' || aProjection == undefined || aProjection == '') aProjection = this.dataProjection;
 	var view = this.map.getView();
 	var center = view.getCenter();
@@ -195,7 +247,8 @@ ovMap.prototype.getCenterProjected = function(aProjection) {			// Return the pro
 	
 	return centro;
 }
-ovMap.prototype.setCenterProjected = function(x, y, aProjection) {		// Set the center of the current view, passing the projected coordinates and the projection (default this.dataProjection)
+/** Set the center of the current view, passing the projected coordinates and the projection (default this.dataProjection) */
+ovMap.prototype.setCenterProjected = function(x, y, aProjection) { 
     if (typeof aProjection === 'undefined' || aProjection == undefined || aProjection == '') aProjection = this.dataProjection;
 	if (!isNaN(parseFloat(x)) && !isNaN(parseFloat(y))){
 		var view = this.map.getView();
@@ -203,13 +256,15 @@ ovMap.prototype.setCenterProjected = function(x, y, aProjection) {		// Set the c
 		view.setCenter(centro);
 	}
 }
-ovMap.prototype.getWidth = function() {									// Return the "width" of the current extent
+/** Return the "width" of the current extents */
+ovMap.prototype.getWidth = function() {
 	var view = this.map.getView();
 	var extent = view.calculateExtent();
 	var width= ol.extent.getWidth(extent);
 	return width;
 }
-ovMap.prototype.getHeight = function() {								// Return the "height" of the current extent
+/** Return the "height" of the current extent */
+ovMap.prototype.getHeight = function() {
 	var view = this.map.getView();
 	var extent = view.calculateExtent();
 	var height= ol.extent.getHeight(extent);
@@ -234,10 +289,13 @@ ovMap.prototype.LoadMap = function() {
 
     var ol_map_layers=new Array();
 	
+	ov_utils.ovLog('Start loading the map...'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
+	
 	/**
 	 * STYLES
 	 * - used for the rendering over the map
 	 */
+	ov_utils.ovLog('...creation of the map styles...');
 
     // SELECTION layer: style settings
 	var fill_selection=new ol.style.Fill({
@@ -294,13 +352,15 @@ ovMap.prototype.LoadMap = function() {
 		})
 	});
 	
+	
 	/**
 	 * CREATION OF THE BASEMAP LAYERS
 	 * - instantiation of the the layers
      * - addition (push) to the list of "available" layers inside OpenLayers
 	 */
+	
 	if(this.baseLayers === null){
-if(this.showConsoleMsg) console.log('Creation of the DEFAULT basemap layers... ');
+		ov_utils.ovLog('...creation of the DEFAULT basemap layers (no specific basemap layer defined)...');
         var open_street_map = new ol.layer.Tile({
 			source: new ol.source.OSM(),
 			name: 'OpenStreetMap',
@@ -320,24 +380,22 @@ if(this.showConsoleMsg) console.log('Creation of the DEFAULT basemap layers... '
 		if(this.baseLayers != ''){
 			var map_baseLayers = this.baseLayers;
 			var map_baseLayersDefinition = this.baseLayersDefinition;
-if(this.showConsoleMsg) console.log('Creation of the '+map_baseLayers.length+' OL layers... ');
+			ov_utils.ovLog('...creation of the '+map_baseLayers.length+' OL layers... ');
 			for(var j=0; j < map_baseLayers.length; j++){
                 
 				var aLayerDef = map_baseLayersDefinition[j]
-/*
-if(this.showConsoleMsg) {
-	console.log('- Layer '+map_baseLayers[j]);
-	console.log('  - key '+aLayerDef.key);
-	console.log('  - sourceType '+aLayerDef.sourceType);
-	console.log('  - wms_url '+aLayerDef.wms_url);
-	console.log('  - wms_layers_names '+aLayerDef.wms_layers_names);
-	console.log('  - wms_server_type '+aLayerDef.wms_server_type);
-	console.log('  - wms_layer_projection '+aLayerDef.wms_layer_projection);
-	console.log('  - layer_title '+aLayerDef.layer_title);
-	console.log('  - layer_visible '+aLayerDef.layer_visible);
-	console.log('  - is_basemap_layer '+aLayerDef.is_basemap_layer);
-}
-*/
+
+// console.log('- Layer '+map_baseLayers[j]);
+// console.log('  - key '+aLayerDef.key);
+// console.log('  - sourceType '+aLayerDef.sourceType);
+// console.log('  - wms_url '+aLayerDef.wms_url);
+// console.log('  - wms_layers_names '+aLayerDef.wms_layers_names);
+// console.log('  - wms_server_type '+aLayerDef.wms_server_type);
+// console.log('  - wms_layer_projection '+aLayerDef.wms_layer_projection);
+// console.log('  - layer_title '+aLayerDef.layer_title);
+// console.log('  - layer_visible '+aLayerDef.layer_visible);
+// console.log('  - is_basemap_layer '+aLayerDef.is_basemap_layer);
+
 				if(aLayerDef.wms_layers_names == undefined) { aLayerDef.wms_layers_names = '';}
 				if(aLayerDef.wms_query_layers_names == undefined) { aLayerDef.wms_query_layers_names = '';}
 				if(aLayerDef.wms_info_format == undefined) { aLayerDef.wms_info_format = '';}
@@ -388,18 +446,20 @@ if(this.showConsoleMsg) {
 						break;
 				}
 				ol_map_layers.push(eval(aLayerDef.key));
-if(this.showConsoleMsg) console.log(' - Layer '+aLayerDef.key+' ('+aLayerDef.sourceType+' '+aLayerDef.layer_visible+' '+aLayerDef.wms_layer_projection+') created.');
+				ov_utils.ovLog('   - layer '+aLayerDef.key+' ('+aLayerDef.sourceType+' '+aLayerDef.layer_visible+' '+aLayerDef.wms_layer_projection+') created.');
 			}
 		}
 	}
-
+	
+	
 	/**
 	 * CREATION OF THE ADDITIONAL LAYERS
 	 * - instantiation of the the layers
      * - addition (push) to the list of "available" layers inside OpenLayers
 	 */
-
-    // currently the array "stato" (< map_definition in config) is empty then this part could be useless - START SECTION
+	ov_utils.ovLog('...creation of the MAIN layers...');
+	
+	// currently the array "stato" (< map_definition in config) is empty then this part could be useless - START SECTION
 	var a_ol_layers=Object.keys(stato);
     
 	// check of the layer type for each layer defined in "stato" (< map_definition)
@@ -498,10 +558,12 @@ if(this.showConsoleMsg) console.log(' - Layer '+aLayerDef.key+' ('+aLayerDef.sou
 				
 			break;
 		}
+		ov_utils.ovLog('   - layer '+ol_layer.tipo+' created.');
 	});
 
     if (typeof source !== 'undefined') var source_tooltip=source;
     // currently the array "stato" (< map_definition in config) is empty then this part could be useless - END SECTION
+	
 	
 	/**
 	 * CREATION OF THE SERVICE LAYERS
@@ -509,7 +571,8 @@ if(this.showConsoleMsg) console.log(' - Layer '+aLayerDef.key+' ('+aLayerDef.sou
      * - addition (push) to the list of "available" layers inside OpenLayers
      * WARNING: the last pushed layer is the one used for the tooltip
 	 */
-
+	ov_utils.ovLog('...creation of the SERVICE layers (selection, measure, etc.)...');
+	
 	// SNAP layer - instantiation of the layer used for the snapping activities
 	var snapOverlay = new ol.layer.Vector({
 		style: new ol.style.Style({
@@ -581,20 +644,21 @@ if(this.showConsoleMsg) console.log(' - Layer '+aLayerDef.key+' ('+aLayerDef.sou
 	});
 	// addtion (push) of the layer
 	ol_map_layers.push(measureOverlay);
-
+	
+	
 	/**
 	 * DEFINITION OF THE MAP VIEW  (OL view iobject)
 	 * - initialization of the map center
      * - initialization of the MAP VIEW
 	 */
-
-    ol.proj.proj4.register(proj4);
+	ov_utils.ovLog('...definition of the MAP VIEW...');
+	
+	ol.proj.proj4.register(proj4);
 	
 	// calculation of the map center (the coordinates based on this.dataProjection are transformed to this.mapProjection)
-if(this.showConsoleMsg) console.log('Setting the initial view...');
-if(this.showConsoleMsg) console.log('- map projection '+ this.mapProjection);
+	ov_utils.ovLog('   - map projection '+ this.mapProjection, 'Setting the initial view...');
 	var mapCenter = ol.proj.transform([mapOptions.initial_map_center[0], mapOptions.initial_map_center[1]], this.dataProjection, this.mapProjection);
-if(this.showConsoleMsg) console.log('- initial map center '+mapCenter[0]+' , '+mapCenter[1]);
+	ov_utils.ovLog('   - initial map center '+mapCenter[0]+' , '+mapCenter[1]);
     
 	// creation of the OL map view object
 	var mapView = new ol.View({
@@ -617,9 +681,12 @@ if(this.showConsoleMsg) console.log('- initial map center '+mapCenter[0]+' , '+m
 		});
 	}
 	
+	
 	/**
 	 * DEFINITION OF THE MAP INTERACTION TOOLS (OL interaction object)
 	 */
+	ov_utils.ovLog('...definition of the MAP INTERACTION TOOLS...');
+	
 	var interactions = ol.interaction.defaults({altShiftDragRotate:false, pinchRotate:false, shiftDragZoom:false});
 	// dragZoom = new ol.interaction.DragZoom({condition: ol.events.condition.always}); 
 	this.extraInteractions.zoom_selection = new ol.interaction.DragZoom({condition: ol.events.condition.always});
@@ -675,6 +742,8 @@ if(this.showConsoleMsg) console.log('- initial map center '+mapCenter[0]+' , '+m
 	/**
 	 * DEFINITION OF THE MAP CONTROLS (OL controls object)
 	 */
+	ov_utils.ovLog('...definition of the MAP CONTROLS (coordinates, scale, etc.)...');
+	
 	var mousePositionControl = new ol.control.MousePosition({
 		coordinateFormat: ol.coordinate.createStringXY(2),
 		//projection: this.dataProjection,
@@ -692,16 +761,21 @@ if(this.showConsoleMsg) console.log('- initial map center '+mapCenter[0]+' , '+m
     var controls = [];
     if(this.mapOptions['show_coordinates_mouse']) controls.push(mousePositionControl);
     if(this.mapOptions['show_view_scale']) controls.push(new ol.control.ScaleLine());
-
+	
 	
 	/**
 	 * DEFINITION OF THE TOOLTIP OVERLAY (OL overlays object)
+     * - tooltip overlay
+     * - tooltip functionality
 	 */
+	ov_utils.ovLog('...definition of the TOOLTIPS...');
+	
 	tooltip_overlay = new ol.Overlay({
 		// I need the DOM object, not of the JQUERY object
 		element: tooltip_content[0]
 	});
 
+	// Tooltip overlay
 	var map=new ol.Map({
 		target: this.mapDiv,
 		view: mapView,
@@ -711,11 +785,9 @@ if(this.showConsoleMsg) console.log('- initial map center '+mapCenter[0]+' , '+m
 		overlays: [tooltip_overlay]
 	});
 	
-	/**
-	 * DEFINITION OF THE TOOLTIP FUNCTIONALITY
-	 */
+	// Tooltip functionality
 	map.on('pointermove', function(evt) {
-// if(this.showConsoleMsg) console.log("pointermove");
+// console.log("pointermove");
 		// hide the previous tooltip when the mouse position changes
 		tooltip_overlay.setPosition(undefined);
 		lastTimeMouseMoved = new Date().getTime();
@@ -738,7 +810,7 @@ if(this.showConsoleMsg) console.log('- initial map center '+mapCenter[0]+' , '+m
 						coordinate = evt.coordinate;
 						switch(ol_layer.tipo) {
 							case "wms":
-								var url = source_tooltip.getGetFeatureInfoUrl(
+								var url = source_tooltip.getFeatureInfoUrl(
 									evt.coordinate, mapView.getResolution(), that.mapProjection,
 									{'INFO_FORMAT': 'text/javascript','QUERY_LAYERS': ol_layer.list_layers_tooltip,'format_options': 'callback:getTooltip'}
 								);
@@ -814,7 +886,7 @@ if(this.showConsoleMsg) console.log('- initial map center '+mapCenter[0]+' , '+m
 										dataType: 'json',
 										data: data2send,
 										error: function(a, b, c) {
-											console.log("GET_TOOLTIP_HYPERLINK() - ERROR");
+											ov_utils.ovLog('Ajax error', 'GetTooltipHyperlink', 'error'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
 										},
 										success: function(response) {
 
@@ -858,159 +930,9 @@ if(this.showConsoleMsg) console.log('- initial map center '+mapCenter[0]+' , '+m
 		this.ol_map_layers.push(ol_map_layers[i].get("name"));
 	}
 	
+	ov_utils.ovLog('...map loading completed successfully.');
 	
 };
-
-
-/** WMS LAYERS INTEGRATION
- * ---------------------------------------------------------------
- * - add a WMS internal layer
- * - add a WMS user layer
- * - remove all WMA "user" layers
- */
-
-/** Add a new internal WMS layer - WMS LAYERS INTEGRATION */
-ovMap.prototype.addWmsInternalLayer = function(wms_url, layersData, i, style_name, format){
-	if (typeof format == "undefined" || format == '')
-		format = 'image/png8';
-	var wms_layer = layersData[i].name;
-	var wms_title = layersData[i].title;
-	var exist = false;
-	var map_ol_layers=this.map.getLayers();
-	
-	map_ol_layers.forEach(function(item,index){
-		if(item.get('name')==wms_layer) {
-			exist=true;
-		}
-		
-	},this);
-	
-	if(exist == true){
-		this.WmsLayerAdded = false;
-	}
-
-	else{
-		wmsSource = new ol.source.TileWMS ({
-				url: OpenViewer_proxy,
-				params: {'LAYERS': wms_layer, 'FORMAT':format, 'WMSURL': wms_url}
-// 				,serverType: 'geoserver',
-// 				ratio: 1.2
-		});
-		
-		var wmsLayer = new ol.layer.Tile({
-			source: wmsSource,
-			name: wms_layer
-		});
-		
-		this.map.addLayer(wmsLayer);
-		this.WmsLayerAdded = true;    
-        return wmsLayer;
-	}
-}
-/** Add a new user WMS layer - WMS LAYERS INTEGRATION */
-ovMap.prototype.addWmsLayer = function(wms_url, layersData, i, style_name, format){
-if(this.showConsoleMsg) console.log('Adding layer...');
-	if (typeof format == "undefined" || format == '')
-		format = 'image/png';
-	var wms_layer = layersData[i].name;
-	var wms_title = layersData[i].title;
-    var legend_url = layersData[i].styles[style_name].legend_url_href;
-    var legend_width = layersData[i].styles[style_name].legend_url_width;
-    if(typeof legend_width == 'undefined' || legend_width == '') legend_width = '';
-	var exist = false;
-	var map_ol_layers=this.map.getLayers();
-	
-	map_ol_layers.forEach(function(item,index){
-		if(item.get('name')==wms_title) {  // wms_layer
-			exist=true;
-		}
-	},this);
-	
-	if(exist == true){
-		this.WmsLayerAdded = false;
-if(this.showConsoleMsg) console.log('... '+wms_layer+' already existing!');
-	}
-
-	else{
-		
-		// OVD change: previously the projection was set as this.dataProjection
-        //             now it is set to this.mapProjection, if it is supported,
-        //             otherwise to CRS:84,if the map projection is EPSG:4326, EPSG:3857 or EPSG:900913 (SPECIAL CASE)
-        //             otherwise to EPSG:4326 as a first alternative
-        //             otherwise to the first supported projection
-		if (layersData[i].crs_supported.some( aCrs => aCrs === this.mapProjection ))
-			var layerCrs = this.mapProjection;
-		else if (this.mapProjection=='EPSG:4326'||this.mapProjection=='EPSG:3857'||this.mapProjection=='EPSG:900913')
-			var layerCrs = 'CRS:84';
-		else {
-			if (layersData[i].crs_supported.includes('EPSG:4326'))
-				var layerCrs = 'EPSG:4326';
-			else
-				var layerCrs = layersData[i].crs_supported[0];
-        }
-
-// OVD test:
-// RT    :   CRS:84, 3003, 3004, 25832, 25833,        4326, 3857,       6707, 6708
-// AE    :                       25832, 25833, 25834,             6706,           , 4258, 3044, 3045, 3046 
-// NASA  :   CRS:84
-// 3003  :   xxx     Tx    Tx    TT     TT     TT     Tx    Tx    xx    xx    xx    xx    
-// 25834 :   xx      Tx    Tx    TT     TT     TT     Tx    Tx    xx    xx
-// 4326  :   TT      Tx                        TT     Tx          xx    xx
-// 4358  :   TT
-// 3857  :   TT
-// 4265  :   TT
-// 900913:   TT
-// 4806  :   NOR WORKING
-//var layerCrs = 'CRS:84';
-
-// if(this.showConsoleMsg) console.log('WMS layer added:\n- '+wms_title+'\n- '+layerCrs+' layer projection\n- '+this.map.getView().getProjection().getCode()+' map projection')
-            
-		var wmsSource = new ol.source.TileWMS({
-                url: wms_url,
-			params: {'LAYERS': wms_layer, 'FORMAT':format, 'STYLES' : style_name},
-			projection: layerCrs // OVD this.dataProjection
-		});
-		
-		var wmsLayer = new ol.layer.Tile({
-			source: wmsSource,
-			opacity: 1,//0.7,  // from 0 to 1
-			// zIndex: 1000,
-			// minZoom: layersData[i].minZoom,
-			// maxZoom: layersData[i].maxZoom,
-			minResolution: layersData[i].minResolution,
-			maxResolution: layersData[i].maxResolution,
-			name: wms_title, //wms_layer, wms_title
-			wmsUserLayer: true,
-			legendUrl: legend_url,
-			legendWidth: legend_width
-		});
-		
-		this.map.addLayer(wmsLayer);
-		this.WmsLayerAdded = true;
-if(this.showConsoleMsg) console.log('... added ', wms_layer);
-		open_viewer.refreshLegend();
-		return wmsLayer;
-	}
-}
-/** Remove all WMS "user" layers - WMS LAYERS INTEGRATION */
-ovMap.prototype.removeAllWmsUserLayers = function() {
-
-    // retrieve the list of OL layers
-	var map_ol_layers=this.map.getLayers();
-
-	// loop on OL layers and make an array of all the WMS user layers
-	var tmpWmsUserLayers = [];
-	map_ol_layers.forEach(function(layer,index){
-		if (layer.get('name') != undefined && layer.get('wmsUserLayer'))
-			tmpWmsUserLayers.push(layer);
-	},this);
-
-	// remove all the WMS user layer
-	for (i = 0; i < tmpWmsUserLayers.length; i++) {
-		element = tmpWmsUserLayers[i];
-		this.map.removeLayer(element);
-	}
-}
 
 
 /** MAIN LAYERS INTEGRATION (MAPGUIDE, WMS, WMS_GEOSERVER)
@@ -1022,116 +944,29 @@ ovMap.prototype.removeAllWmsUserLayers = function() {
  * - refresh visibility
  */
 
-/** Create a MapGuide session - MAIN LAYERS INTEGRATION (MAPGUIDE, WMS, WMS_GEOSERVER) */
-ovMap.prototype.MapguideCreateSession = function(ol_layer) {
-// if(this.showConsoleMsg) console.log("MapguideCreateSession()");
-	var that = this;
-	var mg_session_info=null;
-	if ( ol_layer.api_url != '' ) {
-        // AJAX call to sychronously get the value of some variables
-		$.ajax({
-			url: ol_layer.api_url,
-			async: false,
-			method: 'GET',
-			dataType: 'json',
-			data: {mapDefinition: ol_layer.mapDefinition, action: 'CREATE_SESSION'},
-			error: function(a, b, c) {
-// console.log("MapguideCreateSession() - ERROR");
-			},
-			success: function(response) {
-				
-				if ( typeof response.status == 'undefined' || response.status != 'ok' ) {
-// console.log("MapguideCreateSession() - ERROR: " + (typeof response.data != 'undefined' ? response.data : '<undefined>'));
-				} else {
-					mg_session_info=response.data;
-				}
-			}
-		});
-	}
-	return mg_session_info;
-}
-/** Ping a MapGuide layer - MAIN LAYERS INTEGRATION (MAPGUIDE, WMS, WMS_GEOSERVER) */
-ovMap.prototype.MapguidePing = function(ol_layer) {
-	var that = this;
-	if ( ol_layer.api_url != '' ) {
-
-		$.ajax({
-			url: ol_layer.api_url,
-			method: 'GET',
-			dataType: 'json',
-			data: {mapSession: ol_layer.mg_session_info.mapSession, mapName: ol_layer.mg_session_info.mapName, action: 'PING'},
-			error: function(a, b, c) {
-				that.mg_ping_failures++;
-				if(that.mg_ping_failures > that.mg_ping_max_failures) {
-					clearInterval(that.mg_ping_timer);
-				}
-				console.log("ping() - ERROR");
-			},
-			success: function(response) {
-
-				if ( typeof response.status == 'undefined' || response.status != 'ok' ) {
-					that.mg_ping_failures++;
-					if(that.mg_ping_failures > that.mg_ping_max_failures) {
-						clearInterval(that.mg_ping_timer);
-					}
-					
-					console.log("ping() - ERROR: " + (typeof response.data != 'undefined' ? response.data : '<undefined>'));
-				} else {
-					//console.log(response);
-					
-					//Do nothing
-				}
-			}
-		});
-	}
-}
-/** Return MapGuide layer information - MAIN LAYERS INTEGRATION (MAPGUIDE, WMS, WMS_GEOSERVER) */
-ovMap.prototype.MapguideGetLayersInfo = function(ol_layer) {
-// if(this.showConsoleMsg) console.log("Map.MapguideGetLayersInfo");
-
-	var that = this;
-// if(this.showConsoleMsg) console.log(this.mg_session_info);
-	
-	if ( ol_layer.api_url != '' ) {
-		$.ajax({
-			url: ol_layer.api_url,
-			method: 'GET',
-			dataType: 'json',
-			data: {mapSession: that.mg_session_info.mapSession, mapName: that.mg_session_info.mapName, action: 'GET_LAYERS'},
-			error: function(a, b, c) {
-				console.log("getMapLayers() - ERROR");
-			},
-			success: function(response) {
-				
-				if ( typeof response.status == 'undefined' || response.status != 'ok' ) {
-					console.log("getMapLayers() - ERROR: " + (typeof response.data != 'undefined' ? response.data : '<undefined>'));
-				} else {
-					//console.log(response);
-					
-					///TODO
-				}
-			}
-		});
-	}
-}
-/** Refresh the status of the "main" layers - MAIN LAYERS INTEGRATION (MAPGUIDE, WMS, WMS_GEOSERVER) */
+/** Refresh the status of the "main" layers - MAIN LAYERS INTEGRATION (MAPGUIDE, WMS, WMS_GEOSERVER)
+ *  - update the deriver properties of the variable "stato" (list_groups_visible, layers_visible,
+ *    layers_tooltip, layers_selectable, layers_hyperlinked, ...)
+ *  - DON'T refresh the visibility of the OL layers (this task is perfromed by 
+ */
 ovMap.prototype.refreshStatus = function() {
 	var currentStatus = this.stato; // "stato" contains MapGuide layers settings
-
+	
 	// to have the object "this" inside other functions
 	var that = this;
-
+	
 	// array of the OL layers included within the definition
 	var a_ol_layers=Object.keys(currentStatus);
-
+	
 	// check of layer type for each layer
 	a_ol_layers.forEach(function(item,index) {
-
+		
 		var ol_layer=currentStatus[item];
 		switch (ol_layer.tipo) {
 		
 			case "wms":
 			case "wms_geoserver":
+			case "wms_onthefly":
 				var layers_info=ol_layer.layers_info;
 				var groups_info=ol_layer.groups_info;
 				var a_layers=Object.keys(layers_info);
@@ -1139,7 +974,7 @@ ovMap.prototype.refreshStatus = function() {
 				var list_layers=a_layers.join();
 				
 				currentStatus[item].list_layers=list_layers;
-
+				
 				///TODO visible,tooltip, etc..
 				
 				a_layers_visible=new Array();
@@ -1147,6 +982,11 @@ ovMap.prototype.refreshStatus = function() {
 				a_layers_selectable=new Array();
 				a_layers_hyperlinked=new Array();
 				for (var i=0;i<a_layers.length;i++) {
+					
+					// specific case for onthefly user WMS layers
+					var ref_layer = a_layers[i];
+					if(ol_layer.tipo=='wms_onthefly') ref_layer = ol_layer.layers_info[a_layers[i]].feature_name;
+					
 					//visible=isLayerVisibleOnMap(ol_layer,a_layers[i]);
 					visible = that.isLayerVisibleOnMap(ol_layer,a_layers[i]);
 					// visible layers
@@ -1159,7 +999,7 @@ ovMap.prototype.refreshStatus = function() {
 					}
 					// selectable layers
 					if(visible && layers_info[a_layers[i]].selectable==true) {
-						a_layers_selectable.push(a_layers[i]);
+						a_layers_selectable.push(ref_layer); // OVD a_layers[i]);
 					}
 					// layers with hyperlink
 					if(visible && layers_info[a_layers[i]].hyperlink!=undefined) {
@@ -1246,53 +1086,68 @@ ovMap.prototype.refreshStatus = function() {
 
 	return currentStatus;
 };
-/** Get the array of selected features (ids, layers) - MAIN LAYERS INTEGRATION (MAPGUIDE, WMS, WMS_GEOSERVER) */
-ovMap.prototype.getMapGuideSelection = function() {
-
-	var stato = this.getStato();
-	var ol_layer = 'mapguide';
-	var selectOverlay=this.getMapLayerByName('selection');
-	var features=selectOverlay.getSource().getFeatures();
-
-	var ids = new Array(), lys= new Array();
-	for (var i=0; i < features.length; i++) {
-		
-		var attributi=features[i].getProperties();
-
-		var layers=stato[ol_layer].layers_info;
-		var a_layers_info=Object.keys(layers);
-		for (var j=0;j<a_layers_info.length;j++) {
-			if(layers[a_layers_info[j]].name==attributi.layer) {
-				// if found
-				var layer_id = a_layers_info[j];
-				var id = attributi.feature_id;
-			}
-		}
-
-		lys.push(layer_id);
-		ids.push(id);
-		
-	}
-	return {ids:ids, lys:lys };
-};
-/** Refresh the visibility of the "main" layers (used by the checkboxes of the legend) - MAIN LAYERS INTEGRATION (MAPGUIDE, WMS, WMS_GEOSERVER) */
-ovMap.prototype.refreshMapLayer = function(ol_layer) {
+/** Refresh the visibility of the "main" layers (used by the checkboxes of the legend) - MAIN LAYERS INTEGRATION (MAPGUIDE, WMS, WMS_GEOSERVER, ONTHEFLY WMS) */
+ovMap.prototype.refreshLayerVisibility = function(ol_layer,ol_type) {
+ov_utils.ovLog('Refresh the visibility of layer '+ol_layer+' ('+ol_type+')'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
+	
 	var map_ol_layers=this.map.getLayers();
 	var stato = this.getStato();
 	var that = this;
+	
 
-	switch (ol_layer) {
+	// make the SLD
+	var nameLayer = 'edifici';
+	var opacityValue = 0.5;
+	var textSLD = '<?xml version="1.0" encoding="ISO-8859-1"?>';
+	textSLD += '<StyledLayerDescriptor version="1.0.0" xmlns="http://www.opengis.net/sld" xmlns:ogc="http://www.opengis.net/ogc"';
+	textSLD += '   xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"';
+	textSLD += '   xsi:schemaLocation="http://www.opengis.net/sld http://schemas.opengis.net/sld/1.0.0/StyledLayerDescriptor.xsd">';
+	textSLD += '   <NamedLayer>';
+	textSLD += '      <Name>'+nameLayer+'</Name>';
+	textSLD += '      <UserStyle>';
+	textSLD += '         <Name>Opacity'+opacityValue+'</Name>';
+	textSLD += '         <Title>Opacity '+opacityValue+'</Title>';
+	textSLD += '         <FeatureTypeStyle>';
+	textSLD += '            <Rule>';
+	textSLD += '               <RasterSymbolizer>';
+	textSLD += '                  <Opacity>'+opacityValue+'</Opacity>';
+//	textSLD += '                  <ChannelSelection>alskjflaksjflkajsflkajslfkjaslf';
+	textSLD += '               </RasterSymbolizer>';
+	textSLD += '            </Rule>';
+	textSLD += '         </FeatureTypeStyle>';
+	textSLD += '      </UserStyle>';
+	textSLD += '   </NamedLayer>';
+	textSLD += '</StyledLayerDescriptor>';
+// console.log('textSLD',textSLD);
+//	var formatSLD = new that.Format.SLD();
+//	var aSLD = formatSLD.read(textSLD);
+// console.log('aSLD',aSLD);
+// Create the OL.Format.SLD
+// var format = new OpenLayers.Format.SLD();
+// Read the SLD Data
+// var mySLD = format.read('yourSLDstring');
+// var myWMSLayer = new OpenLayers.Layer.WMS("yourparams", ..., {SLD : mySLD}); 
+	
+	
+	
+	switch (ol_type) { // switch (ol_layer) {
 		case "wms_geoserver":
-
 			map_ol_layers.forEach(function(item,index){
 				if(item.get('name')==ol_layer) {
 					var source=item.getSource();
 					var list_visible_layers = stato[ol_layer].list_layers_visible;
-
-					source.updateParams({'LAYERS': stato[ol_layer].list_layers_visible});
+//					if(textSLD!='') {
+//						source.updateParams({'LAYERS': stato[ol_layer].list_layers_visible, 'SLD_BODY': textSLD});
+//					} else {
+						source.updateParams({'LAYERS': stato[ol_layer].list_layers_visible});
+//					}
 					source.refresh();
-
-				}
+// console.log('source after update', source);
+// console.log('sourceparams after update', source.getParams());
+//item.set('crossOrigin','anonymous');
+//item.set('crossOrigin','null');
+// console.log('properties',item.getProperties());
+				}   
 			},this);
 		break;
 
@@ -1341,7 +1196,24 @@ ovMap.prototype.refreshMapLayer = function(ol_layer) {
 				}
 			},this);
 		break;
-
+		
+		case "wms_onthefly":
+			// in the "legend tree" (aka "stato" variable"
+			// the onthefly user WMS layers are structured as
+			// "one group" composed by "one layer"
+			// (for other source of data the structure can be much more complex)
+			// then we don't change the "visible" layers in the "params" of the
+			// "WMS connection", but we show/hide the whole OL layer
+			map_ol_layers.forEach(function(item,index) {
+				if(item.get('name')==ol_layer) {
+					var source=item.getSource();
+					var list_visible_layers = stato[ol_layer].list_layers_visible;
+					var flagShow = (list_visible_layers != '');
+					item.setVisible(flagShow);
+				}
+			},this);
+		break;
+		
 		case "mapguide":
 			//Devo passare l'elenco completo dei gruppi e dei layer da mostrare e da nascondere, altrimenti non funziona
 			var a_groups=stato[ol_layer].list_groups.split(",");
@@ -1370,6 +1242,16 @@ ovMap.prototype.refreshMapLayer = function(ol_layer) {
 			},this);
 		break;
 	}
+}
+/** Set the opacity/transparency of a layer */
+ovMap.prototype.setLayerOpacity = function(layerName,opacityDelta){
+	var ol_layer = this.getMapLayerByName(layerName)
+	if (ol_layer==false) return false;
+	var newOpacity = ol_layer.getOpacity();
+	if(newOpacity == undefined) newOpacity = 1;
+	var newOpacity = Math.max(0.1, Math.min(1,newOpacity+opacityDelta));
+	ol_layer.setOpacity(newOpacity);
+	return true;
 }
 
 
@@ -1541,25 +1423,24 @@ ovMap.prototype.formatLength = function(line) {
 
 /** OTHER METHODS  */
 
-/** Show a tooltip at specific coordinates */
+/** OVD UNUSED - Show a tooltip at specific coordinates * /
 ovMap.prototype.TooltipOnData = function(data,coordinates){
 	tooltip_content.html(data);
 	tooltip_overlay.setPosition(coordinates);
 }
-
-/** Recalculate the size of the map view */
+/** OVD UNUSED (IT WAS USED ONLY ONCE IN OpenViewer.js) Recalculate the size of the map view * /
 ovMap.prototype.updateMapSize = function() {
     return this.map.updateSize();
 }
-
+*/
 /** Save the current view in the views history (used to retrieve the previous zoom/extents) */
 ovMap.prototype.saveViewHistory = function() {
-if(this.showConsoleMsg) console.log('Saving an "historical" view...');
+ov_utils.ovLog('Saving an "historical" view...'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
     switch(this.historyViewCaller) {
         case 'ZoomPrev':
         case 'ZoomNext':
             // saving of the view is not needed
-if(this.showConsoleMsg) console.log('... nothing to save ('+this.historyViewCaller+')');
+            ov_utils.ovLog('... nothing to be saved ('+this.historyViewCaller+')'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
             this.historyViewCaller = this.historyViewPreviousCaller
             break;
         default:
@@ -1571,7 +1452,7 @@ if(this.showConsoleMsg) console.log('... nothing to save ('+this.historyViewCall
 				resolution: this.map.getView().getResolution()
 			});
 			this.historyViewIndex++;
-if(this.showConsoleMsg) console.log('... '+this.historyViewIndex+ ' saved views');
+ov_utils.ovLog('... '+this.historyViewIndex+ ' saved views'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
             // restore the previous "caller" (=interact state) if the caller is not an interactive tool, but a button
 			if(this.historyViewCaller=='ZoomIn'||this.historyViewCaller=='ZoomOut')
 				this.historyViewCaller = this.historyViewPreviousCaller
@@ -1590,36 +1471,6 @@ if(this.showConsoleMsg) console.log('... '+this.historyViewIndex+ ' saved views'
 	}
 */
 }
-
-/** Calculate the resolution from defined projection and scale */
-ovMap.prototype.getResolutionFromProjectionAndScale = function(scale, projection) {
-	var view = this.map.getView();
-	if ( typeof projection == "undefined" ) projection = view.getProjection();
-	
-	var resolution = view.getResolution();
-	var metricResolution=ol.proj.getPointResolution(projection,resolution,view.getCenter());
-	var metricResolutionRatio=metricResolution/resolution;
-	var units = projection.getUnits();
-	//var mpu = ol.proj.METERS_PER_UNIT[units];
-	var mpu = ol.proj.Units.METERS_PER_UNIT[units];
-	var resolution = scale / this.ipm / mpu / this.dpi;
-// if(this.showConsoleMsg) console.log('Scale: '+scale+'\nResolution: '+resolution);
-	return resolution;
-}
-
-/** Calculate the scale form the view resolution */
-ovMap.prototype.getScaleFromResolution = function(resolution, flagRoundInteger) {
-	if ( typeof flagRoundInteger == "undefined" ) flagRoundInteger=false;
-    
-	var view = this.map.getView();
-	var projection = view.getProjection();
-	var units = projection.getUnits();
-	var mpu = ol.proj.Units.METERS_PER_UNIT[units];
-	var calcScale = resolution * this.ipm * this.dpi / mpu;
-    if (flagRoundInteger) calcScale = Math.round(calcScale);
-	return calcScale;
-}
-
 // Convert the features defeined as GML to JSON
 ovMap.prototype.gmlToJson = function(xml) {
 	var formatXML=new ol.format.GML();
@@ -1627,7 +1478,6 @@ ovMap.prototype.gmlToJson = function(xml) {
 	
 	return feature;
 };
-
 /** Show/hide a layer */
 ovMap.prototype.layerViewToggle = function(layer_name, visible) {
 	var map_ol_layers=this.map.getLayers();
@@ -1638,13 +1488,68 @@ ovMap.prototype.layerViewToggle = function(layer_name, visible) {
 		
 	},this);
     if(selectLayer!=undefined) {
-// if(this.showConsoleMsg) console.log('Layer to toggle: '+layer_name);
+// console.log('Layer to toggle: '+layer_name);
 		selectLayer.setVisible(visible);
     }
     else {
-// if(this.showConsoleMsg) console.log('Layer '+layer_name+' not found!');	
+// console.log('Layer '+layer_name+' not found!');	
     }
 }
+/** Clear all "service" layers or one of them, and optionally cancel the features selection */
+ovMap.prototype.clearTempLayers = function(layer_name, flag_clear_service_layers, flag_cancel_selection) {
+	if (typeof flag_clear_service_layers == 'undefined') {flag_clear_service_layers=true;}
+	if (typeof flag_cancel_selection == 'undefined') {flag_cancel_selection=true;}
+	
+	// clear previous selection
+	if(flag_cancel_selection) {
+		var selectOverlay=this.getMapLayerByName('selection');
+		selectOverlay.getSource().clear();
+		// refresh the footer message with the number of selected features
+		open_viewer.footerUpdateText();
+	}
+	
+	// clear "service layers"
+	if (flag_clear_service_layers==true) {
+		if(this.clearRedline!==undefined) {
+			this.clearRedline('drawing');
+			this.clearRedline('redline');
+			this.clearRedline('selection');
+			this.clearRedline('measure');
+		}
+		this.removeMeasureTooltip();
+	}
+	
+	// If "layer_name" is empty, we need to clear all the "temporary" layers too
+	if (typeof layer_name == "undefined") {
+		var templayer = this.getMapLayerByName("tmp_punti");
+		if(!empty(templayer)){
+			if(this.clearRedline!==undefined) this.clearRedline("tmp_punti");
+		}
+
+		var templayer = this.getMapLayerByName("tmp_linee");
+		if(!empty(templayer)){
+			if(this.clearRedline!==undefined) this.clearRedline("tmp_linee");
+		}
+		
+		var templayer = this.getMapLayerByName("tmp_poligoni");
+		if(!empty(templayer)){
+			if(this.clearRedline!==undefined) this.clearRedline("tmp_poligoni");
+		}
+	}
+    
+	if(!empty(layer_name)){
+// 		si controlla che esista il layer 
+		var templayer = this.getMapLayerByName(layer_name);
+		if(!empty(templayer)){
+			if(this.clearRedline!==undefined) this.clearRedline(layer_name);
+		}
+	}
+};
+/** Clear all the features of a layer (used to clear the results of the user interaction, like for example the activities of measuring length or area)*/
+ovMap.prototype.clearRedline = function(ol_layer) {
+	var redline = this.getMapLayerByName(ol_layer);
+	redline.getSource().clear();
+};
 
 
 /** OUT-OF-CLASS FUNCTIONS  */
@@ -1693,7 +1598,7 @@ function getTooltip (response){
 				}
 			}
 		}
-// if(this.showConsoleMsg) console.log(layer_tooltip);
+// console.log(layer_tooltip);
 
 		if(layer_tooltip!='') {
 
@@ -1717,9 +1622,8 @@ function getTooltip (response){
 
 
 
-/** OTHER METHODS  - CHIEDERE SE SONO NECESSARI */
-
-/** UNUSED - Set the view extents to fit the bounding box of the features defined as WKT, with a defined padding around */
+/** UNUSED - GENERAL PROCEDURES (REDLINE, TRACKING, ... )
+ * UNUSED - Set the view extents to fit the bounding box of the features defined as WKT, with a defined padding around * /
 ovMap.prototype.fit = function(wkt, crs, pixelPadding) {
 	if ( typeof crs == "undefined" ) crs = this.dataProjection // "EPSG:3003";
 	if ( typeof pixelPadding == "undefined" ) pixelPadding = 0;
@@ -1727,19 +1631,19 @@ ovMap.prototype.fit = function(wkt, crs, pixelPadding) {
 	var view = this.map.getView();
 	var viewProjectionCode = view.getProjection().getCode();
 	var size = this.map.getSize();
-// if(this.showConsoleMsg) console.log("map.fit: view",view);
-// if(this.showConsoleMsg) console.log("wkt",wkt,"viewProjectionCode",viewProjectionCode,"size",size,"crs",crs,"pixelPadding",pixelPadding);
+// console.log("map.fit: view",view);
+// console.log("wkt",wkt,"viewProjectionCode",viewProjectionCode,"size",size,"crs",crs,"pixelPadding",pixelPadding);
 	
 	var format = new ol.format.WKT();
 	var feature = format.readFeature(wkt, {
 	dataProjection: crs,
 	featureProjection: viewProjectionCode
 	});
-// if(this.showConsoleMsg) console.log("feature",feature);
+// console.log("feature",feature);
 	view.fit( feature.getGeometry(), size, { padding: [pixelPadding, pixelPadding, pixelPadding, pixelPadding] } );
 }
 
-/** UNUSED - Add the features defined as "WKT" to a target layer */
+/** UNUSED - Add the features defined as "WKT" to a target layer * /
 ovMap.prototype.addRedlineWKT = function(ol_layer,wkt,clear_before) {
 	clear_before = (typeof clear_before !== 'undefined') ?  clear_before : true;
 	
@@ -1763,13 +1667,8 @@ ovMap.prototype.addRedlineWKT = function(ol_layer,wkt,clear_before) {
 	
 };
 
-/** UNUSED - Clear all the feature of a layer */
-ovMap.prototype.clearRedline = function(ol_layer) {
-	var redline = this.getMapLayerByName(ol_layer);
-	redline.getSource().clear();
-};
 
-/** UNUSED - Create a temporary layer and define the style */
+/** UNUSED - Create a temporary layer and define the style * /
 ovMap.prototype.createTempLayer = function (layer_name, fill_color, stroke_color, stroke_width) {
 
 	// Check if the layer is already existing
@@ -1805,10 +1704,10 @@ ovMap.prototype.createTempLayer = function (layer_name, fill_color, stroke_color
 	
 	this.map.addLayer(tempLayer);
 	this.ol_map_layers.push(layer_name);
-// if(this.showConsoleMsg) console.log("The temporary layer "+layer_name+" has been added successfully.");
+// console.log("The temporary layer "+layer_name+" has been added successfully.");
 };
 
-/** UNUSED - Add a text label at the position defined as WKT */
+/** UNUSED - Add a text label at the position defined as WKT * /
 ovMap.prototype.addLabelInLayer = function(layer_name, wkt, labelText, size, angle, clear){
 	
 	var templayer = this.getMapLayerByName(layer_name);
@@ -1835,46 +1734,7 @@ ovMap.prototype.addLabelInLayer = function(layer_name, wkt, labelText, size, ang
 	templayer.getSource().addFeature(feature);
 }
 
-/** UNUSED - Clear one or all "service" layers */
-ovMap.prototype.clearTempLayers = function(layer_name,clear_ol_layers) {
-	if (typeof clear_ol_layers == 'undefined') {var clear_ol_layers=true;}
-	
-	if (clear_ol_layers==true) {
-		this.clearRedline('drawing');
-		this.clearRedline('redline');
-		this.clearRedline('selection');
-		this.clearRedline('measure');
-		this.removeMeasureTooltip();
-	}
-	
-	// If "layer_name" is empty, we need to clear all the "temporary" layers too
-	if (typeof layer_name == "undefined") {
-		var templayer = this.getMapLayerByName("tmp_punti");
-		if(!empty(templayer)){
-			this.clearRedline("tmp_punti");
-		}
-
-		var templayer = this.getMapLayerByName("tmp_linee");
-		if(!empty(templayer)){
-			this.clearRedline("tmp_linee");
-		}
-		
-		var templayer = this.getMapLayerByName("tmp_poligoni");
-		if(!empty(templayer)){
-			this.clearRedline("tmp_poligoni");
-		}
-	}
-    
-	if(!empty(layer_name)){
-// 		si controlla che esista il layer 
-		var templayer = this.getMapLayerByName(layer_name);
-		if(!empty(templayer)){
-			this.clearRedline(layer_name);
-		}
-	}
-};
-
-/** UNUSED - Tracking / Geolocation */
+/** UNUSED - Tracking / Geolocation * /
 ovMap.prototype.mapSetTracking = function(value){
 	var geolocation = new ol.Geolocation({
  			projection: this.map.getView().getProjection()
@@ -1923,7 +1783,7 @@ ovMap.prototype.mapSetTracking = function(value){
 	
 	var geolocationReturnMessage = function(ev) {
 		if (ev.data.message === "deliverResult") {
-if(this.showConsoleMsg) console.log("result: " + ev.data.result);
+// console.log("result: " + ev.data.result);
 			
 			if(!isNaN(parseFloat(ev.data.result[0])) && !isNaN(parseFloat(ev.data.result[1]))) {
 				ev.source.close();
@@ -1977,12 +1837,12 @@ if(this.showConsoleMsg) console.log("result: " + ev.data.result);
 
 }
 
-/** UNUSED - Adding layer ??? */
+/** UNUSED - Adding layer ??? * /
 ovMap.prototype.addingLayer = function(layer){
 	this.map.addLayer(layer);
 }
 
-/** UNUSED - DRAWING INTERACTION TOOL - Start drawing */
+/** UNUSED - DRAWING INTERACTION TOOL - Start drawing * /
 ovMap.prototype.startDraw = function(type,callback_function) {
 	var that=this;
 	var draw_wkt = this.drawWKTDiv;
@@ -2035,7 +1895,7 @@ ovMap.prototype.startDraw = function(type,callback_function) {
 	this.map.addInteraction(this.extraInteractions.snap);
 }
 
-/** UNUSED - DRAWING INTERACTION TOOL - Cancel drawing */
+/** UNUSED - DRAWING INTERACTION TOOL - Cancel drawing * /
 ovMap.prototype.cancelDraw = function(type,callback_function) {
 	var drawingOverlay=this.getMapLayerByName('drawing');
 
@@ -2043,7 +1903,7 @@ ovMap.prototype.cancelDraw = function(type,callback_function) {
 	drawingOverlay.getSource().clear();
 }
 
-/** UNUSED - Get selected features */
+/** UNUSED - Get selected features * /
 ovMap.prototype.getSelectedFeatures = function(xml,a_layers,callback_function,primary_key,extra_field) {
 	// For backward compatibility xml=null is accepted
 	// WARNING : the parameters primary_key and extra_field are not yet used
@@ -2052,15 +1912,15 @@ ovMap.prototype.getSelectedFeatures = function(xml,a_layers,callback_function,pr
 	
 	var selectOverlay=this.getMapLayerByName('selection');
 	var features=selectOverlay.getSource().getFeatures();
-// if(this.showConsoleMsg) console.log("features",features);
+// console.log("features",features);
 
 	var id_list='';
 	var noLayer=true;
 	
 	for (var i=0; i < features.length; i++) {
 		var featureAttributes=features[i].getProperties();
-// if(this.showConsoleMsg) console.log(layers);
-// if(this.showConsoleMsg) console.log(featureAttributes);
+// console.log(layers);
+// console.log(featureAttributes);
 
 		if (jQuery.inArray( featureAttributes.layer, layers )!=-1) {
 			noLayer=false;
@@ -2090,7 +1950,7 @@ ovMap.prototype.getSelectedFeatures = function(xml,a_layers,callback_function,pr
 		}
 	}
 
-// if(this.showConsoleMsg) console.log(id_list);
+// console.log(id_list);
 	
 	if (noLayer) {
         // this case should not happen (this check is also inside libviewer.js)
@@ -2105,5 +1965,136 @@ ovMap.prototype.getSelectedFeatures = function(xml,a_layers,callback_function,pr
 
 	return features;
 };
+*/
 
+/** UNUSED - MAPGUIDE LAYERS INTEGRATION
+ * ---------------------------------------------------------------
+ * - creation of a session
+ * - ping (keep alive)
+ * - return layer information
+ * - get selected features
+ * /
+
+/** Create a MapGuide session - MAIN LAYERS INTEGRATION (MAPGUIDE, WMS, WMS_GEOSERVER) * /
+ovMap.prototype.MapguideCreateSessionGGGG = function(ol_layer) {
+// console.log("MapguideCreateSession()");
+	var that = this;
+	var mg_session_info=null;
+	if ( ol_layer.api_url != '' ) {
+        // AJAX call to sychronously get the value of some variables
+		$.ajax({
+			url: ol_layer.api_url,
+			async: false,
+			method: 'GET',
+			dataType: 'json',
+			data: {mapDefinition: ol_layer.mapDefinition, action: 'CREATE_SESSION'},
+			error: function(a, b, c) {
+// console.log("MapguideCreateSession() - ERROR");
+			},
+			success: function(response) {
+				
+				if ( typeof response.status == 'undefined' || response.status != 'ok' ) {
+// console.log("MapguideCreateSession() - ERROR: " + (typeof response.data != 'undefined' ? response.data : '<undefined>'));
+				} else {
+					mg_session_info=response.data;
+				}
+			}
+		});
+	}
+	return mg_session_info;
+}
+/** Ping a MapGuide layer - MAIN LAYERS INTEGRATION (MAPGUIDE, WMS, WMS_GEOSERVER) * /
+ovMap.prototype.MapguidePingGGGG = function(ol_layer) {
+	var that = this;
+	if ( ol_layer.api_url != '' ) {
+
+		$.ajax({
+			url: ol_layer.api_url,
+			method: 'GET',
+			dataType: 'json',
+			data: {mapSession: ol_layer.mg_session_info.mapSession, mapName: ol_layer.mg_session_info.mapName, action: 'PING'},
+			error: function(a, b, c) {
+				that.mg_ping_failures++;
+				if(that.mg_ping_failures > that.mg_ping_max_failures) {
+					clearInterval(that.mg_ping_timer);
+				}
+				console.log("ping() - ERROR");
+			},
+			success: function(response) {
+
+				if ( typeof response.status == 'undefined' || response.status != 'ok' ) {
+					that.mg_ping_failures++;
+					if(that.mg_ping_failures > that.mg_ping_max_failures) {
+						clearInterval(that.mg_ping_timer);
+					}
+					
+					console.log("ping() - ERROR: " + (typeof response.data != 'undefined' ? response.data : '<undefined>'));
+				} else {
+					//console.log(response);
+					
+					//Do nothing
+				}
+			}
+		});
+	}
+}
+/** Return MapGuide layer information - MAIN LAYERS INTEGRATION (MAPGUIDE, WMS, WMS_GEOSERVER) * /
+ovMap.prototype.MapguideGetLayersInfoGGGG = function(ol_layer) {
+// console.log("Map.MapguideGetLayersInfo");
+
+	var that = this;
+// console.log(this.mg_session_info);
+	
+	if ( ol_layer.api_url != '' ) {
+		$.ajax({
+			url: ol_layer.api_url,
+			method: 'GET',
+			dataType: 'json',
+			data: {mapSession: that.mg_session_info.mapSession, mapName: that.mg_session_info.mapName, action: 'GET_LAYERS'},
+			error: function(a, b, c) {
+				console.log("getMapLayers() - ERROR");
+			},
+			success: function(response) {
+				
+				if ( typeof response.status == 'undefined' || response.status != 'ok' ) {
+					console.log("getMapLayers() - ERROR: " + (typeof response.data != 'undefined' ? response.data : '<undefined>'));
+				} else {
+					//console.log(response);
+					
+					///TODO
+				}
+			}
+		});
+	}
+}
+/** Get the array of selected features (ids, layers) - MAIN LAYERS INTEGRATION (MAPGUIDE, WMS, WMS_GEOSERVER) * /
+ovMap.prototype.getMapGuideSelectionGGGG = function() {
+
+	var stato = this.getStato();
+	var ol_layer = 'mapguide';
+	var selectOverlay=this.getMapLayerByName('selection');
+	var features=selectOverlay.getSource().getFeatures();
+
+	var ids = new Array(), lys= new Array();
+	for (var i=0; i < features.length; i++) {
+		
+		var attributi=features[i].getProperties();
+
+		var layers=stato[ol_layer].layers_info;
+		var a_layers_info=Object.keys(layers);
+		for (var j=0;j<a_layers_info.length;j++) {
+			if(layers[a_layers_info[j]].name==attributi.layer) {
+				// if found
+				var layer_id = a_layers_info[j];
+				var id = attributi.feature_id;
+			}
+		}
+
+		lys.push(layer_id);
+		ids.push(id);
+		
+	}
+	return {ids:ids, lys:lys };
+};
+*/
 

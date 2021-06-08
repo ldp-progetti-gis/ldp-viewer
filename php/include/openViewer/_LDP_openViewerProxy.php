@@ -1,32 +1,11 @@
 <?php
 
 try {   
-		/** Requests to a WMS SERVER 
-		 *  - GetCapabilities      : return a structured objects tailored for the application requirements
-		 *  - GetCapabilitiesText  : return the full GetCapabilities as xml
-		 *  Switchs suupported:
-		 *  - $_POST['service_type']	== 'wms'				(actions GetCapabilities, GetCapabilitiesText - GetFeatureInfoText)
-		 *  - $_POST['service_type']	== 'wfs'				(actions GetCapabilities)
-		 *  - isset( $_GET['WMSURL'] )
-		 *  - $_POST['service_type']	== 'legends'
-		 *  - if($_POST['service_type']	== 'featureinfo'
-		 *  - if($_POST['service_type']	== 'featureinfoHtml'
-		 */
+
 		if ( $_POST['service_type'] == 'wms' ) {
 //error_log(__FILE__ . " :: " . __LINE__ . " wms ");
-			
+			//Ritorna tutta la lista dei layer wms aggangiati ad un URL 
 			switch ($_POST['action']) {
-				
-				// ********************************************************************************
-				// WMS - GETCAPABILITIES
-				// ********************************************************************************
-				// Return a specific object with:
-				// - the list of suported layers with a set of related information:
-				//   name, abstract, scales, queryability, legend, ...
-				// - the list of all supported output image formats
-				// - the list of all supported GetFeatureInfo formats
-				// - the list of all supported CRS
-				// ********************************************************************************
 				case 'GetCapabilities':
 					$query_url = "{$_POST['service_url']}";
 					if ( !preg_match('/\?/', $_POST['service_url']) )
@@ -35,9 +14,9 @@ try {
 						$query_url .= '&';
 					$query_url .= "SERVICE=WMS&REQUEST=GetCapabilities";
 error_log(__FILE__ ." :: " . __LINE__ . " WMS " . $query_url);
-					
 					$xml_data = file_get_contents($query_url);
 					
+
 					$xml = simplexml_load_string($xml_data);
 					
 					// il modo giusto di farlo sarebbe con xpath, ma non ci riesco
@@ -51,21 +30,12 @@ error_log(__FILE__ ." :: " . __LINE__ . " WMS " . $query_url);
 					foreach($formats_ as $f) {
 						$a_formats[] = $f->__toString();
 					}
-					// retrieve all supported GetFeatureInfo formats
-					$gfi_formats_ = $xml->xpath('//openlayers:GetFeatureInfo/openlayers:Format');
-					$a_gfi_formats = array();
-					foreach($gfi_formats_ as $f) {
-						$a_gfi_formats[] = $f->__toString();
-					}
 // error_log(print_r($formats_,true));
 // error_log(print_r($a_formats,true));
-// error_log(print_r($a_gfi_formats,true));
 					$xml->registerXPathNamespace('xlink', 'http://www.w3.org/1999/xlink');
 					
-					//$a=sizeof($styles); // Simone
-					
+					$a=sizeof($styles);
 					$layers = array();
-					$crss = array();
 					
 					foreach ($layers_ as $node) {
 							$layer_data = array();
@@ -83,43 +53,21 @@ error_log(__FILE__ ." :: " . __LINE__ . " WMS " . $query_url);
 // 							$style_data['legend_url_width']=(string)100;
 // 							$style_data['legend_url_height']=(string)200;
 							
-							// retrieve all supported CRS
-							if (count($node->CRS) > 0) {
-								foreach ($node->CRS as $el){
-									if ($layer_data['crs_supported'] == '' )
-										$layer_data['crs_supported']=(string)$el;
-									else
-										$layer_data['crs_supported']=$layer_data['crs_supported'] . ' ' . (string)$el;
-									if (in_array((string)$el, $crss) == false) {
-										array_push($crss, (string)$el);
-									}
+							if (count($node->Style->LegendURL->OnlineResource) > 0) {
+								foreach ($node->Style->LegendURL->OnlineResource as $el){
+									$attributes = $el->attributes( 'xlink', true);
+
+									$style_data['legend_url_href']=$attributes['href'] . ' ' . $el;
 								}
 							}
-							$layer_data['crs_supported'] = $crss;
-							
-							// retrieve the queryability of the layer
-							$layer_data['queryable'] = (string)$node['queryable'];
-							
-							// retrieve all OnlineResources
-							if (count($node->Style) > 0) {
-								if (count($node->Style->LegendURL) > 0) {
-									if (count($node->Style->LegendURL->OnlineResource) > 0) {
-										foreach ($node->Style->LegendURL->OnlineResource as $el){
-											$attributes = $el->attributes( 'xlink', true);
-											$style_data['legend_url_href']=$attributes['href'] . ' ' . $el;
-										}
-									}
-								}
-							}
-							
+
 							$style_name= (string)$style_data['name'];
 							$layer_data['styles'][$style_name] = $style_data;
 							if ( $layer_data['name'] == '' )
 								continue;
 							$layers[] = $layer_data;
-							
 					}
-					
+
 					$titles = array();
 					foreach ($layers as $key => $row) {
 						$titles[$key]  = $row['title'];
@@ -128,61 +76,15 @@ error_log(__FILE__ ." :: " . __LINE__ . " WMS " . $query_url);
                                         
 					header("Content-Type: application/json");
 					ob_end_flush();
-					
-					echo json_encode(array('success' => true, 'data' => $layers, 'formats' => $a_formats, 'gfi_formats' => $a_gfi_formats, 'query_url' => $query_url));
-					// echo json_encode(array('success' => true, 'data' => $crs_data, 'formats' => $a_formats));
-					die();
-				break;
-				
-				// ********************************************************************************
-				// WMS - GETCAPABILITIESTEXT
-				// ********************************************************************************
-				// Return a specific object with:
-				// - the full GetCapabilities as xml
-				// - the full GetCapabilities as object
-				// ********************************************************************************
-				case 'GetCapabilitiesText':
-					$query_url = "{$_POST['service_url']}";
-					if ( !preg_match('/\?/', $_POST['service_url']) )
-						$query_url .= '?';
-					else
-						$query_url .= '&';
-					$query_url .= "SERVICE=WMS&REQUEST=GetCapabilities";
-error_log(__FILE__ ." :: " . __LINE__ . " WMS " . $query_url);
-					
-					$xml_data = file_get_contents($query_url);
-					
-					$xml = simplexml_load_string($xml_data);
-					
-					//header("Content-Type: application/json");
-					header("Content-Type: application/xhtml+xml");
-					ob_end_flush();
-					
-					echo json_encode(array('success' => true, 'query_url' => $query_url, 'xml' => $xml_data, 'object' => $xml));
+					echo json_encode(array('success' => true, 'data' => $layers, 'formats' => $a_formats));
 					die();
 				break;
 				
 				default:
-					throw new Exception("Wrong parameters");
+					throw new Exception("Parametri errati");
 			}
-		} 
-		
-		
-		/** Requests to a WFS SERVER 
-		 *  - GetCapabilities      : return a structured objects tailored for the application requirements
-		 *  - GetCapabilitiesText  : return the full GetCapabilities as xml
-		 */
-		else if ( $_POST['service_type'] == 'wfs' ) {
-			
+		} else if ( $_POST['service_type'] == 'wfs' ) {
 			switch ($_POST['action']) {
-				
-				// ********************************************************************************
-				// WFS - GETCAPABILITIES
-				// ********************************************************************************
-				// Return a specific object with:
-				// - the list of suported layers with a set of related information:
-				//   name, abstract, featuretypelist, ...
-				// ********************************************************************************
 				case 'GetCapabilities':
 					$query_url = "{$_POST['service_url']}";
 					if ( !preg_match('/\?/', $_POST['service_url']) )
@@ -230,14 +132,10 @@ error_log(__FILE__ ." :: " . __LINE__ . " WMS " . $query_url);
 				break;
 				
 				default:
-					throw new Exception("Wrong parameters");
+					throw new Exception("Parametri errati");
 			}
 		}
-		
-		
-		/** Requests to a WMS SERVER - SPECIAL CASE  OVD ????
-		 */
-		else if(isset($_GET['WMSURL'])) {
+		else if(isset($_GET['WMSURL'])){
 // 		error_log('wmsurl');
 			//Carica WMS provenienti dall'Amministrazione (exe: metarepo)
 			$permitted_autentication = array("devsrv", "ldpgis");
@@ -262,7 +160,7 @@ error_log(__FILE__ ." :: " . __LINE__ . " WMS " . $query_url);
 							$access = true;
 					}
 			}*/
-			if($access === true && $autenticated === true) {
+			if($access === true && $autenticated === true){
 				if ( $_SERVER['REQUEST_METHOD'] == 'GET' ) {
 						//Se è richiesto il GET Feature Info	
 						if($_GET['REQUEST'] == 'GetFeatureInfo'){
@@ -271,7 +169,7 @@ error_log(__FILE__ ." :: " . __LINE__ . " WMS " . $query_url);
 							else
 									$result = file_get_contents($_GET['WMSURL'] . '&' . $_SERVER['QUERY_STRING'] );
 						}
-						else {
+						else{
 							//Se non è richiesto il get Feature info chiediamo le immagini con dpi=96 questo poichè altrimenti geoserver le fornisce a 90.
 							if ( strpos($_GET['WMSURL'],'?') === FALSE )
 									$result = file_get_contents($_GET['WMSURL'] . '?' . $_SERVER['QUERY_STRING'] . "&format_options=dpi:96");
@@ -296,7 +194,7 @@ error_log(__FILE__ ." :: " . __LINE__ . " WMS " . $query_url);
 				}
 
 				//
-				// Outpout of headers and content
+				// Faccio l'output del contenuto e degli header
 				//
 
 // 				error_log("response_header: " . json_encode($http_response_header));
@@ -304,15 +202,11 @@ error_log(__FILE__ ." :: " . __LINE__ . " WMS " . $query_url);
 						header($header, false);
 				
 				echo $result;
-			}
-			
-			else
-				return;
+		}
+		else
+			return;
 
 		}
-		
-		/** Requests for LEGENDS OVD ????
-		 */
 		else if ( $_POST['service_type'] == 'legends' ) {
 			if($_POST['tipo']=='wms'){
 				
@@ -384,10 +278,8 @@ error_log(__FILE__ ." :: " . __LINE__ . " WMS " . $query_url);
 				ob_end_flush();
 				echo json_encode(array('success' => true, 'data' => $layer));
 				die();
-			}
-			
-			else {
-				
+			}else{
+		
 				//Richiedo le legende
 				$service_url = $_POST['service_url'];
 				$request = $_POST['request'];
@@ -398,9 +290,6 @@ error_log(__FILE__ ." :: " . __LINE__ . " WMS " . $query_url);
 			}
 			
 		}
-		
-		/** Requests for FEATURE INFO OVD ????
-		 */
 		else if($_POST['service_type'] == 'featureinfo'){
 			
 			//Richiedo il ger feature info di fonti esterne
@@ -409,16 +298,12 @@ error_log(__FILE__ ." :: " . __LINE__ . " WMS " . $query_url);
 			$request = $_POST['request']."&FEATURE_COUNT=100";
 
 // 			$result = file_get_contents(urlencode($service_url . $request));
-			$url = $service_url . '?' . $request;
-			$result = file_get_contents($url);
+			$result = file_get_contents($service_url . $request);
 
 			$array = jsonp_decode($result);
 			
-			die(json_encode(array('success' => true, 'data' =>$array, 'url' => $url, 'url1' => $service_url, 'url2' => $request, 'res' => $result)));                 
+			die(json_encode(array('success' => true, 'data' =>$array)));                 
 		}
-		
-		/** Requests for FEATURE INFO IN HTML FORMAT OVD ????
-		 */
 		else if($_POST['service_type'] == 'featureinfoHtml'){
 			
 			//Richiedo il ger feature info di fonti esterne
@@ -428,29 +313,6 @@ error_log(__FILE__ ." :: " . __LINE__ . " WMS " . $query_url);
 
 			echo "<div class='proxy_wms_html_result'>".$result."</div>";                 
 		}
-		
-		
-		/** Request for a PLAIN TEXT
-		 */
-		else if($_POST['service_type'] == 'GetInfoText'){
-			
-			// ********************************************************************************
-			// GET PLAIN TEXT
-			// ********************************************************************************
-			// Return a specific object with:
-			// - the page content as text
-			// ********************************************************************************
-			$service_url = $_POST['service_url'];
-			
-			// retrieve the information
-			$result = file_get_contents($service_url);
-			
-			die(json_encode(array('success' => true, 'datatext' => $result, 'query_url' => $service_url)));                 
-			
-		}
-		
-	/** Handling the exceptions
-	 */
 	} catch (Exception $e) {
 		error_log(__FILE__." +".__LINE__." " . $e->getMessage() . " - Linea: " . $e->getLine() . " Stacktrace: " . $e->getTraceAsString());
 		header("Content-Type: application/json");

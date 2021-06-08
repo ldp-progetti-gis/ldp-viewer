@@ -9,7 +9,7 @@
 	 * @license: GNU General Public License v2.0
 	 */
 *}
-<div id="ov_overlay_background" class="hide" onclick='open_viewer.ev_wmsadd_page_close_click()'></div>
+<div id="ov_overlay_background" class="hide" onclick='open_viewer.ev_wmscustom_pageadd_openclose_click()'></div>
 
 {*
 	/**
@@ -28,7 +28,7 @@
 			<p>{$GLOBALS['strings']['interface']['wms_pagedescription1']}:</p><ul>
 			{foreach $GLOBALS[$GLOBALS['package']]['wms_internal_server'] as $WMSsource}
 				<li>
-					<a href="javascript:;" onclick="open_viewer.WMSInternalCatalog('{$WMSsource['server_url']}')" title="{$WMSsource['server_url']}" >{$WMSsource['title']}</a> 
+					<a href="javascript:;" onclick="ov_wms_plugin.WMSuserOpenCatalog('{$WMSsource['server_url']}')" title="{$WMSsource['server_url']}" >{$WMSsource['title']}</a> 
 					<a href="{$WMSsource['description_url']}" title="{$WMSsource['description_url']}" target="_blank" rel="noopener">({$GLOBALS['strings']['interface']['sentence_visitthewebsite']|lower})</a>
 				</li>
 			{/foreach}</ul>
@@ -42,7 +42,7 @@
 			{/if}
 			{foreach $GLOBALS[$GLOBALS['package']]['wms_server'] as $WMSsource}
 				<li>
-					<a href="javascript:;" onclick="open_viewer.WMSInternalCatalog('{$WMSsource['server_url']}')" title="{$WMSsource['server_url']}" >{$WMSsource['title']}</a> 
+					<a href="javascript:;" onclick="ov_wms_plugin.WMSuserOpenCatalog('{$WMSsource['server_url']}')" title="{$WMSsource['server_url']}" >{$WMSsource['title']}</a> 
 					<a href="{$WMSsource['description_url']}" title="{$WMSsource['description_url']}" target="_blank" rel="noopener">({$GLOBALS['strings']['interface']['sentence_visitthewebsite']|lower})</a>
 				</li>
 			{/foreach}</ul>
@@ -78,7 +78,7 @@
 	
 	<div id="ov_overlay_wms_messages"></div>
 	
-	<input id='ov_overlay_wms_selector_url' value='' placeholder='{$GLOBALS['strings']['interface']['wms_inserturlwmsserver']}' type='url'/>&nbsp;<button id='ov_overlay_wms_selector_button' title='{$GLOBALS['strings']['interface']['wms_clicktogetlistwmslayers']}' onclick='open_viewer.overlayWmsSelectorScanUrl()' value='{$GLOBALS['strings']['interface']['wms_showavailablelayers']}'>{$GLOBALS['strings']['interface']['wms_showavailablelayers']}</button>
+	<input id='ov_overlay_wms_selector_url' value='' placeholder='{$GLOBALS['strings']['interface']['wms_inserturlwmsserver']}' type='url'/>&nbsp;<button id='ov_overlay_wms_selector_button' title='{$GLOBALS['strings']['interface']['wms_clicktogetlistwmslayers']}' onclick='ov_wms_plugin.WMSuserLaunchScanUrl()' value='{$GLOBALS['strings']['interface']['wms_showavailablelayers']}'>{$GLOBALS['strings']['interface']['wms_showavailablelayers']}</button>
 	
 {* OVD ELIMINARE ???
 	<!-- <p>Ad esempio, per utilizzare <em>Ambiti amministrativi</em> di Regione Toscana:</p>
@@ -172,8 +172,8 @@
 					<div id="ov_legend_wmsuserlayers_title">
 						<span>{$GLOBALS['strings']['interface']['sentence_thirdpartyWMS']}</span>
 						<button id="toggle_ov_legend_wmsuserlayers" class="legend_toggle_container legend_open" title="{$GLOBALS['strings']['interface']['sentence_opencloselegend']}"></button>
-						<button id="toggle_ov_legend_wmsuserlayers" class="ov_legend_tool_container add_wmsuserlayers" onclick="open_viewer.ev_wmsadd_page_close_click()" title="{$GLOBALS['strings']['interface']['sentence_addwmstomap']}">
-						<button id="toggle_ov_legend_wmsuserlayers" class="ov_legend_tool_container clear_wmsuserlayers" onclick="open_viewer.removeAllWmsUserLayers()" title="{$GLOBALS['strings']['interface']['sentence_removealluserwms']}">
+						<button id="toggle_ov_legend_wmsuserlayers" class="ov_legend_tool_container add_wmsuserlayers" onclick="open_viewer.ev_wmscustom_pageadd_openclose_click()" title="{$GLOBALS['strings']['interface']['sentence_addwmstomap']}">
+						<button id="toggle_ov_legend_wmsuserlayers" class="ov_legend_tool_container clear_wmsuserlayers" onclick="open_viewer.ev_wmscustom_remove_all_click()" title="{$GLOBALS['strings']['interface']['sentence_removealluserwms']}">
 						</span>
                     </div>
 					<div id="ov_legend_wmsuserlayers"></div>
@@ -187,7 +187,7 @@
 				<div id="ov_legend_add_wms_layer">
 					
 					<div class="ov_legend_aggiungi_wms">
-						<a href="javascript:;" onclick="open_viewer.ev_wmsadd_page_close_click()" title="{$GLOBALS['strings']['interface']['wms_pagetitle']}">{"{$GLOBALS.PATHBaseInclude}/img/openViewer/toolbar/add-wms.svg"|file_get_contents} Aggiungi WMS</a>
+						<a href="javascript:;" onclick="open_viewer.ev_wmscustom_pageadd_openclose_click()" title="{$GLOBALS['strings']['interface']['wms_pagetitle']}">{"{$GLOBALS.PATHBaseInclude}/img/openViewer/toolbar/add-wms.svg"|file_get_contents} Aggiungi WMS</a>
 					</div>
 					<p>Utilizza un servizio WMS per aggiungere strati cartografici alla mappa.</p>
 					<div id="ov_legend_wmsUser"></div>
@@ -350,10 +350,10 @@
 	 */
 *}
 		<div id="ov_footer">
-			<div id="user">{"{$GLOBALS.PATHBaseInclude}/img/openViewer/toolbar/circled-female-user.svg"|file_get_contents}<em>{$GLOBALS['strings']['interface']['welcome_msg_statusbar']}</em></div>
+			<div id="ov_ready">{"{$GLOBALS.PATHBaseInclude}/img/openViewer/toolbar/circled-female-user.svg"|file_get_contents}<em><span id='ov_ready_message'>{$GLOBALS['strings']['interface']['welcome_msg_statusbar']}</span></em></div>
 			<div id="footer_mouse_coordinates">&nbsp;</div>
 			{if isset($GLOBALS[$GLOBALS['package']]['map_options']['show_number_selected_features']) && $GLOBALS[$GLOBALS['package']]['map_options']['show_number_selected_features'] == true}  
-				<div id="footer_info_selezione">{$GLOBALS['strings']['interface']['no_feature_selected_statusbar']}</div>
+				<div id="footer_info_selezione">0 {$GLOBALS['strings']['interface']['features_selected_statusbar']}</div>
 			{else}
 				<div id="footer_info_selezione">&nbsp;</div>
 			{/if}
@@ -378,9 +378,13 @@
 
 	// logging environment
 	flag_console_messages={json_encode($GLOBALS[$GLOBALS["package"]]["show_console_messages"])};
+	flag_show_getcap_button={json_encode($GLOBALS[$GLOBALS["package"]]["show_getcapabilities_button"])};
+	flag_show_getcap_new_tab={json_encode($GLOBALS[$GLOBALS["package"]]["show_getcapabilities_in_a_new_tab"])};
+	footer_panel_ready = $("#ov_ready_message");
+	timeout_id_readymsg=-1;
+	timeout_duration_readymsg = 5000;
 
-
-	// Initial definition of the map
+	// initial definition of the map
 	var map_definition={json_encode($GLOBALS[$GLOBALS["package"]]["map_definition"])};
 	var map_options={json_encode($GLOBALS[$GLOBALS["package"]]["map_options"])};
 	
@@ -398,7 +402,8 @@
 
 {* OVD E' POSSIBILE FARLA FUNZIONARE ??? *}
 	// Default page for the print dialog
-	var ov_stampa_page="{$GLOBALS.URLBaseInclude}/php/stampa/stampa.ldpviewer.php";
+	// var ov_stampa_page="{$GLOBALS.URLBaseInclude}/php/stampa/stampa.ldpviewer.php";
+	var ov_stampa_page="{$GLOBALS.URLBaseInclude}/print/print.openviewer.php";
 
 	// Configuration of the Proxy
 	var proxy_set = false;
@@ -485,10 +490,34 @@ if(flag_console_messages) console.log('Configuration of the base layers...');
 		var mapBasemapLayersDefinition = new Array();
 	{/if}
 	
+	// -------------------------------------------------------------------
+	// Run the viewer
+	// -------------------------------------------------------------------
 	$(document).ready(function(){
+		// initialize the "utilities" library
+		ov_utils = new generalUtilities( { 
+			flagConsMsg: flag_console_messages
+		} );
+		
+		// initialize the "WMS" plugin
+		ov_wms_plugin = new ovWmsLayers( { 
+			flagConsMsg:	flag_console_messages,
+			legend_wmsUser:	{
+				container:		'ov_overlay_container',
+				wmsContainer:  	'ov_wms_selector_container',   
+				messages:		'ov_overlay_wms_messages',
+				inputUrl:		'ov_overlay_wms_selector_url',
+				inputFilter:	'ov_wms_selector_filter_text',
+				layersSelector:	'overlay_wms_selector_layers'
+			},
+			wmsInternalUrl : ov_internal_wms_url,
+			flagShowGetCapButton: flag_show_getcap_button
+		} );
+		
+		// initialize the "openViewer"
 		open_viewer = new openViewer( { 
 			name: 'default', 
-			stato: map_definition, 
+			stato: map_definition,
 			mapOptions: map_options,
 			components: {
 				container: {
@@ -519,7 +548,8 @@ if(flag_console_messages) console.log('Configuration of the base layers...');
 					panel:			'ov_legend_wmsUser',
 					messages:		'ov_overlay_wms_messages',
 					button:    		'ov_overlay_container_close',
-					inputUrl:		'ov_overlay_wms_selector_url'
+					inputUrl:		'ov_overlay_wms_selector_url',
+					layersSelector:	'overlay_wms_selector_layers'
 				},
 				legend_wmsInternal:{
 						panel:		'ov_legendWMS',
@@ -532,6 +562,7 @@ if(flag_console_messages) console.log('Configuration of the base layers...');
 				},
 				footer: {
 					panel:				'ov_footer',
+					readyMsg:			'ov_ready_message',
 					{if isset($GLOBALS[$GLOBALS['package']]['map_options']['show_number_selected_features']) && $GLOBALS[$GLOBALS['package']]['map_options']['show_number_selected_features'] == true}  
 						infoSelezione:	'footer_info_selezione',
 					{else}
@@ -589,7 +620,17 @@ if(flag_console_messages) console.log('Configuration of the base layers...');
 			},
 			proxy: proxy_set,
 			flagConsMsg: flag_console_messages,
+			flagShowGetCapNewTab: flag_show_getcap_new_tab,
+			flagShowGetCapButton: flag_show_getcap_button,
 		} );
+		
+		
+		{* OPENVIEWER PLUGINS *}
+		{if isset($GLOBALS[$GLOBALS.package]['plugins']['wmslayers']) }  
+			open_viewer.setPluginWmsLayers(true);
+if(flag_console_messages) console.log("Plugin WMS Layers installed"); 
+		{/if}
+		
 if(flag_console_messages) console.log("Start loading the map..."); 
 		open_viewer.loadMap();
 		

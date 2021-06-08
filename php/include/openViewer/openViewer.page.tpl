@@ -23,7 +23,7 @@
 		<meta name="keywords" content=""/>
 		<meta name="description" content="{$GLOBALS[$GLOBALS.package].app_department} {$GLOBALS[$GLOBALS.package].app_title_long}"/>
 		<meta name="page-topic" content="" />
-		<meta name="copyright" content="Copyright {$GLOBALS['year']} {$GLOBALS['app_copyright']}"/>
+		<meta name="copyright" content="Copyright {$GLOBALS['release_year']} {$GLOBALS['app_copyright']}"/>
 		<meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0' name='viewport' />
 		
 		{block head_meta}{/block}
@@ -35,7 +35,7 @@
 		<script type="text/javascript" src="{$GLOBALS['URLBaseInclude']}/js/proj4/proj4-{$GLOBALS['lib_proj4_version']}/proj4.js" defer></script>
 		{* load specific EPSG definitions *}
 		{foreach $GLOBALS['epsg_supported'] as $epsg}
-			<script type="text/javascript" src="{$GLOBALS['URLBaseInclude']}/js/proj4/proj4-{$GLOBALS['lib_proj4_version']}/EPSG-{$epsg}.js" defer></script>
+			<script type="text/javascript" src="{$GLOBALS['URLBaseInclude']}/js/proj4/epsg/EPSG-{$epsg}.js" defer></script>
 		{/foreach}
 		
 		<script type="text/javascript" src="{$GLOBALS['URLBaseInclude']}/js/jquery/{$GLOBALS['lib_jquery_version']}/jquery-3.5.1.min.js"></script>
@@ -47,7 +47,14 @@
 		<script type="text/javascript" src="{$GLOBALS['URLBaseInclude']}/js/jquery.dialogextend/jquery.dialogextend.js" defer></script>
 		<script type="text/javascript" src="{$GLOBALS['URLBaseInclude']}/js/jqueryui/jquery.ui.touch-punch.min.js" defer></script>
 
+		{*
 		<script type="text/javascript" src="http://maps.stamen.com/js/tile.stamen.js?v1.3.0"></script>
+		<script type="text/javascript" src="https://unpkg.com/dom-to-image-more@2.7.1/dist/dom-to-image-more.min.js"></script>
+		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
+		*}
+		
+		{* OPENVIEWER PLUGINS *}
+		<script type="text/javascript" src="{$GLOBALS[$GLOBALS.package]['plugins']['wmslayers']['jsLib']}" defer></script>
 		
 		{* BOOTSTRAP *}
 		<script type="text/javascript" src="{$GLOBALS['URLBaseInclude']}/js/bootstrap/4.3.1/js/bootstrap.bundle.min.js" defer></script>
@@ -66,6 +73,7 @@
 		        
 		{assign var=t value=1|mt_rand:10000000}
 		{*{assign var=hash value=1234}*}
+		<script type="text/javascript" src="{$GLOBALS['URLBaseInclude']}/utilities/generalUtilities.js?{$t}" defer></script>
 		<script type="text/javascript" src="{$GLOBALS['URLBaseInclude']}/openViewer/openViewerMap.js?{$t}" defer></script>
 		<script type="text/javascript" src="{$GLOBALS['URLBaseInclude']}/openViewer/openViewer.js?{$t}" defer></script>
 		

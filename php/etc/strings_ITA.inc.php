@@ -15,11 +15,12 @@
 	 * Strings used by the general INTERFACE
 	 */
 	$GLOBALS['strings']['interface'] = array(
-         'tab_query_title'              => $PREFIX . 'Interroga',
+         'tab_query_title'              => $PREFIX . 'Risultati',
          'tab_query_content'            => 'Mostra le informazioni associate',
          'tab_search_title'             => $PREFIX . 'Ricerca',
          'tab_search_content'           => 'Cerca un luogo, una località o un indirizzo',
-         'tab_custom_title'             => $PREFIX . 'Customs',
+         'tab_custom_title'             => $PREFIX . 'Custom',
+         'tab_custom_title'             => 'Info Mappa',
          'tab_custom_content'           => 'Mostra una pagina personalizzata',
          'tab_appinfo_title'            => $PREFIX . 'Info su',
          'tab_appinfo_content'          => 'Mostra le informazioni sull\'applicazione',
@@ -39,7 +40,8 @@
          'button_guidedtour'            => 'Tour guidato',
 
          'welcome_msg_statusbar'        => 'Pronto',
-         'no_feature_selected_statusbar'=> '0 features selezionate',
+         'feature_selected_statusbar'   => 'oggetto selezionato',
+         'features_selected_statusbar'  => 'oggetti selezionati',
 
          'wms_CRSunsupported'           => 'La proiezione usata nella mappa non &egrave; supportata dela server WMS',
          'wms_clicktogetlistwmslayers'  => 'Click per ottenere la lista dei layer WMS disponibili',
@@ -61,16 +63,22 @@
          'word_add'                     => 'Aggiungi',
          'word_close'                   => 'Chiusi',
          'word_description'             => 'Descrizione',
+         'word_feature'                 => 'Oggetto',
          'word_from'                    => 'Da',
+         'word_in'                      => 'In',
          'word_information'             => 'Informazioni',
          'word_layer'                   => 'Layer',
          'word_legend'                  => 'Legenda',
          'word_libreria'                => 'Libreria',
          'word_license'                 => 'Licenza',
+         'word_no'                      => 'No',
          'word_of'                      => 'Di',
          'word_open'                    => 'Aprire',
          'word_or'                      => 'Oppure',
          'word_original'                => 'Originale',
+         'word_queryability'            => 'Interrogabilit&agrave;',
+         'word_queryableas'             => 'Interrogabile come',
+         'word_release'                 => 'Versione',
          'word_styles'                  => 'Stili',
          'word_themes'                  => 'Tematismi',
          'word_title'                   => 'Titolo',
@@ -88,6 +96,7 @@
          'sentence_datasource'                  => 'Sorgente dati',
          'sentence_epsgsupported'               => 'Sistemi di coordinate supportati (EPSG)',
          'sentence_forexample'                  => 'Per esempio',
+         'sentence_foundfeatures'               => 'Oggetti trovati',
          'sentence_generaldescription'          => 'Caratteristiche generali',
          'sentence_impossiblegetlayersfromurl'  => 'Impossibile recuperare la lista dei layers dall&apos;URL specificato',
          'sentence_increasetransparency'        => 'Aumenta la trasparenza',
@@ -97,18 +106,22 @@
          'sentence_layeraleradyexisting'        => 'Il layer non &egrave; stato aggiunto alla mappa. Un layer con lo stesso nome esiste gi&agrave;.',
          'sentence_layerwillbereprojected'      => 'Il layer non supporta il sistema di coordinate usato nella mappa; quindi sar&agrave riproiettato automaticamente.',
          'sentence_nobasemap'                   => 'Nessuna basemap',
+         'sentence_noselectedobjects'           => 'Nessun oggetto selezionato',
          'sentence_noselfeaturesinsidelayer'    => 'Nessuna selezione all&apos;interno dei layer',
          'sentence_opencloselegend'             => 'Apri/Chiudi la legenda',
          'sentence_opencloseinfopanel'          => 'Apri/Chiudi il pannello delle informazioni',
          'sentence_openprintdialog'             => 'Stampa la vista corrente della mappa',
+         'sentence_problemsgetcapabilities'     => 'Incontrati problemi durante la richiesta di GetCapabilities da',
          'sentence_queryresultpage'             => 'Pagina dei risultati',
          'sentence_reducetransparency'          => 'Riduci la trasparenza',
          'sentence_releasenote'                 => 'Note sulla versione',
          'sentence_removealluserwms'            => 'Rimuovi tutti i layer WMS aggiunti',
          'sentence_renderingprojection'         => 'Proiezione usata per il rendering della mappa',
+         'sentence_retrievingtheinformation'    => 'Sto recuperando le informazioni, attendere prego ...',
          'sentence_scalevisibility'             => 'Visibile nell&apos;intervallo di scale ',
-         'sentence_sendemailto'                 => 'Per informazioni invia una email a',
          'sentence_searchpage'                  => 'Pagina per la ricerca',
+         'sentence_sendemailto'                 => 'Per informazioni invia una email a',
+         'sentence_servercapabilities'          => 'Server capabilities',
          'sentence_showyourposonthemap'         => 'Mostra la tua posizione sulla mappa',
          'sentence_usedlibraries'               => 'Librerie open source utilizzate',
          'sentence_thirdpartyWMS'               => 'WMS terze parti',
@@ -163,4 +176,39 @@
 
          'varempty'                     => '');
 	 
+	/**
+	 * Strings used by the TOUR/HELP functionality
+	 */
+	$GLOBALS['strings']['application_info'] = array(
+         'license_description'          => 'Questo programma &egrave; un software gratuito; &egrave; possibile ridistribuirlo e/o modificarlo '.
+                                           'secondo i termini della GNU General Public License come pubblicata dalla Free Software Foundation; '.
+                                           'o la versione 2 della licenza o (a tua scelta) qualsiasi versione successiva.'.
+                                           '<br>&nbsp;<br>'.
+                                           'Questo programma &egrave; distribuito nella speranza che possa essere utile, ma SENZA ALCUNA GARANZIA; '.
+                                           'senza neppure la garanzia implicita di COMMERCIABILIT&Agrave; o IDONEIT&Agrave; PER UN PARTICOLARE SCOPO. '.
+                                           'Vedi il '.
+                                           '<u><i><a href="GNU General Public License v2.0 - GNU Project - Free Software Foundation.html" target="_blank">'.
+                                           'GNU General Public License</a></i></u> '.
+                                           'per maggiori dettagli.',
+         'application_description'      => '&egrave; una applicazione internet che consente la pubblicazione di dati geografici. Il '.
+                                           'visualizzatore interattivo permette agli utenti di navigare la mappa (zoom, pan, visualizzazione '.
+                                           'ad una scala definita), modificare i livelli geografici visualizzati, aggiungere al volo strati '.
+                                           'geografici pubblicati da server WMS, interrogare i dati associati e generare elaborati di stampa.',
+         'application_mainfeatures'     => 'Dati supportati:<ul>'.
+                                           '<li>fonti dati WMS</li>'.
+                                           '<li>fonti dati MapGuide</li>'.
+                                           '<li>basemap OpenStreetMap</li>'.
+                                           '</ul>'.
+                                           'Funzionalit&agrave;:<ul>'.
+                                           '<li>panning e zoom su rettagolo interattivi</li>'.
+                                           '<li>vista iniziale, zoom in, zoom out, vista precedente, vista successiva</li>'.
+                                           '<li>misurazione di distanze e di aree</li>'.
+                                           '<li>stampa</li>'.
+                                           '</ul>',
+         'application_noterelease1'     => 'Sviluppo iniziale dell/apos;applicazione, basato sulla revisione delle applicazioni pi/ugrave; '.
+                                           'articolate e complete realizzate da LdpGIS per la gestione di dati geografici destinati '.
+                                           'alla gestione del territorio.',
+
+         'varempty'                     => '');
+
 ?>

@@ -1,3 +1,4 @@
+
 /**
  * JAVASCRIPT CLASSES TO HANDLE THE VIEWER
  * 
@@ -15,19 +16,48 @@
  * ---------------------------------------------------------------
  */
 var openViewer = function(params) {
-// if(this.showConsoleMsg) console.log("openViewer parameters: ",params);
-
+	
+	// show console messages
+	this.showConsoleMsg = params.flagConsMsg;
+	
+ov_utils.ovLog(params,'openViewer parameters'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
+	
 	this.name = params.name;
 	
-	// service variables
+	// ----------------------------------------------------------------------
+	// SERVICE SETTINGS
+	// ----------------------------------------------------------------------
 	this.timeout_SaveHistory_Zoom = 300;
 	this.timeout_SaveHistory_Pan = 1000;
+	this.timeout_RefreshFeaturesAttributesInfo = 500;
+	timeout_duration_readymsg = 5000; // defined "globally" in the TPL file
 	
 	this.correctionOffsetScaleMax = 0.00000001; // correction offset used to solve potential problems related to the visualization close to the scale constraints, and due to approximation on the calculation of "resolution"
 	this.correctionOffsetScaleMin = 0;          // correction offset used to solve potential problems related to the visualization close to the scale constraints, and due to approximation on the calculation of "resolution"
 	
+	// interface
 	this.leftPanelMinWidth = 270;
 	this.rightPanelMinWidth = 300;
+	
+	// tools
+	this.touchBuffer=15;	// number of pixel used as buffer for the touch events
+	
+	// ----------------------------------------------------------------------
+	// SERVICE VARIABLES defined outside (in the CONFIG FILES)
+	// ----------------------------------------------------------------------
+	
+	// main layers
+	this.stato = params.stato;	// "stato" inherits the "map_definition" object defined in the PHP configuration
+								// and contains the definition of the "main layers" (all layers but the basemap layers and the user WMS layers)
+	
+	// functionalities
+	this.showGetCapButton = params.flagShowGetCapButton  // display the "GetCapabilities" in the window to add WMS on-the-fly layers
+	this.showGetCapNewTab = params.flagShowGetCapNewTab; // set "where" to show the result of the GetCapabilities of a WMS service
+	
+	this.enableFeatAttrWithoutCtrl = params.mapOptions['show_feature_attribute_without_ctrl']; 	// enable the visualization of the feature attributes "without" pressing CTRL
+	
+	this.ProxySet = params.proxy; // vararible to handle the proxy (can be empty)
+	this.internalWmsURL = params.components.wms.wmsInternalUrl; // internal WMS url
 	
 	// main interface components
 	this.container					= $("#" + params.components.container.div);
@@ -36,6 +66,7 @@ var openViewer = function(params) {
 	this.titleToggleInfo			= $("#" + params.components.title.toggleInfo);
 	
 	this.footerPanel 				= $("#" + params.components.footer.panel);
+	this.footerPanelReady			= $("#" + params.components.footer.readyMsg);
 	this.footerPanelInfoSelezione	= $("#" + params.components.footer.infoSelezione);
 	this.footerPanelScala			= $("#" + params.components.footer.scala);
 	this.footerPanelScalaInputId	= params.components.footer.scalaInputId;
@@ -105,38 +136,30 @@ var openViewer = function(params) {
 	this.mapBaseLayersDefinition	= params.components.map.basemapLayersDefinition;
 	this.drawWKTDiv					= $("#" + params.components.draw_wkt.div);
 	
-	this.internalWmsURL				= params.components.wms.wmsInternalUrl;
+	// ----------------------------------------------------------------------
+	// GENERAL SERVICE VARIABLES
+	// ----------------------------------------------------------------------
 	
-	this.timeoutId=-1;
-	this.timeoutIdChangeView=-1;
+	this.pluginWmsLayersAvailable = false;	// to handle the plugin WMS on-the-fly layers
 	
-	this.legendTree = undefined;
+	this.timeoutId=-1;						// to handle the timeouts
+	this.timeoutIdChangeView=-1;			// to handle the timeouts
+	this.timeoutReadyMsg='';				// to handle the timeouts
+	
+	this.legendTree = undefined;			// object with the structure of the layers legend
 	
 	this.lockWheel=false;
 	this.startPixel=undefined;
-	this.stato = params.stato;	// "stato" inherits the "map_definition" object defined in the PHP configuration
-								// and contains the definition of the "main layers" (all layers but the basemap layers and the user WMS layers)
 	
-	// variable to handle the HELP (created with Bootstrap Tour)
-	this.tour=null;
+	this.tour=null;							// to handle the HELP (created with Bootstrap Tour)
 	
-	// number of pixel used as buffer for the touch events
-	this.touchBuffer=15;
+	this.htmlFeaturesInfo='';				// used to display the features info
 	
-	// handling of the User WMS layers
-	this.userWmsLayersList = null; // list of WMS layers returned by the AJAX call
-	this.userWmsURL = null;        // URL of the WMS called
-	this.userWmsFormats = null;    // array of the formats supported by the WMS server
-	
-	// varaible to handle the proxy (can be empty)
-	this.ProxySet = params.proxy;
-    
-    // show console messages
-    this.showConsoleMsg = params.flagConsMsg;
-	
+	// ----------------------------------------------------------------------
 	// CREATION OF THE OPENLAYERS MAP OBJECT
-    // -------------------------------------
-    // parameters setting
+	// ----------------------------------------------------------------------
+	
+	// parameters setting
 	var mapParams = {  
 		'stato':				params.stato,
 		'mapOptions':			params.mapOptions, 
@@ -148,54 +171,31 @@ var openViewer = function(params) {
 		'baseLayersDefinition':	this.mapBaseLayersDefinition,
 		'showConsoleMsg':		this.showConsoleMsg
 	};
-// if(this.showConsoleMsg) console.log('Map parameters (mapParams):', mapParams);
 
     // creation of the map    
 	this.map = new ovMap( mapParams );
-	
+
 	// this.initPanels();
 	// this.ev_window_resize();
 	
-	// EVENTS HANDLING
-	// -------------------------------
+	// ----------------------------------------------------------------------
+	// EVENTS HANDLING "INTERFACE" - Events related to the general interface
+	// ----------------------------------------------------------------------
+	
 	// event: resize of the window
 	$(window).on("resize","",$.proxy(this.ev_window_resize,this));
 	
 	// event: back and forward of the info pages
 	$(window).on("popstate","",$.proxy(this.ev_pop_state,this));
 	
-	//event: manual change of the scale (clicking on the text box of the scale)
+	// event: manual change of the scale (clicking on the text box of the scale)
 	this.footerPanelScala.on("click",'',$.proxy(this.ev_footer_scala_click,this));
 	
-	// event: open/close the legend sub-panels
-	//this.legendPanel.on("click",".plus",$.proxy(this.ev_legenda_plus_click,this));
-	//this.legendPanel.on("click",".minus",$.proxy(this.ev_legenda_minus_click,this));
-	
-	//this.legendPanel.on("click",".plus_stile",$.proxy(this.ev_legenda_plus_stile_click,this));
-	//this.legendPanel.on("click",".minus_stile",$.proxy(this.ev_legenda_minus_stile_click,this));
-	
-	//this.editLegendPanel.on("click",".plus_stile",$.proxy(this.ev_legenda_plus_stile_click,this));
-	//this.editLegendPanel.on("click",".minus_stile",$.proxy(this.ev_legenda_minus_stile_click,this));
-	
+	// event: open/close the legend sub-sections (basemap layers, wms layers, themes, ...)
 	this.legendPanelContainer.on("click", ".legend_toggle_container", $.proxy(this.ev_legend_buttonopenclose_click,this)); //ov_legend_title
 	
-	// event: show/hide a layer (clicking on the checkboxes)
-	this.legendPanel.on("click",".legenda_layer_checkbox",$.proxy(this.ev_legenda_layer_checkbox_click,this)); // Main layers (MapGuide, default WMS)
-	this.legendPanel.on("click",".legenda_group_checkbox",$.proxy(this.ev_legenda_group_checkbox_click,this)); // Main layers (MapGuide, default WMS)
-	
-	this.legendPanelWmsUserLayers.on("click",".legend_item",$.proxy(this.ev_legenda_layer_checkbox_click,this)); // User WMS layers
-	
-	this.legendPanelWMS.on("click",".legenda_layer_checkbox",$.proxy(this.ev_legenda_layer_checkbox_click,this)); // internal WMS layer
-	this.legendPanelWMS.on("click",".legenda_group_checkbox",$.proxy(this.ev_legenda_group_checkbox_click,this)); // internal WMS layer
-	
-	this.legendPanelWMS.on("click",".plus",$.proxy(this.ev_legenda_plus_click,this));   // internal WMS layer
-	this.legendPanelWMS.on("click",".minus",$.proxy(this.ev_legenda_minus_click,this)); // internal WMS layer
-	
-	this.legendPanelWMS.on("click",".plus_stile",$.proxy(this.ev_legenda_plus_stile_click,this));   // internal WMS layer
-	this.legendPanelWMS.on("click",".minus_stile",$.proxy(this.ev_legenda_minus_stile_click,this)); // internal WMS layer
-	
-	// event: select the basemap layer
-	this.legendPanelBasemapLayers.on("click",".legend_basemap_item",$.proxy(this.ev_legend_basemap_click,this));
+	// event: close the panel to search and add User WMS layers
+	this.buttonCloseWMSContainer.on("click", $.proxy(this.ev_wmscustom_pageadd_openclose_click,this));
 	
 	// event: load a new page inside the div of the information (instead of opening in a new window)
 	this.infoPanelQuery.on("click","a",$.proxy(this.ev_info_page_href_click,this));
@@ -208,15 +208,80 @@ var openViewer = function(params) {
 	// event: handling of the form "submit" inside a page
 	this.infoPanelQuery.on("submit","form",$.proxy(this.ev_info_page_submit_form,this));
 	
-	// event: close the panel to search and add User WMS layers
-	this.buttonCloseWMSContainer.on("click", $.proxy(this.ev_wmsadd_page_close_click,this));
-	
 	// event: SimpleModal
 	$(document).on("click","#simplemodal-container a",$.proxy(this.ev_simplemodal_href_click,this));
 	
+	// -----------------------------------------------------------------------------------------------
+	// EVENTS HANDLING "LAYERS/GROUPS" - Events related to show/hide/expand/collapse layers or groups
+	// -----------------------------------------------------------------------------------------------
+	    
+	// Events related to the legend panel of "MAIN LAYERS" (MapGuide, WMS GEOSERVER)
+	// -----------------------------------------------------------------------------
+	// event: show/hide "main layers" (clicking on the checkboxes)
+	this.legendPanel.on("click",".legenda_layer_checkbox",$.proxy(this.ev_legenda_layer_checkbox_click,this)); // main layers (MapGuide, default WMS)
+	// event: show/hide groups of "main layers" (clicking on the checkboxes)
+	this.legendPanel.on("click",".legenda_group_checkbox",$.proxy(this.ev_legenda_group_checkbox_click,this)); // main layers (MapGuide, default WMS)
+	
+	// event: expand a group of "internal WMS" layers
+	this.legendPanel.on("click",".plus",$.proxy(this.ev_legenda_plus_click,this));   // main layers (MapGuide, default WMS)
+	// event: expand a group of "internal WMS" layers (similar to the previous event)
+	this.legendPanel.on("click",".plus_stile",$.proxy(this.ev_legenda_plus_stile_click,this));   // main layers (MapGuide, default WMS)
+    
+	// event: collapse a group of "internal WMS" layers
+	this.legendPanel.on("click",".minus",$.proxy(this.ev_legenda_minus_click,this)); // main layers (MapGuide, default WMS)
+	// event: collapse a group of "internal WMS" layers (similar to the previous event)
+	this.legendPanel.on("click",".minus_stile",$.proxy(this.ev_legenda_minus_stile_click,this)); // main layers (MapGuide, default WMS)
+	
+	// Events related to the legend panel of "WMS ON-THE_FLY LAYERS"
+	// -----------------------------------------------------------------------------
+	// event: show/hide groups of "WMS on-the-fly layers" (clicking on the checkboxes)
+	this.legendPanelWmsUserLayers.on("click",".legenda_group_checkbox",$.proxy(this.ev_legenda_group_checkbox_click,this)); // WMS on-the-fly layers
+	
+	// event: expand a group of "internal WMS" layers
+	this.legendPanelWmsUserLayers.on("click",".plus",$.proxy(this.ev_legenda_plus_click,this));   // WMS on-the-fly layers
+	// event: expand a group of "internal WMS" layers (similar to the previous event)
+	this.legendPanelWmsUserLayers.on("click",".plus_stile",$.proxy(this.ev_legenda_plus_stile_click,this));   // WMS on-the-fly layers
+    
+	// event: collapse a group of "internal WMS" layers
+	this.legendPanelWmsUserLayers.on("click",".minus",$.proxy(this.ev_legenda_minus_click,this)); // WMS on-the-fly layers
+	// event: collapse a group of "internal WMS" layers (similar to the previous event)
+	this.legendPanelWmsUserLayers.on("click",".minus_stile",$.proxy(this.ev_legenda_minus_stile_click,this)); // WMS on-the-fly layers
+	
+	// Events related to the legend panel of "INTERNAL WMS LAYERS"
+	// -----------------------------------------------------------
+	// event: show/hide "internal WMS" layers (clicking on the checkboxes)
+	this.legendPanelWMS.on("click",".legenda_layer_checkbox",$.proxy(this.ev_legenda_layer_checkbox_click,this)); // internal WMS layer
+	// event: show/hide "internal WMS" groups of layers (clicking on the checkboxes)
+	this.legendPanelWMS.on("click",".legenda_group_checkbox",$.proxy(this.ev_legenda_group_checkbox_click,this)); // internal WMS layer
+	
+	// event: expand a group of "internal WMS" layers
+	this.legendPanelWMS.on("click",".plus",$.proxy(this.ev_legenda_plus_click,this));   // internal WMS layer
+	// event: expand a group of "internal WMS" layers (similar to the previous event)
+	this.legendPanelWMS.on("click",".plus_stile",$.proxy(this.ev_legenda_plus_stile_click,this));   // internal WMS layer
+    
+	// event: collapse a group of "internal WMS" layers
+	this.legendPanelWMS.on("click",".minus",$.proxy(this.ev_legenda_minus_click,this)); // internal WMS layer
+	// event: collapse a group of "internal WMS" layers (similar to the previous event)
+	this.legendPanelWMS.on("click",".minus_stile",$.proxy(this.ev_legenda_minus_stile_click,this)); // internal WMS layer
+	
+	// Events related to the legend panel of "BASEMAPS"
+	// ------------------------------------------------
+	// event: show a basemap layer (and automatically hide all the others, only one basemap can be shown)
+	this.legendPanelBasemapLayers.on("click",".legend_basemap_item",$.proxy(this.ev_legend_basemap_click,this)); // basemap layers
+	
 	///TODO add here the additional events
 	
-// if(this.showConsoleMsg) console.log("openViewer END");
+};
+
+
+/** PLUGINS SETTINGS
+ * ---------------------------------------------------------------
+ */
+
+/** Configure the use of the plugin to import WMS layers */
+openViewer.prototype.setPluginWmsLayers= function(flag) {
+	this.pluginWmsLayersAvailable = flag;
+	ov_wms_plugin.init(this.map, this.stato, this.correctionOffsetScaleMin, this.correctionOffsetScaleMax);
 };
 
 
@@ -225,8 +290,9 @@ var openViewer = function(params) {
  */
 
 /** Return the current scale */
-openViewer.prototype.getMapScale = function() {                 
-	return this.map.getScale();
+openViewer.prototype.getMapScale = function(flagMetricScale) {
+	if(typeof flagMetricScale === 'undefined') flagMetricScale = true;
+	return this.map.getScale(flagMetricScale);
 };
 /** Set the current scale */
 openViewer.prototype.setMapScale = function(scale) {
@@ -289,8 +355,10 @@ openViewer.prototype.getScaleToFit = function(xmin, xmax, ymin, ymax, marginFact
 };
 
 
-/** PROPERTIES - MAPGUIDE, DEFAULT WMS  (get/set/is)
+/** PROPERTIES - MAIN LAYERS (MAPGUIDE, WMS, ...) (get/set/is)
  * ---------------------------------------------------------------
+ * These procedures are required to handle the "main layers" defined in the
+ * variable "stato" (map_definition in the PHP configuration file)
  */
 
 /* OVD CURRENTLY UNUSED: getMapGuideLayersNamesByIDs (return an array of the names of the layers served by MapGuide - used also by LibViewer.js)
@@ -301,7 +369,7 @@ openViewer.prototype.getMapGuideLayersNamesByIDs = function(arrayID) {
 	// check the type for each "main layer" (MapGuide, default WMS)
 	for (var i=0;i<arrayID.length;i++) {
 		layers=stato['mapguide'].layers_info;
-		var a_layers_info=Object.keys(layers);
+		var a_layers_info=Object. (layers);
 		//a_layers_info.forEach(function(item2,index2) {
 		for (var j=0;j<a_layers_info.length;j++) {
 
@@ -319,9 +387,9 @@ openViewer.prototype.getMapGuideLayersNamesByIDs = function(arrayID) {
 openViewer.prototype.getMapGuideVisibleLayersNames = function(a,b) {
 	var stato = this.getStato();
 	var ol_layer="mapguide";
-// 
+
 	var list_visible_layers=stato[ol_layer].list_layers_visible;
-// 	console.log(stato[ol_layer]);
+// console.log(stato[ol_layer]);
 	if (list_visible_layers.indexOf(',') > -1){
 		var single_layer = list_visible_layers.split(",");
 		var visible_layer_array = [];
@@ -329,7 +397,7 @@ openViewer.prototype.getMapGuideVisibleLayersNames = function(a,b) {
 			var layer_id = single_layer[i];
 			
 			var layer_name = stato[ol_layer].layers_info[layer_id].name;
-// 			console.log(layer_name);
+// console.log(layer_name);
 				var currentRange = this.getCurrentRange(stato[ol_layer].layers_info[layer_id].ranges);
 			if (currentRange!=null){
 				var single_visible_layer=[];
@@ -341,12 +409,34 @@ openViewer.prototype.getMapGuideVisibleLayersNames = function(a,b) {
 	return visible_layer_array;
 }
 */
-/** getMainLayerByName (retrieve a "main layer" - from MapGuide, default WMS - by its name) */
-openViewer.prototype.getMainLayerByName = function(layer_name) {
+/** Retrieve the "name" of a "main layer" by a sub-group name (from the variable "stato" with the list of "main layers") */
+openViewer.prototype.getMainLayerNameBySubGroupName = function(group_name) {
+	var stato = this.getStato();
+    
+	var a_ol_layers=Object.keys(stato);
+	// check the type of each "main layer" (MapGuide, WMS)
+	for (var i=0;i<a_ol_layers.length;i++) {
+		groups=stato[a_ol_layers[i]].groups_info;
+		var a_groups_info=Object.keys(groups);
+		//a_layers_info.forEach(function(item2,index2) {
+		for (var j=0;j<a_groups_info.length;j++) {
+// ov_utils.ovLog(a_groups_info[j]+' vs '+group_name,'Layer name'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
+			if(a_groups_info[j]==group_name) {
+				// found
+				return a_ol_layers[i];
+			}
+		}
+	}
+	
+	// if it is not found
+	return false;
+}
+/** Retrieve the "name" of a "main layer" by a sub-layer name (from the variable "stato" with the list of "main layers") */
+openViewer.prototype.getMainLayerNameBySubLayerName = function(layer_name) {
 	var stato = this.getStato();
 	
 	var a_ol_layers=Object.keys(stato);
-	// check the type of each "main layer" (MapGuide, default WMS)
+	// check the type of each "main layer" (MapGuide, WMS)
 	for (var i=0;i<a_ol_layers.length;i++) {
 		layers=stato[a_ol_layers[i]].layers_info;
 		var a_layers_info=Object.keys(layers);
@@ -362,40 +452,16 @@ openViewer.prototype.getMainLayerByName = function(layer_name) {
 	// if it is not found
 	return false;
 }
-/* OVD CURRENTLY UNUSED: getMainLayerNameByFeature (retrieve a "main layer" - from MapGuide, default WMS - by its feature name)
+/** Retrieve the "name" of a "main layer" containing a sub-layer with a specific feature name (from the variable "stato" with the list of "main layers") */
 openViewer.prototype.getMainLayerNameByFeature = function(feature_name) {
 	var stato = this.getStato();
     
 	var a_ol_layers=Object.keys(stato);
-	// check the type of each "main layer" (MapGuide, default WMS)
 	for (var i=0;i<a_ol_layers.length;i++) {
 		layers=stato[a_ol_layers[i]].layers_info;
-		var a_layers_info=Object.keys(layers);
-		//a_layers_info.forEach(function(item2,index2) {
+		var a_layers_info=Object.keys(layers); // list of layers defined inside the "macro layer"
 		for (var j=0;j<a_layers_info.length;j++) {
 			if(layers[a_layers_info[j]].feature_name==feature_name) {
-				// found
-				return a_layers_info[j];
-			}
-		}
-	}
-	
-	// if it is not found
-	return false;
-}
-*/
-/* OVD CURRENTLY UNUSED: getMainLayerByGroup (retrieve a "main layer" - from MapGuide, default WMS - by its group name)
-openViewer.prototype.getMainLayerByGroup = function(group_name) {
-	var stato = this.getStato();
-    
-	var a_ol_layers=Object.keys(stato);
-	// check the type of each "main layer" (MapGuide, default WMS)
-	for (var i=0;i<a_ol_layers.length;i++) {
-		groups=stato[a_ol_layers[i]].groups_info;
-		var a_groups_info=Object.keys(groups);
-		//a_layers_info.forEach(function(item2,index2) {
-		for (var j=0;j<a_groups_info.length;j++) {
-			if(a_groups_info[j]==group_name) {
 				// found
 				return a_ol_layers[i];
 			}
@@ -405,8 +471,47 @@ openViewer.prototype.getMainLayerByGroup = function(group_name) {
 	// if it is not found
 	return false;
 }
-*/
-
+/** Retrieve the "stato" of a "sub-group" (contained inside a macro "main layer") containing a layer with a specific feature name (from the variable "stato" with the list of "main layers") */
+openViewer.prototype.getSubGroupStatoByFeature = function(feature_name) {
+	var stato = this.getStato();
+	
+	var a_ol_layers=Object.keys(stato);
+	// check the type of each "main layer" (MapGuide, WMS)
+	for (var i=0;i<a_ol_layers.length;i++) {
+		layers=stato[a_ol_layers[i]].layers_info;
+		var a_layers_info=Object.keys(layers);
+		//a_layers_info.forEach(function(item2,index2) {
+		for (var j=0;j<a_layers_info.length;j++) {
+			if(layers[a_layers_info[j]].feature_name==feature_name) {    
+				// found
+				var group_name = layers[a_layers_info[j]].group;
+				return stato[a_ol_layers[i]].groups_info[group_name];
+			}
+		}
+	}
+	
+	// if it is not found
+	return false;
+}
+/** Retrieve the "stato" of a "sub-layer" (contained inside a macro "main layer") by its feature name (from the variable "stato" with the list of "main layers") */
+openViewer.prototype.getSubLayerStatoByFeature = function(feature_name) {
+	var stato = this.getStato();
+	
+	var a_ol_layers=Object.keys(stato);
+	for (var i=0;i<a_ol_layers.length;i++) {
+		layers=stato[a_ol_layers[i]].layers_info;
+		var a_layers_info=Object.keys(layers); // list of layers defined inside the "macro layer"
+		for (var j=0;j<a_layers_info.length;j++) {
+			if(layers[a_layers_info[j]].feature_name==feature_name) {
+				// found
+				return layers[a_layers_info[j]]; // the sub-section /of the "stato" variable) related to the inforamtion of the specific sub-layer
+			}
+		}
+	}
+	
+	// if it is not found
+	return false;
+}
 
 /** INITIALIZATION OF THE APP
  * ---------------------------------------------------------------
@@ -416,7 +521,7 @@ openViewer.prototype.getMainLayerByGroup = function(group_name) {
 
 /** Initialization of the panels */
 openViewer.prototype.initPanels = function(flagRightPanelActive) {
-// if(this.showConsoleMsg) console.log("initPanels");
+// ov_utils.ovLog('Initialization panels...'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
 	
 	if (typeof flagRightPanelActive == 'undefined') flagRightPanelActive = true;
 	
@@ -445,7 +550,7 @@ openViewer.prototype.initPanels = function(flagRightPanelActive) {
 }
 /** Loading the initial map */
 openViewer.prototype.loadMap = function() {
-// if(this.showConsoleMsg) console.log('loadMap');
+// ov_utils.ovLog('Loading map...'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
 	this.map.LoadMap();
 	// write the initial scale
 	this.setMapScale(this.getMapScale());
@@ -453,7 +558,7 @@ openViewer.prototype.loadMap = function() {
 };
 /** Initialization of the handled events "on the map" (these must by initialized after the "map" initialization */
 openViewer.prototype.addEvents = function() {
-// if(this.showConsoleMsg) console.log('Set the map events handled by the application...');
+// ov_utils.ovLog('Set the map events handled by the application...'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
 	this.map.getMapView().on('propertychange', $.proxy(this.ev_map_cambio_view,this));
 	
 	// select and/or CTRL+click
@@ -475,7 +580,7 @@ openViewer.prototype.addEvents = function() {
 };
 
 
-/** EVENTS - GENERAL FUNCTIONALITIES OF THE APP INTERFACE
+/** EVENTS - HANDLING THE GENERAL FUNCTIONALITIES OF THE APP INTERFACE
  * ---------------------------------------------------------------
  * - window resize handling
  * - switch/open/close tabs and panels
@@ -497,7 +602,7 @@ openViewer.prototype.ev_window_resize = function() {
 	
 	var info_width=Math.max(this.infoPanelContainer.width(),300); // To keep the width of the right info panel
 
-	setTimeout(function() {this_viewer.map.updateMapSize();}, 200);
+	setTimeout(function() {this_viewer.map.map.updateSize();}, 200); // setTimeout(function() {this_viewer.map.updateMapSize();}, 200);
 	
 	this.infoPanelContainer.css('height',(height-10)+'px');
 	this.infoPanelContainerMain.css('height',(height-10)+'px');
@@ -555,11 +660,10 @@ openViewer.prototype.ev_window_resize = function() {
 };
 /** Handle the change of scale (resolution) and center */
 openViewer.prototype.ev_map_cambio_view = function(event) {
-// if(this.showConsoleMsg) console.log('VIEW CHANGE EVENT',event.key);
+// ov_utils.ovLog('ViewChange event '+event.key); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
 	switch (event.key) {
 		case 'resolution':
 			clearTimeout(this.timeoutIdChangeView);
-// console.log'view change '+event.key);
 			this.timeoutIdChangeView = setTimeout($.proxy(function() {
 
 				var scala=this.map.getScale();
@@ -574,7 +678,6 @@ openViewer.prototype.ev_map_cambio_view = function(event) {
 		break;
 		case 'center':
 			clearTimeout(this.timeoutIdChangeView);
-// console.log'view change '+event.key);
 			this.timeoutIdChangeView = setTimeout($.proxy(function() {
 
 				var scala=this.map.getScale();
@@ -671,7 +774,7 @@ openViewer.prototype.toggleInfo = function(transition_time) {
 	var panel_width=this.infoPanelContainer.width();
 	this.infoPanelContainer.animate({width:'toggle'}, transition_time,"swing",function(){that.fix_css_left_info_panel(panel_width);}).css('left','');
 }
-/** Specifi routine to fix a IE bug */
+/** Specific routine to fix a IE bug */
 openViewer.prototype.fix_css_left_info_panel = function(panel_width) {
 	var width = $(window).width();
 	
@@ -691,21 +794,17 @@ openViewer.prototype.fix_css_left_info_panel = function(panel_width) {
 openViewer.prototype.ev_info_page_href_click = function(event) {
 	var element = event.currentTarget;
     // if the link points to a php page, we load it into the div, otherwise no
-//console.log($(element).hasClass('no-overwrite-href'));
-	//&& !element.href.match(/proxyfile/g) 
 	if(element.href.match(/\.php/g) && !element.href.match(/proxyfile/g) && !($(element).hasClass('no-overwrite-href')) && (element.target!='_blank' && element.target!='blank')) {
 		event.preventDefault();
 		this.loadInfoPage('tabQueryResult',element.href);
 	} else {
-// console.log("default case...");
+		// nothing to do
 	}
 };
 /** Close a modal window */
 openViewer.prototype.ev_simplemodal_href_click = function(event) {
 	var element = event.currentTarget;
     // if the link points to a php page, we load it into the div, otherwise no
-//console.log($(element).hasClass('no-overwrite-href'));
-	//&& !element.href.match(/proxyfile/g) 
 	if(element.href.match(/\.php/g) && !element.href.match(/proxyfile/g) && !($(element).hasClass('no-overwrite-href')) && (element.target!='_blank' && element.target!='blank')) {
 		event.preventDefault();
 		this.loadInfoPage('tabQueryResult',element.href);
@@ -714,7 +813,7 @@ openViewer.prototype.ev_simplemodal_href_click = function(event) {
 			$.modal.close();
 		}
 	} else {
-// console.log("default case...");
+		// nothing to do
 	}
 };
 /** Handle the "submit" on a form */
@@ -732,14 +831,13 @@ openViewer.prototype.ev_info_page_submit_form = function(event) {
 
 		$(this.infoPanelQuery).load(element.action,obj_form);
 	} else if (element.target=='_blank' || element.target=='blank' || element.target=='_top' || element.target=='top') {
-//console.log("defaul case...");
 		element.submit();
 	}
 	return false;
 };
 /** Manual scale change by typing a number (integer) on the footer scale */
 openViewer.prototype.ev_footer_scala_click = function(event) {
-// if(this.showConsoleMsg) console.log('FOOTER SCALE CLICK EVENT')
+// ov_utils.ovLog('FooterScaleClick event'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
 	var element = event.target;
 
 	var oldScale = this.getMapScale();
@@ -773,20 +871,6 @@ openViewer.prototype.ev_legend_buttonopenclose_click = function (e) {
 	else
 		$(element).removeClass("legend_open").addClass("legend_close");
 };
-/** Show/Hide a layer (different from the basemap layer) */
-openViewer.prototype.ev_legenda_layer_checkbox_click = function(event) {
-	var element = event.target;
-	var id=$(element).attr("id");
-// console.log(id);
-	this.showHideLayer(id, $(element).is(":checked"));
-};
-/** Show/Hide a group of layer (different from the basemap layer) */
-openViewer.prototype.ev_legenda_group_checkbox_click = function(event) {
-	var element = event.target;
-	var id = $(element).attr("id");
-// 	console.log(id);
-	this.showHideGroupLayers(id, $(element).is(":checked"));
-};
 /** Show/Hide a basemap layer */
 openViewer.prototype.ev_legend_basemap_click = function(event) {
 	var element = event.target;
@@ -805,8 +889,8 @@ openViewer.prototype.ev_legend_basemap_click = function(event) {
 		
 	},this);
 };
-/** Open the dialog to add custom WMS layer */
-openViewer.prototype.ev_wmsadd_page_close_click = function(){
+/** Open/Close the dialog to add custom WMS layer */
+openViewer.prototype.ev_wmscustom_pageadd_openclose_click = function(){
 	if (this.editWMSBackground.hasClass("show")) {
 		this.editWMSBackground.removeClass('show').addClass('hide');
 		this.editWMSContainer.removeClass('show').addClass('hide');
@@ -816,14 +900,35 @@ openViewer.prototype.ev_wmsadd_page_close_click = function(){
 		this.editWMSContainer.removeClass('hide').addClass('show');
 	}
 }
+/** Remove all custom WMS layers from the legend and from the map */
+openViewer.prototype.ev_wmscustom_remove_all_click = function() {
+	ov_wms_plugin.removeAllWmsUserLayers(); // this.map.removeAllWmsUserLayers(layer);
+	// refresh the legend
+	this.refreshLegend();
+}
 
 
-/** EVENTS - HANDLING OF "MAIN LAYERS" ON THE LEGEND (MAPGUIDE, DEFAULT WMS)
- * ---------------------------------------------------------------
+/** EVENTS - HANDLING OF "MAIN LAYERS" ON THE LEGEND (MAPGUIDE, WMS_GEOSERVER, INTERNAL WMS)
+ * ------------------------------------------------------------------------------------------
  */
 
-/** OVD CURRENTLY UNUSED - MAIN LAYERS (MAPGUIDE, DEFAULT WMS) INTEGRATION */
+/** Show/Hide a group of layer (different from the basemap layer) */
+openViewer.prototype.ev_legenda_group_checkbox_click = function(event) {
+	var element = event.target;
+	var id = $(element).attr("id");
+	this.showHideGroupLayers(id, $(element).is(":checked"));
+};
+/** Show/Hide a layer (different from the basemap layer) */
+openViewer.prototype.ev_legenda_layer_checkbox_click = function(event) {
+	var element = event.target;
+	var id=$(element).attr("id");
+	this.showHideLayer(id, $(element).is(":checked"));
+};
+/** OVD CURRENTLY UNUSED - Expand a group of "INTERNAL WMS LAYERS"
+ *  - similar to "ev_legenda_plus_stile_click"
+ */
 openViewer.prototype.ev_legenda_plus_click = function(event) {
+    alert('ffff');
 	var stato = this.getStato();
 	
 	var element = event.target;
@@ -831,12 +936,14 @@ openViewer.prototype.ev_legenda_plus_click = function(event) {
 	$("#childrenof_"+id).show();
 	$(element).removeClass("plus").addClass("minus");
 
-	var ol_layer=this.getMainLayerByGroup(id);
+	var ol_layer=this.getMainLayerNameBySubGroupName(id);
 	stato[ol_layer].groups_info[id]['expanded']=true;
 	
 	this.setStato(stato);
 };
-/** OVD CURRENTLY UNUSED - MAIN LAYERS (MAPGUIDE, DEFAULT WMS) INTEGRATION */
+/** OVD CURRENTLY UNUSED - Collapse a group of "INTERNAL WMS LAYERS"
+ *  - similar to "ev_legenda_minus_stile_click"
+ */
 openViewer.prototype.ev_legenda_minus_click = function(event) {
 	var stato = this.getStato();
 	
@@ -845,42 +952,59 @@ openViewer.prototype.ev_legenda_minus_click = function(event) {
 	$("#childrenof_"+id).hide();
 	$(element).removeClass("minus").addClass("plus");
 	
-	var ol_layer=this.getMainLayerByGroup(id);
+	var ol_layer=this.getMainLayerNameBySubGroupName(id);
 	stato[ol_layer].groups_info[id]['expanded']=false;
 	
 	this.setStato(stato);
 };
-/** OVD CURRENTLY UNUSED - MAIN LAYERS (MAPGUIDE, DEFAULT WMS) INTEGRATION */
+/** OVD CURRENTLY UNUSED - Expand a group of "INTERNAL WMS LAYERS"
+ *  - similar to "ev_legenda_plus_click"
+ */
 openViewer.prototype.ev_legenda_plus_stile_click = function(event) {
 	var stato = this.getStato();
 	
 	var element = event.target;
 	var id=$(element).attr("id").replace("expand_","");
-	$("#stile_"+id.replace(':','\\:')).show();
+	//$("#stile_"+id.replace( /(:|\.|\[|\]|,|=|@)/g, "\\$1" )).show();
+	$('#'+ov_utils.jQescape('stile_'+id)).show();
 	$(element).removeClass("plus_stile").addClass("minus_stile");
-
-	var ol_layer=this.getMainLayerByName(id);
-	stato[ol_layer].layers_info[id]['expanded']=true;
 	
+	var ol_layer=this.getMainLayerNameBySubLayerName(id);
+	if(ol_layer==false) {
+		// special case: the group is a "one layer group" (like the WMS on-the-fly layers)
+		var sub_element_stato=this.getSubGroupStatoByFeature(id);
+	} else {
+		var sub_element_stato = stato[ol_layer].layers_info[id];
+	}
+	sub_element_stato['expanded']=true;
+    
 	this.setStato(stato);
 };
-/** OVD CURRENTLY UNUSED - MAIN LAYERS (MAPGUIDE, DEFAULT WMS) INTEGRATION */
+/** OVD CURRENTLY UNUSED - MAIN LAYERS (MAPGUIDE, DEFAULT WMS) INTEGRATION
+ *  - similar to "ev_legenda_minus_click"
+ */
 openViewer.prototype.ev_legenda_minus_stile_click = function(event) {
 	var stato = this.getStato();
 	
 	var element = event.target;
 	var id=$(element).attr("id").replace("expand_","");
-	$("#stile_"+id.replace(':','\\:')).hide();
+	$('#'+ov_utils.jQescape('stile_'+id)).hide();
 	$(element).removeClass("minus_stile").addClass("plus_stile");
 	
-	var ol_layer=this.getMainLayerByName(id);
-	stato[ol_layer].layers_info[id]['expanded']=false;
+	var ol_layer=this.getMainLayerNameBySubLayerName(id);
+	if(ol_layer==false) {
+		// special case: the group is a "one layer group" (like the WMS on-the-fly layers)
+		var sub_element_stato=this.getSubGroupStatoByFeature(id);
+	} else {
+		var sub_element_stato = stato[ol_layer].layers_info[id];
+	}
+	sub_element_stato['expanded']=false;
 	
 	this.setStato(stato);
 };
 
 
-/** EVENTS - USER INTERACTION WITH THE MAP
+/** EVENTS - HANDLING THE USER INTERACTION WITH THE MAP
  * ---------------------------------------------------------------
  * - mouse down/move/up
  * - features selection
@@ -888,13 +1012,13 @@ openViewer.prototype.ev_legenda_minus_stile_click = function(event) {
 
 /** Mouse-up reset the general app status after a mouse-down */
 openViewer.prototype.ev_map_mouse_up = function(event) {
-if(this.showConsoleMsg) console.log('MAP MOUSE UP EVENT')    
+// ov_utils.ovLog(event,'MAP MOUSE UP EVENT'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
 	clearTimeout(this.timeoutId); 
 	this.startPixel = undefined; 
 };
 /** Mouse-move set the startPixel variable */
 openViewer.prototype.ev_map_mouse_move = function(event) {
-// if(this.showConsoleMsg) console.log('MAP MOUSE MOVE EVENT')    
+// ov_utils.ovLog(event.clientX+','+event.clientY,'MAP MOUSE MOVE EVENT'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
 	if (this.startPixel) { 
 		var pixel = this.map.map.getEventPixel(event); 
 		var deltaX = Math.abs(this.startPixel[0] - pixel[0]); 
@@ -906,12 +1030,16 @@ openViewer.prototype.ev_map_mouse_move = function(event) {
 		} 
 	} 
 };
-/** OVD CURRENTLY UNUSED - MAIN LAYERS (MAPGUIDE, DEFAULT WMS) INTEGRATION - Mouse-down, retrieve information about the "clicked object" */
+/** Make the device "vibrating" (if this functionality is enabled by the device) */
 openViewer.prototype.ev_map_mouse_down = function(event) {
-// if(this.showConsoleMsg) console.log('MAP MOUSE DOWN EVENT',event);
+// ov_utils.ovLog(event,'MAP MOUSE DOWN EVENT'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
+
+	var newVersionOVD = true; // OVD - reading/showing the feature attribute has been integrated in the select event
+	
 	event.preventDefault();
 	clearTimeout(this.timeoutId);
 
+if(!newVersionOVD) { // OVD ELIMINATED
 	var this_viewer = this;
 	var stato = this.getStato();
 
@@ -920,8 +1048,10 @@ openViewer.prototype.ev_map_mouse_down = function(event) {
 	this.startPixel = this.map.map.getEventPixel(event);
 
 	event.coordinate = this.map.map.getCoordinateFromPixel(this.startPixel);
+    
+}    
 	this.timeoutId = setTimeout($.proxy(function() { 
-		//Sui dispositivi abilitati alla vibrazione
+		// on devices where the "vibration" is enable
 		var canVibrate = "vibrate" in navigator || "mozVibrate" in navigator;
 		if (canVibrate && !("vibrate" in navigator)) {
 			navigator.vibrate = navigator.mozVibrate;
@@ -932,6 +1062,7 @@ openViewer.prototype.ev_map_mouse_down = function(event) {
 			navigator.vibrate(50);
 		}
 		
+if(!newVersionOVD) { // OVD ELIMINATED
 		var a_ol_layers=Object.keys(stato);
 		for(var i=0; i<a_ol_layers.length; i++){
 			//var ol_layer=a_ol_layers[0];
@@ -945,12 +1076,12 @@ openViewer.prototype.ev_map_mouse_down = function(event) {
 				switch(ol_layer) {
 					case "wms_geoserver":
 						if(eventType=='mousedown') {
-							var url = source.getGetFeatureInfoUrl(
+							var url = source.getFeatureInfoUrl(
 								event.coordinate, this.map.getMapView().getResolution(), this.map.mapProjection,
 								{'INFO_FORMAT': 'text/javascript','QUERY_LAYERS': stato[ol_layer].list_layers_hyperlinked, 'format_options': 'callback:parseResponse'}
 							);
 						} else {
-							var url = source.getGetFeatureInfoUrl(
+							var url = source.getFeatureInfoUrl(
 								event.coordinate, this.map.getMapView().getResolution(), this.map.mapProjection,
 								{'INFO_FORMAT': 'text/javascript','QUERY_LAYERS': stato[ol_layer].list_layers_hyperlinked, 'buffer': this.touchBuffer, 'format_options': 'callback:parseResponse'}
 							);
@@ -1011,7 +1142,7 @@ openViewer.prototype.ev_map_mouse_down = function(event) {
 								dataType: 'json',
 								data: data2send,
 								error: function(a, b, c) {
-									console.log("GET_TOOLTIP_HYPERLINK() - ERROR");
+									ov_utils.ovLog('Ajax error','GetTooltipHyperlink', 'error'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
 								},
 								success: function(response) {
 									if(response.status=="ok") {
@@ -1036,11 +1167,20 @@ openViewer.prototype.ev_map_mouse_down = function(event) {
 				}
 			}       
 		}
+} // OVD ELIMINATED
 	},this), 300, false); 
 };
-/** OVD CURRENTLY UNUSED - MAIN LAYERS (MAPGUIDE, DEFAULT WMS) INTEGRATION - Selection of geographical features */
+/** Identify/Selection of geographical features (MAIN LAYERS INTEGRATION)
+ *  - select (new/add) the geographical features and highlight them (always)
+ *  - identify selected features and show the related information (if CTRL is pressed or if enableFeatAttrWithoutCtrl=true)
+ */
 openViewer.prototype.ev_map_select = function(event) {
-if(this.showConsoleMsg) console.log('MAP SELECT EVENT',this.map.getStatusInteraction())
+// ov_utils.ovLog(event,'MAP SELECT EVENT','warning'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
+    
+	var flag_found_something = false; // used to know if we have selected something (if not we must clear the result window)
+	
+	var this_viewer = this;
+	
 	event.preventDefault();
 	switch (this.map.getStatusInteraction()) {
 		case "draw":
@@ -1050,47 +1190,89 @@ if(this.showConsoleMsg) console.log('MAP SELECT EVENT',this.map.getStatusInterac
 		break;
 		default:
 			var stato = this.getStato();
-
-			var this_viewer = this;
 			
 			var pointerType = event.originalEvent.pointerType;
 			
-			var ctrlKeyPressed = event.originalEvent.ctrlKey;
-			var shiftKeyPressed = event.originalEvent.shiftKey;
+			var flagNewSelection = !event.originalEvent.shiftKey;  // !shiftKeyPressed;
+			var flagShowFeaturesAttributes = event.originalEvent.ctrlKey||this.enableFeatAttrWithoutCtrl; // ctrlKeyPressed;
+			var flagShowOnlyLastSelected = false&&flagShowFeaturesAttributes; 
 			
-			console.log('MAP SELECT EVENT 1',stato);
-			// the selection takes into account only the first OL layer (of the "main layers" defined inside "stato")
-			var a_ol_layers=Object.keys(stato);
-			// start looping over the "main layers"
-			for(var i=0; i<a_ol_layers.length; i++){
-
-				//var ol_layer=a_ol_layers[0];
-				var ol_layer=a_ol_layers[i];
-				var source=this.map.getMapLayerSourceByName(ol_layer);
+			var wms_url_internal = this.internalWmsURL; // some procedures changes if the wms server is internal
+			
+			// reset the global variable to hold the inforamtion of the selected features (filled in the procedure showFeaturesAttributes)
+			if(flagShowFeaturesAttributes) {
+				this.htmlFeaturesInfo = '';
+				$("#ov_info_wms_container").html(strings_interface.sentence_retrievingtheinformation); 
+				this.loadInfoPage('tabQueryResult',this.infoPanel); // this.loadInfoPage('tabQueryResult','infoWMSGetFeatureInfo.php');
+				if (this.titleToggleInfo.hasClass("active")) {this.toggleInfo(0);} // OVD strange behviour
+			}
+			
+			// search "queryable" layers
+			var a_ol_layers_names=[];
+			var a_ol_layers_names_all=Object.keys(stato);
+			for(var i=0; i<a_ol_layers_names_all.length; i++){
+				if(stato[a_ol_layers_names_all[i]].list_layers_selectable!='') {
+					a_ol_layers_names.push(a_ol_layers_names_all[i]);
+				}
+			}
+			
+			// start looping over the "queryable main layers"
+			var flagLastLayerToProcess = false	// it is useful to inform the callback procedure to "refresh" the page with the "global" query results
+												// that is:
+												// the "global" query results are temporarly stored in a "global" variable, and at the end of the
+												// processing of the last layer, a timeout function is launched to refresh the page
+												// the timeout is necessary to allow async functions to end
+			for(var i=0; i<a_ol_layers_names.length; i++){
 				
-				// selection: it is always executed (even after a CTRL-click)
-				if(stato[ol_layer].list_layers_selectable!='') {
+				// check if it is the last layer to be processed
+				if(i==a_ol_layers_names.length-1) flagLastLayerToProcess = true;
 				
-					switch(ol_layer) {
+				// layer properties
+				var ol_layer_name=a_ol_layers_names[i];
+				var ol_layer_type=stato[ol_layer_name].tipo;
+				var ol_layer_url=stato[ol_layer_name].url;
+				var ol_layer_source=this.map.getMapLayerSourceByName(ol_layer_name);
+				
+				// **************************************************************************
+				// 
+				// SELECTION - macro task
+				// - it is always executed, even if the CTRL has been pressed
+                // - check if the "macro" layer contains selectable layers
+				// - handle the feature selection (new selection, add to selection)
+				// - highlight the selected features
+				// 
+				// **************************************************************************
+				if(stato[ol_layer_name].list_layers_selectable!='') {
+					
+ov_utils.ovLog('****************************************');
+ov_utils.ovLog('macro-layer '+ol_layer_name+' '+(i+1)+'/'+a_ol_layers_names.length,'SELECTION & IDENTIFY (if required)');
+ov_utils.ovLog('****************************************');
+ov_utils.ovLog(stato[ol_layer_name],'stato[ol_layer_name]');
+					
+					switch(ol_layer_type) {		// OVD it was ol_layer_name, but it is better to use the "tipo" properties
+												// this allows to have many "macro-layers" of the same type (wms, wms_geoserver, ...)
+												// with different names
+												
+						// OVD "wms" case to be checked (no examples available)
 						case "wms":
-							var array_layers = stato[ol_layer].list_layers_hyperlinked.split(",");
+							var array_layers = stato[ol_layer_name].list_layers_hyperlinked.split(",");
 							var list_name_hyperlinked='';
 							for(var j=0; j < array_layers.length; j++){
-								var name_layer = stato[ol_layer].layers_info[array_layers[j]].name; 
+								var name_layer = stato[ol_layer_name].layers_info[array_layers[j]].name; 
 									list_name_hyperlinked = name_layer + "," + list_name_hyperlinked;
 
 							}   
 							var name_length = parseInt(list_name_hyperlinked.length)-1;
 							var list_name_trunk = list_name_hyperlinked.substring(0,name_length);
 						
-							if(!shiftKeyPressed) {
+							if(flagNewSelection) { // flagNewSelection = !shiftKeyPressed  // !shiftKeyPressed
 								if(pointerType=='mouse') {
-									var url = source.getGetFeatureInfoUrl(
+									var url = ol_layer_source.getFeatureInfoUrl(
 										event.coordinate, this.map.getMapView().getResolution(), this.map.mapProjection,
 										{'INFO_FORMAT': 'text/javascript','QUERY_LAYERS': list_name_trunk, 'format_options': 'callback:parseResponseSelect'}
 									);
 								} else {
-									var url = source.getGetFeatureInfoUrl(
+									var url = ol_layer_source.getFeatureInfoUrl(
 										event.coordinate, this.map.getMapView().getResolution(), this.map.mapProjection,
 										{'INFO_FORMAT': 'text/javascript','QUERY_LAYERS': list_name_trunk, 'buffer': this.touchBuffer, 'format_options': 'callback:parseResponseSelect'}
 									);
@@ -1101,15 +1283,15 @@ if(this.showConsoleMsg) console.log('MAP SELECT EVENT',this.map.getStatusInterac
 									url: url,
 									dataType: 'jsonp',
 									jsonpCallback: 'parseResponseSelect'
-								}).then(function(response) { this_viewer.getWMSlayerSelection(response); });
+								}).then(function(response) { ov_wms_plugin.getWMSlayerSelection(response); }); // OVD it was this_viewer.getWMSlayerSelection(response)
 							} else {
 								if(pointerType=='mouse') {
-									var url = source.getGetFeatureInfoUrl(
+									var url = ol_layer_source.getFeatureInfoUrl(
 										event.coordinate, this.map.getMapView().getResolution(), this.map.mapProjection,
 										{'INFO_FORMAT': 'text/javascript','QUERY_LAYERS': list_name_trunk, 'format_options': 'callback:parseResponseSelect'}
 									);
 								} else {
-									var url = source.getGetFeatureInfoUrl(
+									var url = ol_layer_source.getFeatureInfoUrl(
 										event.coordinate, this.map.getMapView().getResolution(), this.map.mapProjection,
 										{'INFO_FORMAT': 'text/javascript','QUERY_LAYERS': list_name_trunk, 'buffer': this.touchBuffer, 'format_options': 'callback:parseResponseSelect'}
 									);
@@ -1118,55 +1300,127 @@ if(this.showConsoleMsg) console.log('MAP SELECT EVENT',this.map.getStatusInterac
 									url: url,
 									dataType: 'jsonp',
 									jsonpCallback: 'parseResponseSelect'
-								}).then(function(response) { this_viewer.mapAddFeatureSelection(response); });
-							}
-						break;
-
-						case "wms_geoserver":
-							// if the key "SHIFT" is held, we add to the existing selection, otherwise we start a new selection
-							if(!shiftKeyPressed) {
-								if(pointerType=='mouse') {
-									var url = source.getGetFeatureInfoUrl(
-										event.coordinate, this.map.getMapView().getResolution(), this.map.mapProjection,
-										{'INFO_FORMAT': 'text/javascript','QUERY_LAYERS': stato[ol_layer].list_layers_selectable, 'format_options': 'callback:parseResponseSelect'}
-									);
-								} else {
-									var url = source.getGetFeatureInfoUrl(
-										event.coordinate, this.map.getMapView().getResolution(), this.map.mapProjection,
-										{'INFO_FORMAT': 'text/javascript','QUERY_LAYERS': stato[ol_layer].list_layers_selectable, 'buffer': this.touchBuffer, 'format_options': 'callback:parseResponseSelect'}
-									);
-									
-								}
-							
-								$.ajax({
-									url: url,
-									dataType: 'jsonp',
-									jsonpCallback: 'parseResponseSelect'
-								}).then(function(response) { this_viewer.getWMSlayerSelection(response); });
-							} else {
-								if(pointerType=='mouse') {
-									var url = source.getGetFeatureInfoUrl(
-										event.coordinate, this.map.getMapView().getResolution(), this.map.mapProjection,
-										{'INFO_FORMAT': 'text/javascript','QUERY_LAYERS': stato[ol_layer].list_layers_selectable, 'format_options': 'callback:parseResponseSelect'}
-									);
-								} else {
-									var url = source.getGetFeatureInfoUrl(
-										event.coordinate, this.map.getMapView().getResolution(), this.map.mapProjection,
-										{'INFO_FORMAT': 'text/javascript','QUERY_LAYERS': stato[ol_layer].list_layers_selectable, 'buffer': this.touchBuffer, 'format_options': 'callback:parseResponseSelect'}
-									);
-								}
-								$.ajax({
-									url: url,
-									dataType: 'jsonp',
-									jsonpCallback: 'parseResponseSelect'
-								}).then(function(response) { this_viewer.mapAddFeatureSelection(response); });
+								}).then(function(response) {
+									// to know if we have selected something (if not we must clear the result window)
+									if(response!=undefined) flag_found_something = true; // OVD: to be checked if response!=undefined "really" means "found something"
+									this_viewer.addFeaturesToSelection(response);
+									});
 							}
 						break;
 						
+						// OVD checked and working correctly
+                        // functionality based on the procedure defined in the WMS plugin, and based on an AJAX call 
+						case "wms_geoserver":
+							// if the plugin WMsLayers is installed
+							if(this.pluginWmsLayersAvailable) {
+								
+								// optionally clear the previous selection
+								if(flagNewSelection) {
+									// retrieve the layer where "copying" the selected features (to be highlighted)
+									var selectOverlay=this_viewer.map.getMapLayerByName('selection');
+									// clear the previous selection
+									selectOverlay.getSource().clear();
+								}
+								
+								// set the callback function
+								var cbFunc = this_viewer.addFeaturesToSelection; // it is defined in this class because it is used by other "standard" functionalities
+								
+								// run the "query" and:
+								// - select the feature
+								// - optionally show the attributes info of the last selected feature (flagShowFeaturesAttributes AND flagShowOnlyLastSelected) 
+								// - optionally show the attributes info of "all" selected features (flagShowFeaturesAttributes AND NOT flagShowOnlyLastSelected) 
+								var aResponse = ov_wms_plugin.getWmsInfoByCoordinates(ol_layer_name, ol_layer_source, event.coordinate,
+																			this_viewer.map.getMapView().getResolution(),
+																			this_viewer.map.mapProjection, stato[ol_layer_name].gfi_format, 
+																			stato[ol_layer_name].list_layers_selectable,
+																			pointerType, this_viewer.touchBuffer, cbFunc,
+																			false, flagShowFeaturesAttributes, flagShowOnlyLastSelected, flagLastLayerToProcess);
+								if(aResponse==true) flag_found_something = true; // to know if we have selected something (if not we must clear the result window)
+								
+							} else {
+ov_utils.ovLog('Plugin WMS LAYERS not installed, impossible to get wms feature info','MAP SELECT EVENT','warning'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
+							}
+						break;
+                        
+						// OVD to be made working
+						case "wms_onthefly":
+							// if the plugin WMsLayers is installed
+							if(this.pluginWmsLayersAvailable) {
+								
+								// optionally clear the previous selection
+								if(flagNewSelection) {
+									// retrieve the layer where "copying" the selected features (to be highlighted)
+									var selectOverlay=this_viewer.map.getMapLayerByName('selection');
+									// clear the previous selection
+									selectOverlay.getSource().clear();
+								}
+								
+								// set the callback function
+								var cbFunc = this_viewer.addFeaturesToSelection; // it is defined in this class because it is used by other "standard" functionalities
+									
+// console.log('selectOverlay',selectOverlay);	
+// console.log('gfi_format',stato[ol_layer_name].gfi_format);	
+// console.log('list_layers_selectable',stato[ol_layer_name].list_layers_selectable);	
+									
+								// run the "query" and:
+								// - optionally show the attributes info of the selected feature
+								var aResponse = ov_wms_plugin.getWmsInfoByCoordinates(ol_layer_name, ol_layer_source, event.coordinate,
+																			this_viewer.map.getMapView().getResolution(),
+																			this_viewer.map.mapProjection, stato[ol_layer_name].gfi_format, 
+																			stato[ol_layer_name].list_layers_selectable,
+																			pointerType, this_viewer.touchBuffer, cbFunc,
+																			false, flagShowFeaturesAttributes, flagShowOnlyLastSelected, flagLastLayerToProcess);
+								if(aResponse==true) flag_found_something = true; // to know if we have selected something (if not we must clear the result window)
+								
+							} else {
+ov_utils.ovLog('Plugin WMS LAYERS not installed, impossible to get wms feature info','MAP SELECT EVENT','warning'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
+							}
+						break;
+                        
+/* OVD SPOSTATA LA FUNZIONE NEL PLUGIN						                        
+							if(!shiftKeyPressed) {
+								if(pointerType=='mouse') {
+									var url = ol_layer_source.getFeatureInfoUrl(
+										event.coordinate, this.map.getMapView().getResolution(), this.map.mapProjection,
+										{'INFO_FORMAT': 'text/javascript','QUERY_LAYERS': stato[ol_layer_name].list_layers_selectable, 'format_options': 'callback:parseResponseSelect'}
+									);
+								} else {
+									var url = ol_layer_source.getFeatureInfoUrl(
+										event.coordinate, this.map.getMapView().getResolution(), this.map.mapProjection,
+										{'INFO_FORMAT': 'text/javascript','QUERY_LAYERS': stato[ol_layer_name].list_layers_selectable, 'buffer': this.touchBuffer, 'format_options': 'callback:parseResponseSelect'}
+									);
+									
+								}
+							
+								$.ajax({
+									url: url,
+									dataType: 'jsonp',
+									jsonpCallback: 'parseResponseSelect'
+								}).then(function(response) { this_viewer.getWMSlayerSelection(response); });
+							} else {
+								if(pointerType=='mouse') {
+									var url = ol_layer_source.getFeatureInfoUrl(
+										event.coordinate, this.map.getMapView().getResolution(), this.map.mapProjection,
+										{'INFO_FORMAT': 'text/javascript','QUERY_LAYERS': stato[ol_layer_name].list_layers_selectable, 'format_options': 'callback:parseResponseSelect'}
+									);
+								} else {
+									var url = ol_layer_source.getFeatureInfoUrl(
+										event.coordinate, this.map.getMapView().getResolution(), this.map.mapProjection,
+										{'INFO_FORMAT': 'text/javascript','QUERY_LAYERS': stato[ol_layer_name].list_layers_selectable, 'buffer': this.touchBuffer, 'format_options': 'callback:parseResponseSelect'}
+									);
+								}
+								$.ajax({
+									url: url,
+									dataType: 'jsonp',
+									jsonpCallback: 'parseResponseSelect'
+								}).then(function(response) { this_viewer.addFeaturesToSelection(response); });
+							}
+*/
+						// OVD "mapguide" case to be checked (no examples available)
 						case "mapguide":
 							
 							// the selection is performed if the key CTRL has not been pressed
-							if(!ctrlKeyPressed) {
+							if(!flagShowFeaturesAttributes) { // ctrlKeyPressed
 							
 								var mapguide_coordinate = ol.proj.transform(event.coordinate, this_viewer.map.mapProjection,this_viewer.map.dataProjection);
 
@@ -1187,7 +1441,7 @@ if(this.showConsoleMsg) console.log('MAP SELECT EVENT',this.map.getStatusInterac
 								var y2=mapguide_coordinate[1] + buffer;
 								
 								var geom="POLYGON(("+x1+" "+y2+","+x2+" "+y2+","+x2+" "+y1+","+x1+" "+y1+","+x1+" "+y2+"))";
-								var a_layers_selectable=stato[ol_layer].list_layers_selectable.split(",");
+								var a_layers_selectable=stato[ol_layer_name].list_layers_selectable.split(",");
 
 								if (a_layers_selectable.length > 0) {
 									var a_layernames=new Array();
@@ -1195,8 +1449,8 @@ if(this.showConsoleMsg) console.log('MAP SELECT EVENT',this.map.getStatusInterac
 									for(var i=0;i<a_layers_selectable.length; i++) {
 
 										// if the layer is not visible at the current scale, the selection does not happen
-										if(this_viewer.getMapScale() >= stato[ol_layer].layers_info[a_layers_selectable[i]].min_scale && this_viewer.getMapScale() <= stato[ol_layer].layers_info[a_layers_selectable[i]].max_scale) {
-											a_layernames.push(stato[ol_layer].layers_info[a_layers_selectable[i]].name);
+										if(this_viewer.getMapScale() >= stato[ol_layer_name].layers_info[a_layers_selectable[i]].min_scale && this_viewer.getMapScale() <= stato[ol_layer_name].layers_info[a_layers_selectable[i]].max_scale) {
+											a_layernames.push(stato[ol_layer_name].layers_info[a_layers_selectable[i]].name);
 										}
 									}
 									
@@ -1205,8 +1459,8 @@ if(this.showConsoleMsg) console.log('MAP SELECT EVENT',this.map.getStatusInterac
 										
 										data2send={
 											action:"GET_FEATURE_INFO",
-											mapName:stato[ol_layer].mg_session_info.mapName,
-											mapSession:stato[ol_layer].mg_session_info.mapSession,
+											mapName:stato[ol_layer_name].mg_session_info.mapName,
+											mapSession:stato[ol_layer_name].mg_session_info.mapSession,
 											layers:layernames,
 											geometry:geom,
 											maxfeatures:"1",
@@ -1215,23 +1469,24 @@ if(this.showConsoleMsg) console.log('MAP SELECT EVENT',this.map.getStatusInterac
 
 
 										$.ajax({
-											url: stato[ol_layer].api_url,
+											url: stato[ol_layer_name].api_url,
 											method: 'POST',
 											dataType: 'json',
 											data: data2send,
 											error: function(a, b, c) {
-												console.log("GET_FEATURE_INFO() - ERROR");
+												ov_utils.ovLog('Ayax error','GetFeatureInfo MapGuide', 'error'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
 											},
 											success: function(response) {
 
 												if(response.status=="ok") {
-													//console.log(response.data);
-													if(!shiftKeyPressed) {
+// console.log(response.data);
+													if(flagNewSelection) {  // !shiftKeyPressed
 														this_viewer.mapClearSelection();
 														this_viewer.mapSetSelection(response.data);
 													} else {
 														this_viewer.mapSetSelection(response.data);
 													}
+													flag_found_something = true; // to know if we have selected something (if not we must clear the result window)
 												
 												}
 											}
@@ -1244,54 +1499,74 @@ if(this.showConsoleMsg) console.log('MAP SELECT EVENT',this.map.getStatusInterac
 						break;
 					}
 				}
+				
+				
+				
+				else { // it is not selectable
+					
+ov_utils.ovLog('****************************************');
+ov_utils.ovLog('macro-layer '+ol_layer_name+' '+(i+1)+'/'+a_ol_layers_names.length,'NOT SELECTABLE');
+ov_utils.ovLog('****************************************');
+ov_utils.ovLog(stato[ol_layer_name],'stato[ol_layer_name]');
+					
+				}
 
-				if(ctrlKeyPressed) {
+// OVD remove commented lines before deploying
+//console.log("**************************");
+//console.log('IDENTIFY');
+//console.log("**************************");
+				// **************************************************************************
+				// 
+				// IDENTIFY - macro task
+				// - it is executed if the CTRL has been pressed
+				// 
+				// **************************************************************************
+				if(flagShowFeaturesAttributes) { // ctrlKeyPressed
+/*
 					// if the layer is an external WMS layer
 					var BreakException = {};
-					var map_ol_layers=this_viewer.map.getMapLayers();
+					var map_ol_layer_names=this_viewer.map.getMapLayers();
 
 					try{
-						map_ol_layers.forEach(function(item,index) {
+						map_ol_layer_names.forEach(function(item,index) {
 							if(item.getVisible()) {
-								var layer_name = item.get('name');
-
-								var baselayer=item.get('baselayer');
 								
+								var layer_name = item.get('name');
+								var is_basemap_layer=item.get('baselayer');
 								
 //	 							if(this_viewer.map.ol_map_layers.indexOf(layer_name) == -1) {
-								if(item.getSource() instanceof ol.source.TileWMS || item.getSource() instanceof ol.source.ImageWMS) {							
+								if(item.getSource() instanceof ol.source.TileWMS || item.getSource() instanceof ol.source.ImageWMS) {
 									
-									var wms_url = this.userWmsURL;
-									var wms_url_internal = this.internalWmsURL;
-
-									var source=this_viewer.map.getMapLayerSourceByName(layer_name);
+									var ol_layer_source=this_viewer.map.getMapLayerSourceByName(layer_name);
 									
-									if (typeof source.getParams().INFO_FORMAT != 'undefined') {
-										var info_format=source.getParams().INFO_FORMAT;
+									if (typeof ol_layer_source.getParams().INFO_FORMAT != 'undefined') {
+										var info_format=ol_layer_source.getParams().INFO_FORMAT;
 									} else {
 										// the basemap layers are queried only if INFO_FORMAT is set
-                                        // all the other layers are queried always (for backward compatibility
-										if (!baselayer) {
+                                        // all the other layers are queried always (for backward compatibility)
+										if (!is_basemap_layer) {
 											var info_format="text/javascript";
 										} else {
 											var info_format=null;
 										}
 									}
-									console.log('INFO----------------------')
+									
 									if(pointerType=='mouse') {
-										var url = source.getGetFeatureInfoUrl(
-											event.coordinate, this.map.getMapView().getResolution(), this.map.mapProjection,
+										var url = ol_layer_source.getFeatureInfoUrl(
+											event.coordinate, this_viewer.map.getMapView().getResolution(), this_viewer.map.mapProjection,
 											{'INFO_FORMAT': info_format}
 										);
 									} else {
-										var url = source.getGetFeatureInfoUrl(
-											event.coordinate, this.map.getMapView().getResolution(), this.map.mapProjection,
-											{'INFO_FORMAT': info_format, 'buffer': this.touchBuffer}
+										var url = ol_layer_source.getFeatureInfoUrl(
+											event.coordinate, this_viewer.map.getMapView().getResolution(), this_viewer.map.mapProjection,
+											{'INFO_FORMAT': info_format, 'buffer': this_viewer.touchBuffer}
 										);
 									}
-
+									
 									// internal WMS
-									if(wms_url==wms_url_internal) {
+									// OVD to be checked (no example available)
+									// -----------------------------------------
+									if(ol_layer_url==wms_url_internal) {
 										
 										var url_argument=url.split("?");
 										
@@ -1300,14 +1575,16 @@ if(this.showConsoleMsg) console.log('MAP SELECT EVENT',this.map.getStatusInterac
 											method: "POST",
 											dataType: "json",
 											async: false,
-											data: {'service_type': 'featureinfo', 'service_url': wms_url, 'action': 'GetFeatureInfo', 'request': url_argument[1]},
+											data: {'service_type': 'featureinfo', 'service_url': ol_layer_url, 'action': 'GetFeatureInfo', 'request': url_argument[1]},
 											success: function(ret) {
 												response = ret.data;
-
+												
 												// if the answer is not null
 												if(response != null) {
 													if(response.features.length > 0) {
-														this_viewer.openInfoExtWMS(response);
+console.log('IDENTIFY INTERNAL WMS',response);
+														this_viewer.openInfoWMS(response);
+console.log('IDENTIFY INTERNAL WMS ENDED');
 														throw BreakException;
 													}
 												}
@@ -1315,11 +1592,17 @@ if(this.showConsoleMsg) console.log('MAP SELECT EVENT',this.map.getStatusInterac
 												return;
 											},
 											error: function() {
+ov_utils.ovLog('Error while retrieving feature info','INTERNAL WMS GetFeatureInfo','error'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
 													return;
 											}
 										});
 									
 									} else {
+										
+//console.log('NO INTERNAL WMS');
+//console.log('LAYER---------------------', item);
+//console.log('INFO----------------------', info_format);
+//console.log('URL-----------------------', url);
 										
 										switch (info_format) {
 											case "text/javascript":
@@ -1332,7 +1615,9 @@ if(this.showConsoleMsg) console.log('MAP SELECT EVENT',this.map.getStatusInterac
 													if(response != null) {
 														if (response.features.length > 0) {
 															if (typeof response.features[0].properties.GRAY_INDEX == "undefined" || response.features[0].properties.GRAY_INDEX != 0) {
-																this_viewer.openInfoExtWMS(response);
+console.log('IDENTIFY GENERIC WMS',response);
+																this_viewer.openInfoWMS(response);
+console.log('IDENTIFY GENERIC WMS ENDED');
 																//throw BreakException;
 															}
 														}
@@ -1349,11 +1634,11 @@ if(this.showConsoleMsg) console.log('MAP SELECT EVENT',this.map.getStatusInterac
 											break;
 											
 											case null:
-// 												console.log("info_format null! we do nothing", info_format);
+// console.log("info_format null! we do nothing", info_format);
 											break;
 											
 											default:
-												console.log("info_format not expected!", info_format);
+console.log("info_format not expected!", info_format);
 											break;
 											
 										}
@@ -1362,33 +1647,36 @@ if(this.showConsoleMsg) console.log('MAP SELECT EVENT',this.map.getStatusInterac
 							}
 						},this);
 					}catch (e) {
+ov_utils.ovLog('Error while looking for the feature info','TRY EXCEPTION','error'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
 						if (e === BreakException) return;
 						
 					}
-
+*/					
+					
+/* SECTION "HYPERLINKED"					
 					// retrive information if the key CTRL is pressed
-					if(stato[ol_layer].list_layers_hyperlinked!='') {
-						switch(ol_layer) {
+					if(stato[ol_layer_name].list_layers_hyperlinked!='') {
+						switch(ol_layer_name) {
 							case "wms":
 								
-								var array_layers = stato[ol_layer].list_layers_hyperlinked.split(",");
+								var array_layers = stato[ol_layer_name].list_layers_hyperlinked.split(",");
 								var list_name_hyperlinked='';
 								for(var j=0; j < array_layers.length; j++){
-									var name_layer = stato[ol_layer].layers_info[array_layers[j]].name; 
+									var name_layer = stato[ol_layer_name].layers_info[array_layers[j]].name; 
 									list_name_hyperlinked = name_layer + "," + list_name_hyperlinked;
 									
 								}
 								var name_length = parseInt(list_name_hyperlinked.length)-1;
 								var list_name_trunk = list_name_hyperlinked.substring(0,name_length);
 									if(pointerType=='mouse') {
-											var url = source.getGetFeatureInfoUrl(
+											var url = ol_layer_source.getFeatureInfoUrl(
 													event.coordinate, this.map.getMapView().getResolution(), this.map.mapProjection,
 													{'INFO_FORMAT': 'text/javascript','QUERY_LAYERS':list_name_trunk, 'format_options': 'callback:parseResponse'}
 											);
 									} else {
-											var url = source.getGetFeatureInfoUrl(
+											var url = ol_layer_source.getFeatureInfoUrl(
 													event.coordinate, this.map.getMapView().getResolution(), this.map.mapProjection,
-													{'INFO_FORMAT': 'text/javascript','QUERY_LAYERS': stato[ol_layer].list_layers_hyperlinked, 'buffer': this.touchBuffer, 'format_options': 'callback:parseResponse'}
+													{'INFO_FORMAT': 'text/javascript','QUERY_LAYERS': stato[ol_layer_name].list_layers_hyperlinked, 'buffer': this.touchBuffer, 'format_options': 'callback:parseResponse'}
 											);
 									}
 									$.ajax({
@@ -1396,34 +1684,40 @@ if(this.showConsoleMsg) console.log('MAP SELECT EVENT',this.map.getStatusInterac
 											dataType: 'jsonp',
 											jsonpCallback: 'parseResponse'
 									}).then(function(response) { 
+console.log('openInfo 300',response);
 										this_viewer.openInfo(response);
+console.log('openInfo 300 FINITO');
 									});
 							break;
 
 							case "wms_geoserver":
 								if(pointerType=='mouse') {
-									var url = source.getGetFeatureInfoUrl(
+									var url = ol_layer_source.getFeatureInfoUrl(
 										event.coordinate, this.map.getMapView().getResolution(), this.map.mapProjection,
-										{'INFO_FORMAT': 'text/javascript','QUERY_LAYERS': stato[ol_layer].list_layers_hyperlinked, 'format_options': 'callback:parseResponse'}
+										{'INFO_FORMAT': 'text/javascript','QUERY_LAYERS': stato[ol_layer_name].list_layers_hyperlinked, 'format_options': 'callback:parseResponse'}
 									);
 								} else {
-									var url = source.getGetFeatureInfoUrl(
+									var url = ol_layer_source.getFeatureInfoUrl(
 										event.coordinate, this.map.getMapView().getResolution(), this.map.mapProjection,
-										{'INFO_FORMAT': 'text/javascript','QUERY_LAYERS': stato[ol_layer].list_layers_hyperlinked, 'buffer': this.touchBuffer, 'format_options': 'callback:parseResponse'}
+										{'INFO_FORMAT': 'text/javascript','QUERY_LAYERS': stato[ol_layer_name].list_layers_hyperlinked, 'buffer': this.touchBuffer, 'format_options': 'callback:parseResponse'}
 									);
 								}
-
+								
 								$.ajax({
 									url: url,
 									dataType: 'jsonp',
 									jsonpCallback: 'parseResponse'
-								}).then(function(response) { this_viewer.openInfo(response); });
+								}).then(function(response) { 
+console.log('openInfo 400',response);
+									this_viewer.openInfo(response); 
+console.log('openInfo 300 FINITO');
+								});
 							break;
-
+							
 							case "mapguide":
-
+								
 								var mapguide_coordinate = ol.proj.transform(event.coordinate, this.map.mapProjection,this.map.dataProjection);
-
+								
 								var view = this_viewer.map.getMapView();
 								var resolution = view.getResolution();
 								
@@ -1442,14 +1736,14 @@ if(this.showConsoleMsg) console.log('MAP SELECT EVENT',this.map.getStatusInterac
 								
 								var geom="POLYGON(("+x1+" "+y2+","+x2+" "+y2+","+x2+" "+y1+","+x1+" "+y1+","+x1+" "+y2+"))";
 								
-								var a_layers_hyperlinked=stato[ol_layer].list_layers_hyperlinked.split(",");
+								var a_layers_hyperlinked=stato[ol_layer_name].list_layers_hyperlinked.split(",");
 								
 
 								if (a_layers_hyperlinked.length > 0) {
 									var a_layernames=new Array();
 
 									for(var i=0;i<a_layers_hyperlinked.length; i++) {
-										a_layernames.push(stato[ol_layer].layers_info[a_layers_hyperlinked[i]].name);
+										a_layernames.push(stato[ol_layer_name].layers_info[a_layers_hyperlinked[i]].name);
 									}
 
 									var layernames=a_layernames.join();
@@ -1458,20 +1752,20 @@ if(this.showConsoleMsg) console.log('MAP SELECT EVENT',this.map.getStatusInterac
 									
 									data2send={
 										action:"GET_TOOLTIP_HYPERLINK",
-										mapName:stato[ol_layer].mg_session_info.mapName,
-										mapSession:stato[ol_layer].mg_session_info.mapSession,
+										mapName:stato[ol_layer_name].mg_session_info.mapName,
+										mapSession:stato[ol_layer_name].mg_session_info.mapSession,
 										layers:layernames,
 										geometry:geom,
 										maxfeatures:"1"
 									};
 
 									$.ajax({
-										url: stato[ol_layer].api_url,
+										url: stato[ol_layer_name].api_url,
 										method: 'POST',
 										dataType: 'json',
 										data: data2send,
 										error: function(a, b, c) {
-											console.log("GET_TOOLTIP_HYPERLINK() - ERROR");
+console.log("GET_TOOLTIP_HYPERLINK() - ERROR");
 										},
 										success: function(response) {
 
@@ -1492,7 +1786,7 @@ if(this.showConsoleMsg) console.log('MAP SELECT EVENT',this.map.getStatusInterac
 											}
 
 											// we try to select in any case
-											var a_layers_selectable=stato[ol_layer].list_layers_selectable.split(",");
+											var a_layers_selectable=stato[ol_layer_name].list_layers_selectable.split(",");
 									
 											if (a_layers_selectable.length > 0) {
 												var a_layernames=new Array();
@@ -1500,8 +1794,8 @@ if(this.showConsoleMsg) console.log('MAP SELECT EVENT',this.map.getStatusInterac
 												for(var i=0;i<a_layers_selectable.length; i++) {
 
 													// if the layer is not visible at the current scale, the selection does not happen
-													if(this_viewer.getMapScale() >= stato[ol_layer].layers_info[a_layers_selectable[i]].min_scale && this_viewer.getMapScale() <= stato[ol_layer].layers_info[a_layers_selectable[i]].max_scale) {
-														a_layernames.push(stato[ol_layer].layers_info[a_layers_selectable[i]].name);
+													if(this_viewer.getMapScale() >= stato[ol_layer_name].layers_info[a_layers_selectable[i]].min_scale && this_viewer.getMapScale() <= stato[ol_layer_name].layers_info[a_layers_selectable[i]].max_scale) {
+														a_layernames.push(stato[ol_layer_name].layers_info[a_layers_selectable[i]].name);
 													}
 												}
 												
@@ -1510,8 +1804,8 @@ if(this.showConsoleMsg) console.log('MAP SELECT EVENT',this.map.getStatusInterac
 													
 													data2send={
 														action:"GET_FEATURE_INFO",
-														mapName:stato[ol_layer].mg_session_info.mapName,
-														mapSession:stato[ol_layer].mg_session_info.mapSession,
+														mapName:stato[ol_layer_name].mg_session_info.mapName,
+														mapSession:stato[ol_layer_name].mg_session_info.mapSession,
 														layers:layernames,
 														geometry:geom,
 														maxfeatures:"1",
@@ -1519,17 +1813,17 @@ if(this.showConsoleMsg) console.log('MAP SELECT EVENT',this.map.getStatusInterac
 													};
 
 													$.ajax({
-														url: stato[ol_layer].api_url,
+														url: stato[ol_layer_name].api_url,
 														method: 'POST',
 														dataType: 'json',
 														data: data2send,
 														error: function(a, b, c) {
-															console.log("GET_FEATURE_INFO() - ERROR");
+console.log("GET_FEATURE_INFO() - ERROR");
 														},
 														success: function(response) {
 
 															if(response.status=="ok") {
-																//console.log(response.data);
+// console.log(response.data);
 																if(!shiftKeyPressed) {
 																	this_viewer.mapClearSelection();
 																	this_viewer.mapSetSelection(response.data);
@@ -1549,8 +1843,20 @@ if(this.showConsoleMsg) console.log('MAP SELECT EVENT',this.map.getStatusInterac
 							break;
 						}
 					}
+*/ 					
 				}
+			} // end the loop over the selectable layers
+			
+			if(flag_found_something==false) {
+				setTimeout(function(){
+					if(this_viewer.htmlFeaturesInfo=='') {
+						$("#ov_info_wms_container").html(strings_interface.sentence_noselectedobjects); 
+						this_viewer.loadInfoPage('tabQueryResult',this_viewer.infoPanel); // this.loadInfoPage('tabQueryResult','infoWMSGetFeatureInfo.php');
+						if (this_viewer.titleToggleInfo.hasClass("active")) {this_viewer.toggleInfo(0);} // OVD strange behviour
+					}
+				}, this_viewer.timeout_RefreshFeaturesAttributesInfo*3);
 			}
+			
 		break;
 	}
 };
@@ -1578,28 +1884,28 @@ openViewer.prototype.loadInfoPage = function(tabName,url,spinner,data,newHistory
 	switch (tabName) {
 		case 'tabQueryResult':
 
-			//Gestione history per fare back e forward dal tab info
+			// Handling history to allow back/forward from info tab
 			if(newHistoryState) {
 				history.pushState({"tabName": tabName,"url": url,"spinner":spinner,"data":data}, "titolo", "");
 			} else {
-				//console.log("replaceState: "+url);
-				//history.replaceState({"tabName": tabName,"url": url,"spinner":spinner,"data":data}, "titolo", "");
+// console.log("replaceState: "+url);
+// history.replaceState({"tabName": tabName,"url": url,"spinner":spinner,"data":data}, "titolo", "");
 			}
 			
 			tab = this.infoPanelQuery;
-            //alert('QueryResult: '+tabName+' '+url);
+			//alert('QueryResult: '+tabName+' '+url);
 			break;
 		case 'tabSearch':
 			tab = this.infoPanelSearch;
-            //alert('Search: '+tabName+' '+url);
+			//alert('Search: '+tabName+' '+url);
 			break;
 		case 'tabCustom':
 			tab = this.infoPanelCustom;
-            //alert('Search: '+tabName+' '+url);
+			//alert('Search: '+tabName+' '+url);
 			break;
 		case 'tabAppInfo':
 			tab = this.infoPanelAppInfo;
-            //alert('AppInfo: '+tabName+' '+url);
+			//alert('AppInfo: '+tabName+' '+url);
 			break;
 		case 'help':
 			//tab = this.infoPanelHelp;
@@ -1618,7 +1924,6 @@ openViewer.prototype.loadInfoPage = function(tabName,url,spinner,data,newHistory
 	}
 
 	this.infoPanelTabs.tabs({ active: 0 });
-
 };
 /** Load info/page into the "VistaSu" panel */
 openViewer.prototype.loadVistaSu = function(url) {
@@ -1715,25 +2020,45 @@ openViewer.prototype.RestartTour = function(url) {
 };
 
 
-/** LEGEND HANDLING
- * ---------------------------------------------------------------
+/** INTERFACE - SERVICE PROCEDURES TO CREATE/FILL/HANDLE THE LEGEND
+ * -----------------------------------------------------------------
  */
 
 /** Build the LegendTree object, holding the structure of the layers legend (groups and layers) */
 openViewer.prototype.legendBuildLayerTree = function() {
-// if(this.showConsoleMsg) console.log("legendBuildLayerTree");
+// ov_utils.ovLog('Building legened layer tree...'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
 	var stato = this.getStato();
 	var tree = new Array();
 	var knownGroups = new Array();
 	var unresolved = new Array();
 	//var groups = Object.keys(groups_info);
 	
-	// for each "main layer" (no basemap, no custom WMS)
+	
+	// retrieve the list of "main layers" and "WMS on-the-fly layers" from OpenLayers
+    // with the layers drawn on top at the beginning of the array (use unshift)
+	var ol_layers=this.map.getMapLayers();
+// console.log('ol_layers',ol_layers);
+	
+	var sortedLayersNames = [];
+	ol_layers.forEach(function(element,index,ar) {
+		var layerName = element.get('name');
+		var layerStato = stato[layerName];
+		if(typeof layerStato != 'undefined') {
+// console.log('element.get("name")',layerName);
+// console.log('Is not "baselayer" ?',!element.get('baselayer'));
+// console.log(layerName,'is handled in "stato" ?',typeof layerStato);
+			sortedLayersNames.unshift(layerName);
+		}
+	},this);
+// console.log('sortedLayersNames',sortedLayersNames)
+	
+	// for each "main layer" or "WMS on-the-fly layer" (no basemap)
 	var a_ol_layers=Object.keys(stato);
 
-	for (var i=0;i<a_ol_layers.length;i++) {
+	for (var i=0;i<sortedLayersNames.length;i++) {         // OVD old version: for (var i=0;i<a_ol_layers.length;i++) {
+		var layerName = sortedLayersNames[i];
 		
-		ol_layer=stato[a_ol_layers[i]];
+		ol_layer=stato[layerName];                        // OVD old version: ol_layer=stato[a_ol_layers[i]];
 		layers_info=ol_layer.layers_info;
 		groups_info=ol_layer.groups_info;
 		layers=Object.keys(layers_info);
@@ -1741,6 +2066,7 @@ openViewer.prototype.legendBuildLayerTree = function() {
 		// loop over the groups
 		for (var j=0;j<groups.length;j++) {
 			rtGroup = groups_info[groups[j]];
+            rtGroup['source_type']=ol_layer.tipo; // OVD add a new property (it is used to distinguish WMS on-the-fly layers and dispaly in a separate section of the legend
 			node = new ovLegendTreeItem(groups[j], true, rtGroup, null);
 			knownGroups[groups[j]] = node;
 
@@ -1832,9 +2158,13 @@ openViewer.prototype.getScaleMinMaxGroup = function(node) {
 	}
 	return range_scale;
 }
-/** Return the HTML string to build the layers legend */
-openViewer.prototype.legendBuildClientSideTree = function(tree, parent, parentName, internal) {
-// if(this.showConsoleMsg) console.log("legendBuildClientSideTree");
+/** Return the HTML string to display the layers in the legend (different options)
+ *  - layersToProcess can be 'main_layers' or 'wms_onthefly_layers'
+ *  - layers of type "wms_onthefly_layers" are processed as "simplified groups"
+ *    (each layer is also a separate group)
+ */
+openViewer.prototype.legendBuildClientSideTree = function(tree, parent, parentName, layersToProcess) {
+// ov_utils.ovLog('Buildind Client Side legened tree...'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
 	var that = this;
 	var stato = this.getStato();
 	var scala = this.getMapScale();
@@ -1849,8 +2179,8 @@ openViewer.prototype.legendBuildClientSideTree = function(tree, parent, parentNa
 	var groupScaleMin = 9999999999;
 	var groupScaleMax = 0;
 
-	if(internal === undefined) {
-		internal = true;
+	if(layersToProcess === undefined) {
+		layersToProcess = 'main_layers';
 	}
 	
 	treeIndex = 0;
@@ -1858,8 +2188,15 @@ openViewer.prototype.legendBuildClientSideTree = function(tree, parent, parentNa
 		node = tree[i];
 
 		if(node.isGroup) {
-			if(internal== true){
-				if(typeof node.tObject.internal !== 'undefined' && node.tObject.internal == false){
+			if(layersToProcess=='main_layers')	{
+				if(	(typeof node.tObject.internal !== 'undefined' && node.tObject.internal == false) ||
+					(typeof node.tObject.source_type !== 'undefined' && node.tObject.source_type == 'wms_onthefly') )	{
+
+					continue;
+				}
+			} else if (layersToProcess=='wms_onthefly_layers')	{
+				if(	(typeof node.tObject.internal !== 'undefined' && node.tObject.internal == false) ||
+					(typeof node.tObject.source_type !== 'undefined' && node.tObject.source_type != 'wms_onthefly') )	{
 					
 					continue;
 				}
@@ -1878,7 +2215,8 @@ openViewer.prototype.legendBuildClientSideTree = function(tree, parent, parentNa
 			} else {
 				expandClass = 'plus';
 			}
-			htmlExpandCollapse = '<a id="expand_' + groupName + '" class="' + expandClass + '" href="javascript:;"></a>';
+			// OVD - eliminated because it does not work
+			// htmlExpandCollapse = '<a id="expand_' + groupName + '" class="' + expandClass + '" href="javascript:;"></a>';
 			
 			if(node.tObject.visible == true) {
 				checked = 'checked=true';
@@ -1898,25 +2236,149 @@ openViewer.prototype.legendBuildClientSideTree = function(tree, parent, parentNa
 						
 			// the group is hidden if the current scale is outside its scale range
 			if((groupScaleMin<Math.round(scala)) && (groupScaleMax>=Math.round(scala))) {
-				displayStyle = 'block';
-				
-				style = 'style="display:' + displayStyle +';"';
-				htmlLegenda += '<li ' + style + '>' + htmlExpandCollapse + '<input id="' + groupName + '" type="checkbox" ' + checked + ' class="legenda_group_checkbox" /><label for="' + groupName + '"><img src="/include/img/openViewer/legend/lc_group.gif" alt="icona del gruppo" />' + legendLabel + '</label></li>';
-
-				// create the div containing the layers of the group
-				if (node.children != null) {
-					// the layer is hidden if the current scale is outside its scale range
-					if(node.tObject.expanded) {
-						style="style=\"display:block;\"";
-					} else {
-						style="style=\"display:none;\"";
+				                
+				if(layersToProcess=='main_layers')	{
+					displayStyle = 'block';
+					
+					style = 'style="display:' + displayStyle +';"';
+					
+					htmlLegenda+='<li ' + style + '>';
+					htmlLegenda+="<div id='ov_legend_item_container_div'>";  // added
+					
+					htmlLegenda+="<div id='ov_legend_item_label_div'>"; // added
+					htmlLegenda+=htmlExpandCollapse;
+					htmlLegenda+='<input id="' + groupName + '" type="checkbox" ' + checked + ' class="legenda_group_checkbox" />';
+					htmlLegenda+='<label for="' + groupName + '">';
+					htmlLegenda+='<img src="/include/img/openViewer/legend/lc_group.gif" alt="icona del gruppo" />';
+					htmlLegenda+=legendLabel;
+					htmlLegenda+='</label>';
+					htmlLegenda+='</div>'; // ADDED
+					
+					htmlLegenda+='</div>'; // ADDED
+					htmlLegenda+='</li>';
+					
+					// create the div containing the layers of the group
+					if (node.children != null) {
+						// the layer is hidden if the current scale is outside its scale range
+						if(node.tObject.expanded) {
+							style="style=\"display:block;\"";
+						} else {
+							style="style=\"display:none;\"";
+						}
+						
+/* OVD ORIGINAL VERSION
+					displayStyle = 'block';
+					
+					style = 'style="display:' + displayStyle +';"';
+					htmlLegenda += '<li ' + style + '>' + htmlExpandCollapse + '<input id="' + groupName + '" type="checkbox" ' + checked + ' class="legenda_group_checkbox" /><label for="' + groupName + '"><img src="/include/img/openViewer/legend/lc_group.gif" alt="icona del gruppo" />' + legendLabel + '</label></li>';
+					
+					// create the div containing the layers of the group
+					if (node.children != null) {
+						// the layer is hidden if the current scale is outside its scale range
+						if(node.tObject.expanded) {
+							style="style=\"display:block;\"";
+						} else {
+							style="style=\"display:none;\"";
+						}
+*/
+						
+						htmlLegenda+="<ul class='childrenof' id='childrenof_"+groupName+"' "+style+">";
+						
+						// recursive call to get the HTML of the sub branch
+						htmlLegenda += this.legendBuildClientSideTree(node.children, node, groupName, layersToProcess);
+						htmlLegenda+="</ul>";
 					}
-
-					htmlLegenda+="<ul class='childrenof' id='childrenof_"+groupName+"' "+style+">";
-
-					// recursive call to get the HTML of the sub branch
-					htmlLegenda += this.legendBuildClientSideTree(node.children, node, groupName, internal);
-					htmlLegenda+="</ul>";
+					
+				} else if(layersToProcess=='wms_onthefly_layers')	{
+					// retrieve the OL layer object
+					var ol_layer=this.map.getMapLayerByName(this.getMainLayerNameBySubGroupName(groupName));
+					
+					// derive some information needed to build the html object
+					var itemName = ol_layer.getProperties().name;
+					var itemID = itemName; // the attribute ID of the tag INPUT must equal the name of the layer
+					var itemChecked=''; if(node.tObject.visible == true) itemChecked = 'checked=true';
+					
+					// retrieve the scale limits and the CRS of the layer
+					var scaleMax = this.map.getScaleFromResolution(ol_layer.getMaxResolution()+this.correctionOffsetScaleMax,true);
+					var scaleMin = this.map.getScaleFromResolution(ol_layer.getMinResolution()+this.correctionOffsetScaleMin,true);
+					var layerCrs = ol_layer.getSource().getProjection().getCode();
+					if((scaleMin>0||scaleMax>0)&&scaleMax>scaleMin)
+						var labelTip = strings_interface.sentence_scalevisibility+scaleMin+'-'+scaleMax+' ('+strings_interface.sentence_datasource+' '+layerCrs+')';
+					else
+						var labelTip = '('+strings_interface.sentence_datasource+' '+layerCrs+')';
+					
+					// retrieve the image legend and set its size
+					var img_url = ol_layer.get('legendUrl');
+					var hash = Math.floor(Math.random() * 1000000);
+					var img_source_html = "";
+					if(typeof img_url != 'undefined' && img_url != '') {
+						img_source_html = " src=\""+img_url.trim()+"\" ";
+						hash = ov_utils.hashCode(img_url);
+					}
+					var style_leg_width = ol_layer.get('legendWidth');
+					var img_width_html = " style=\"width: "+this.leftPanelMinWidth * 0.9+"px\" ";
+					if(typeof style_leg_width != 'undefined' && style_leg_width != '' && style_leg_width > 0) {
+						img_width_html = " style=\"width: "+Math.min(this.leftPanelMinWidth * 0.9,style_leg_width)+"px\" ";
+					}
+					
+					// set the component to expand/collapse the layer legend
+					if(node.tObject.expanded) {
+						htmlExpandCollapse="<a id='expand_"+itemID+"' class='minus_stile' href='javascript:;'></a>&nbsp;";
+						stile_immagine="style=\"display:block;float:left;\"";
+					} else {
+						htmlExpandCollapse="<a id='expand_"+itemID+"' class='plus_stile' href='javascript:;'></a>&nbsp;";
+						stile_immagine="style=\"display:none;float:left;\"";
+					}
+					
+					// preset the tag according to the "visbility" of the layer
+					if(node.tObject.visible==true) {
+						checked='checked=true';
+					} else {
+						checked='';
+					}
+					
+					// retrieve the legend label/title
+					if(node.tObject.legend_label!=undefined) {
+						legend_label=node.tObject.legend_label;
+					} else {
+						legend_label=node.name;
+					}
+					
+					// the layer is hidden if the current scale is outside its scale range // OVD to be checked
+					if((node.tObject.min_scale==undefined || node.tObject.min_scale<=Math.round(scala)) && (node.tObject.max_scale==undefined || node.tObject.max_scale>Math.round(scala))) {
+						style='style="display:block;clear:left;"';
+					} else {
+						style='style="display:none;clear:left;"';
+					}
+					
+					// define the component "layer legend"
+					html_stile="<br/><img id='stile_"+itemID+"' "+stile_immagine+" src='"+img_url+"' title='' />";
+					
+					// start the definition of the legend entry
+					htmlLegenda+="<li "+style+">";
+					htmlLegenda+="<div id='ov_legend_item_container_div'>";
+					
+					// define the HTML of the legend entry
+					htmlLegenda+="<div id='ov_legend_item_label_div'>";
+					htmlLegenda+=htmlExpandCollapse;																						// expand/collapse the layer legend
+					htmlLegenda+="<input id='"+itemID+"' type='checkbox' "+checked+" class='legenda_group_checkbox' />";					// show/hide the layer
+					htmlLegenda+="<label for='"+itemID+"'>";	// entry
+					htmlLegenda+="<img class='legend-small' src='"+img_url+"' title='' />";	// entry
+					htmlLegenda+=legend_label;	// entry
+					htmlLegenda+="</label>";	// entry
+					htmlLegenda+=html_stile;																								// layer legend
+					htmlLegenda+="</div>";
+					
+					// add the buttons to change the opacity of the layer
+					// --------------------------------------------------
+					var html_opacitytools="<div id='ov_legend_item_tools_div'>";
+					html_opacitytools+="<button id='ov_button_opacity' class='ov_legend_item_tool_container setopacityminus' onclick='open_viewer.map.setLayerOpacity(\""+itemName.trim()+"\",-0.1)' title='"+strings_interface.sentence_increasetransparency+"'>"
+					html_opacitytools+="<button id='ov_button_opacity' class='ov_legend_item_tool_container setopacityplus' onclick='open_viewer.map.setLayerOpacity(\""+itemName.trim()+"\",0.1)' title='"+strings_interface.sentence_reducetransparency+"'>"
+					html_opacitytools+="</div>";
+					htmlLegenda+=html_opacitytools;
+					
+					htmlLegenda+="</div>";
+					htmlLegenda+="</li>";
 				}
 				
 			} else {
@@ -1925,15 +2387,24 @@ openViewer.prototype.legendBuildClientSideTree = function(tree, parent, parentNa
 			
 			
 		} else {
+			
+			// *****************************************************************************
+			// HANDLE THE CHILD OF A GROUP
+			// *****************************************************************************
+			
 			rtLayer = node.tObject;
 			layerName = node.name;
+			OL_layer_name = this.getMainLayerNameBySubLayerName(layerName);
 			
-			if(internal== true){
+			if(layersToProcess=='main_layers'){
 				if(typeof node.tObject.internal !== 'undefined' && node.tObject.internal == false){
 					continue;
 				}
-			}
-			else{
+			} else if(layersToProcess=='wms_onthefly_layers') {
+				if(typeof node.tObject.internal !== 'undefined' && node.tObject.internal == false){
+					continue;
+				}
+			} else {
 				if(typeof node.tObject.internal === 'undefined' || node.tObject.internal != false){
 					continue;
 				}
@@ -1947,18 +2418,20 @@ openViewer.prototype.legendBuildClientSideTree = function(tree, parent, parentNa
 				//htmlExpandCollapse="";
 			}
 			
+			// layer shown/hidden
 			if(node.tObject.visible==true) {
 				checked='checked=true';
 			} else {
 				checked='';
 			}
-
+			
+			// legend
 			if(node.tObject.legend_label!=undefined) {
 				legend_label=node.tObject.legend_label;
 			} else {
 				legend_label=node.name;
 			}
-
+			
 			if(node.tObject.image_legend_layer!=undefined) {
 				image_legend_layer=node.tObject.image_legend_layer;
 			} else {
@@ -1972,7 +2445,7 @@ openViewer.prototype.legendBuildClientSideTree = function(tree, parent, parentNa
 				style='style="display:none;"';
 			}
 
-			var ol_layer = this.getMainLayerByName(layerName);
+			var ol_layer = this.getMainLayerNameBySubLayerName(layerName);
 
 			var url = stato[ol_layer].url;
 
@@ -1981,10 +2454,10 @@ openViewer.prototype.legendBuildClientSideTree = function(tree, parent, parentNa
 			} else {
 					stile_immagine="style=\"display:none;\"";
 			}
-
+					
 			switch (stato[ol_layer].tipo) {
 				case "wms":
-// 					var layerData = this.getWMSLegendFromProxy(url, scala, image_legend_layer,stato[ol_layer].tipo);
+// 					var layerData = this.getWMSlegendViaProxy(url, scala, image_legend_layer,stato[ol_layer].tipo);
 // 					html_stile='';
 // 					for (var style_name in layerData.styles) {
 // 						html_stile += "<br/><img id='stile_"+layerName+"' "+stile_immagine+" src='"+layerData.styles[style_name].legend_url_href+"' style='width: \'"+ layerData.styles[style_name].legend_url_width + "\'px; height: \'" + layerData.styles[style_name].legend_url_height + "\' px;/>";
@@ -1995,14 +2468,47 @@ openViewer.prototype.legendBuildClientSideTree = function(tree, parent, parentNa
 				break;
 				case "wms_geoserver":
 					if(that.ProxySet == true){
-						var returned_img = this.getWMSLegendFromProxy(url, scala, image_legend_layer,stato[ol_layer].tipo);
+						var returned_img = ov_wms_plugin.getWMSlegendViaProxy(url, scala, image_legend_layer,stato[ol_layer].tipo);
 						html_stile="<br/><img id='stile_"+layerName+"' "+stile_immagine+" src='data:image/png;base64," + returned_img + "' title='' />";
 						//htmlLegenda+="<li "+style+">"+htmlExpandCollapse+"<input id='"+layerName+"' type='checkbox' "+checked+" class='legenda_layer_checkbox' /><label for='"+layerName+"'><img class='legend-small' src='data:image/png;base64," + returned_img + "' title='' />"+legend_label+"</label>"+html_stile+"</li>";
 						htmlLegenda+="<li "+style+">"+htmlExpandCollapse+"<input id='"+layerName+"' type='checkbox' "+checked+" class='legenda_layer_checkbox' /><label for='"+layerName+"'>"+legend_label+"</label>"+html_stile+"</li>";
 					}
 					else{
-						html_stile="<br/><img id='stile_"+layerName+"' "+stile_immagine+" src='"+url+"?REQUEST=GetLegendGraphic&VERSION=1.3.0&FORMAT=image/png&LEGEND_OPTIONS=fontName:Serif;fontAntiAliasing:true;fontSize=6;dpi:100&WIDTH=20&HEIGHT=20&SCALE="+scala+"&LAYER="+image_legend_layer+"' title='' />";
-						htmlLegenda+="<li "+style+">"+htmlExpandCollapse+"<input id='"+layerName+"' type='checkbox' "+checked+" class='legenda_layer_checkbox' /><label for='"+layerName+"'><img class='legend-small' src='"+url+"?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=20&HEIGHT=20&SCALE="+scala+"&LAYER="+image_legend_layer+"' title='' />"+legend_label+"</label>"+html_stile+"</li>";
+						
+						// define the component "layer legend"
+						html_stile="<br/><img id='stile_"+layerName+"' "+stile_immagine+" src='"+url+"?REQUEST=GetLegendGraphic&VERSION=1.3.0&FORMAT=image/png&LEGEND_OPTIONS=fontName:Serif;fontAntiAliasing:true;fontSize:9;dpi:100&WIDTH=20&HEIGHT=20&SCALE="+scala+"&LAYER="+image_legend_layer+"' title='' />";
+						
+						// start the definition of the legend entry
+						htmlLegenda+="<li "+style+">";
+						htmlLegenda+="<div id='ov_legend_item_container_div'>";
+					
+						// define the HTML of the legend entry
+						htmlLegenda+="<div id='ov_legend_item_label_div'>";
+						htmlLegenda+=htmlExpandCollapse;
+						htmlLegenda+="<input id='"+layerName+"' type='checkbox' "+checked+" class='legenda_layer_checkbox' />";
+						htmlLegenda+="<label for='"+layerName+"'>";
+						htmlLegenda+="<img class='legend-small' src='"+url+"?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=20&HEIGHT=20&SCALE="+scala+"&LAYER="+image_legend_layer+"' title='' />";
+						htmlLegenda+=legend_label;
+						htmlLegenda+="</label>";
+						htmlLegenda+=html_stile;
+						htmlLegenda+="</div>";
+						
+						// add the buttons to change the opacity of the layer
+						// --------------------------------------------------
+                        // TODO implements handling the layer opacity
+                        // here it is quite difficult because a "layer" is on "OL layer",
+                        // but is one layer of a multiple wms layer
+						var html_opacitytools="<div id='ov_legend_item_tools_div'>";
+						html_opacitytools+="<button id='ov_button_opacity' class='ov_legend_item_tool_container setopacityminus' onclick='open_viewer.map.setLayerOpacity(\""+OL_layer_name.trim()+"\",-0.1)' title='"+strings_interface.sentence_increasetransparency+"'>"
+						html_opacitytools+="<button id='ov_button_opacity' class='ov_legend_item_tool_container setopacityplus' onclick='open_viewer.map.setLayerOpacity(\""+OL_layer_name.trim()+"\",0.1)' title='"+strings_interface.sentence_reducetransparency+"'>"
+						html_opacitytools+="</div>";
+						htmlLegenda+=html_opacitytools;
+						
+						htmlLegenda+="</div>";
+						htmlLegenda+="</li>";
+                    
+//						html_stile="<br/><img id='stile_"+layerName+"' "+stile_immagine+" src='"+url+"?REQUEST=GetLegendGraphic&VERSION=1.3.0&FORMAT=image/png&LEGEND_OPTIONS=fontName:Serif;fontAntiAliasing:true;fontSize:9;dpi:100&WIDTH=20&HEIGHT=20&SCALE="+scala+"&LAYER="+image_legend_layer+"' title='' />";
+//						htmlLegenda+="<li "+style+">"+htmlExpandCollapse+"<input id='"+layerName+"' type='checkbox' "+checked+" class='legenda_layer_checkbox' /><label for='"+layerName+"'><img class='legend-small' src='"+url+"?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=20&HEIGHT=20&SCALE="+scala+"&LAYER="+image_legend_layer+"' title='' />"+legend_label+"</label>"+html_stile+"</li>";
 					}
 				break;
 
@@ -2045,31 +2551,39 @@ openViewer.prototype.legendBuildClientSideTree = function(tree, parent, parentNa
 				break;
 			} // switch (stato[ol_layer].tipo)
 		} // else if(node.isGroup)
-	}
+	}  
 
-// if(this.showConsoleMsg) console.log("htmlLegenda", htmlLegenda);
+// console.log("htmlLegenda", htmlLegenda);
 	return htmlLegenda;
 }
-/** Refresh the layers legend */
+/** Refresh the layers legend
+ *  It is based on additional specific procedures to generate specific
+ *  sections of the legend:
+ *  - legendBuildLayerTree      (build the "tree" object with the structure of the legend, groups and layers)
+ *  - legendBuildClientSideTree (uses the "tree" object to generate the HTMl, with different options)
+ *  Basemap layers are processed directly inside this procedure
+ */
 openViewer.prototype.refreshLegend = function() {
-// if(this.showConsoleMsg) console.log("Start refreshLegend ...");
+ov_utils.ovLog('Start refreshLegend ...'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
+	var stato = this.getStato();
+	
 	a_layers_legenda=new Array();
 	
 	// build the legend tree
 	this.legendBuildLayerTree();
-
-    // define the section related to the basemap layers
-    var htmlLegenda = this.legendBuildClientSideTree(this.legendTree, null, null, true);
-	this.legendPanel.html("<ul class='layerslegend'>" + htmlLegenda + "</ul>");
-
-    // define the section related to the user WMS layers
-	var htmlLegendaWMS = this.legendBuildClientSideTree(this.legendTree, null, null,false);
+	
+	// define the section related to the "main layers"
+	var htmlLegendaMainLayers = this.legendBuildClientSideTree(this.legendTree, null, null, 'main_layers');
+	this.legendPanel.html("<ul class='layerslegend'>" + htmlLegendaMainLayers + "</ul>");
+	
+	// define the section related to the user WMS layers
+	var htmlLegendaWMS = this.legendBuildClientSideTree(this.legendTree, null, null, 'wms_onthefly_layers');
 	this.legendPanelWmsUserLayers.html("<ul class='layerslegend'>" + htmlLegendaWMS + "</ul>");
-
+	
 	// retrieve the OL Layers
 	ol_layers=this.map.getMapLayers();
-
-    // process basemap layers
+	
+	// process basemap layers
 	html_layers_list="";
 	ol_layers.forEach(function(element,index,ar) {
 		if(element.get('baselayer')) {       // only if it is a basemap layer
@@ -2081,17 +2595,11 @@ openViewer.prototype.refreshLegend = function() {
 			html_layers_list+="<li><input type='radio' class='legend_basemap_item' name='legend_basemap_item' id='"+element.get('name')+"' "+str_checked+" ><label for='"+element.get('name')+"'>&nbsp;"+element.get('name')+"</label></li>";
 		}
 	},this);
-    
-    // process user WMS layers
-    // -------------------------------------------------------------
-	// retrieve WMS user layers and temporarly store to an array
-	html_layerswms_list="";
-	var tmpWmsUserLayers = [];
-		ol_layers.forEach(function (layer) {
-		if (layer.get('name') != undefined && layer.get('wmsUserLayer')) {
-			tmpWmsUserLayers.push(layer);
-		}
-	});
+
+/*  // OVD: version modified to handle separately the WMS on-the-fly layers
+    //      this version has been oveerride by a second version "integrated" in
+    //      legendBuildLayerTree and legendBuildClientSideTree
+
 	// reverse the array (to have a legend with on top the "last" drawn layers)
 	tmpWmsUserLayers.reverse();
     // add user WMS layers to the legend
@@ -2120,7 +2628,7 @@ openViewer.prototype.refreshLegend = function() {
 			var img_source_html = "";
 			if(typeof img_url != 'undefined' && img_url != '') {
 				img_source_html = " src=\""+img_url.trim()+"\" ";
-                hash = this.hashCode(img_url);
+                hash = ov_utils.hashCode(img_url);
 			}
 			var style_leg_width = element.get('legendWidth');
 			var img_width_html = " style=\"width: "+this.leftPanelMinWidth * 0.9+"px\" ";
@@ -2144,7 +2652,7 @@ openViewer.prototype.refreshLegend = function() {
 /* OVD ELIMINARE
 			//html_layerswms_list+="<button id='ov_button_style' class='ov_legend_item_tool_container showstyle' onclick='open_viewer.showStyle(\""+element.get('name').trim()+"\",-0.1)' title='Aggiungi WMS'>"
 			if(typeof img_url != 'undefined' && img_url != '') {
-				var hash = this.hashCode(img_url);
+				var hash = ov_utils.hashCode(img_url);
 				var img_source_html = " src='"+img_url.trim().replace('/','//')+"' ";
 console.log('OVD Legend URL:',img_url,img_source_html);  
 				html_layerswms_list+="<button id='ov_button_style' class='ov_legend_item_tool_container showstyle' onclick='open_viewer.openCloseDiv(\"img_"+ hash + "_" + i +"\")' title='Aggiungi WMS'>";
@@ -2155,7 +2663,7 @@ console.log('OVD Legend URL:',img_url,img_source_html);
 //				legend_html = "<a href='javascript:;' onclick='open_viewer.openCloseDiv(\"img_"+ hash + "_" + i +"\")' title='"+strings_interface.wms_showhidestyle+"'><img id='img_" + hash + "_" + i +img_source_html+" class='hide' style='width: "+ style_leg_width + "px; height: " + style_leg_height + "px;'/><span class='fa fa-eye'></span>";
 				//legend_html += " "+strings_interface.wms_showhidestyle.toLowerCase();
 //				legend_html += "</a>";
-*/            
+* /            
 			
 			// add the button to open/close the legend
 			// ---------------------------------------
@@ -2165,8 +2673,8 @@ console.log('OVD Legend URL:',img_url,img_source_html);
 			
 			// add the buttons to change the opacity of the layer
 			// --------------------------------------------------
-			html_layerswms_list+="<button id='ov_button_opacity' class='ov_legend_item_tool_container setopacityplus' onclick='open_viewer.setLayerOpacity(\""+element.get('name').trim()+"\",0.1)' title='"+strings_interface.sentence_reducetransparency+"'>"
-			html_layerswms_list+="<button id='ov_button_opacity' class='ov_legend_item_tool_container setopacityminus' onclick='open_viewer.setLayerOpacity(\""+element.get('name').trim()+"\",-0.1)' title='"+strings_interface.sentence_increasetransparency+"'>"
+			html_layerswms_list+="<button id='ov_button_opacity' class='ov_legend_item_tool_container setopacityplus' onclick='open_viewer.map.setLayerOpacity(\""+element.get('name').trim()+"\",0.1)' title='"+strings_interface.sentence_reducetransparency+"'>"
+			html_layerswms_list+="<button id='ov_button_opacity' class='ov_legend_item_tool_container setopacityminus' onclick='open_viewer.map.setLayerOpacity(\""+element.get('name').trim()+"\",-0.1)' title='"+strings_interface.sentence_increasetransparency+"'>"
 			
 			html_layerswms_list+="</li>"
 			
@@ -2177,21 +2685,24 @@ console.log('OVD Legend URL:',img_url,img_source_html);
 				html_layerswms_list+="<img id=\"img_" + hash + "_" + i + "\" class=\"hide\"" + img_source_html + img_width_html + "/>"
 				html_layerswms_list+="</a>";
 			}
-    };
-	
-    this.legendPanelWmsUserLayers.html("<ul class='layerslegendwms'>"+html_layerswms_list+"</ul>");
+	};
+*/
+    //this.legendPanelWmsUserLayers.html("<ul class='layerslegendwms'>"+html_layerswms_list+"</ul>");
 	this.legendPanelBasemapLayers.html("<ul class='layerslegend'>"+html_layers_list+"</ul>");
-if(this.showConsoleMsg) console.log(' List of refreshed layers:',ol_layers);
-// if(this.showConsoleMsg) console.log("... refreshLegend completed.");
+ov_utils.ovLog(ol_layers,'List of refreshed layers'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
 	return false;
 };
-/** Show/Hide a layer (used for the "main layers" (MapGuide, default WMS) */
+/** Show/Hide a layer (used for the "main layers" and "WMS on-the-fly layers")
+ *  - update the "stato" variable
+ *  - call "map.refreshStatus" to re-calculate all derived properties of the "stato" variable
+ *  - call "map.refreshLayerVisibility" to really update the visibility of layers in the displayed map
+ */
 openViewer.prototype.showHideLayer = function(layer_name, flagShow) {
 	var stato = this.getStato();
 	
 	// retrieve the "status" of the passed layer
-	var ol_layer=this.getMainLayerByName(layer_name);
-	
+	var ol_layer=this.getMainLayerNameBySubLayerName(layer_name);
+	var ol_type=stato[ol_layer].tipo;
 	if(ol_layer == false) { // it is a User WMS layer
 		this.map.layerViewToggle(layer_name, flagShow);
 	}
@@ -2203,10 +2714,10 @@ openViewer.prototype.showHideLayer = function(layer_name, flagShow) {
 			stato[ol_layer].layers_info[layer_name]['visible']=false;
 		}
 		this.setStato(stato);
-		this.mapRefreshStatus();
+		this.map.refreshStatus();
 		if (stato[ol_layer].list_layer_visible!='') {
-			// refresh the passed layer and the map
-			this.map.refreshMapLayer(ol_layer);
+			// refresh the visibility of the passed layer and the map
+			this.map.refreshLayerVisibility(ol_layer,ol_type);
 		} else {
 			// if it is the unique layer visible, it cannot be hidden
 			stato[ol_layer].layers_info[layer_name]['visible']=old_flagShow;
@@ -2214,50 +2725,157 @@ openViewer.prototype.showHideLayer = function(layer_name, flagShow) {
 			this.setStato(stato);
 			
 			// rollback of the change of "status"
-			this.mapRefreshStatus();
+			this.map.refreshStatus();
 			
 			$("#"+layer_name).prop("checked",old_flagShow);
 		}
 	}
 }
-/** Show/Hide a group of layer (used for the "main layers" (MapGuide, default WMS) */
+/** Show/Hide a group of layer (used for the "main layers" and "WMS on-the-fly layers")
+ *  - update the "stato" variable
+ *  - call "map.refreshStatus" to re-calculate all derived properties of the "stato" variable
+ *  - call "map.refreshLayerVisibility" to really update the visibility of layers in the displayed map
+ */
 openViewer.prototype.showHideGroupLayers = function(group_name, flagShow) {
+// console.log('OV_showHideGroupLayers',group_name, flagShow,this.getStato());
+	// retrieve the OL layer
+	var ol_layer=this.getMainLayerNameBySubGroupName(group_name);
+	if(ol_layer==false) {
+        group_name = 'group_'+group_name;
+		ol_layer=this.getMainLayerNameBySubGroupName(group_name);
+	}
+	
+	// retrieve the "stato" of the passed group
 	var stato = this.getStato();
-	// retrieve the "status" of the passed group
-	var ol_layer=this.getMainLayerByGroup(group_name);
+	var ol_type=stato[ol_layer].tipo;
 	old_flagShow=stato[ol_layer].groups_info[group_name]['visible'];
+	
+	// retrieve the name of the "group" to be toggled
+    var real_group_name=group_name;
+	if(ol_type=='wms_onthefly') real_group_name = real_group_name
 
+	// update the "stato"
 	if (flagShow==true) {
 		stato[ol_layer].groups_info[group_name]['visible']=true;
 	} else {
 		stato[ol_layer].groups_info[group_name]['visible']=false;
 	}
-
 	this.setStato(stato);
-	this.mapRefreshStatus();
-
-	if (stato[ol_layer].list_layers_visible!='') {
-		// refresh the passed group and the map
-		this.map.refreshMapLayer(ol_layer);
+	
+	// update all derived variables in the "stato" variable
+	// (layers_visible, layers_tooltip, ...)
+	this.map.refreshStatus();
+	
+	// update the real visibility of layers
+	// ------------------------------------
+	// USUALLY: it is not possible to "hide" all the layers of a source
+	//           at least one group must be visible
+	// SPECIAL CASE: for the WMS loaded on the fly by the user (type wms_onthefly)
+	//           this constraint is not valid
+	if (stato[ol_layer].list_layers_visible!=''||stato[ol_layer].tipo=='wms_onthefly') {
+		// refresh the visibility of the passed group and the map
+		this.map.refreshLayerVisibility(ol_layer,ol_type);
 	} else {
 		// if it is the unique layer visible, it cannot be hidden
 		stato[ol_layer].groups_info[group_name]['visible']=old_flagShow;
 		
 		// rollback of the change of "status"
 		this.setStato(stato);
-		this.mapRefreshStatus();
+		this.map.refreshStatus();
 		
 		$("#"+group_name).prop("checked",old_flagShow);
 	}
 }
-/** Refresh the status of the "main" layers" (MapGuide, default WMS) */
+/** Show/Hide a custom WMS layer */
+openViewer.prototype.userWmsLayerViewToggle = function(name, layer_name) {
+	if ( $('#custom_wms_layer_checkbox_' + name).is(':checked') )
+		this.map.layerViewToggle(layer_name, true);
+	else
+		this.map.layerViewToggle(layer_name, false);
+}
+/** OVD DELETED - Refresh the status of the "main" layers" (MapGuide, default WMS) */
+/*
 openViewer.prototype.mapRefreshStatus = function() {
-// if(this.showConsoleMsg) console.log("refreshStatus");
+console.log("refreshStatus");
 	this.map.refreshStatus();
+console.log('STATO UPDATED',this.getStato());    
+};
+*/
+
+
+/** INTERFACE - OTHER PROCEDURES
+ * ------------------------------
+ */
+
+/** Update the footer box with the number od selected features */
+openViewer.prototype.footerUpdateText = function() {
+	var selectOverlay=this.map.getMapLayerByName('selection');
+	var numeroFeature = selectOverlay.getSource().getFeatures().length;
+	if (numeroFeature == 1)
+		this.footerPanelInfoSelezione.html(numeroFeature + " " + strings_interface.feature_selected_statusbar);
+	else
+		this.footerPanelInfoSelezione.html(numeroFeature + " " + strings_interface.features_selected_statusbar);
+}
+
+
+/** TOOLS - NAVIGATION FUNCTIONS (ZOOM, ETC.)
+ * ---------------------------------------------------------------
+ */
+
+openViewer.prototype.initialMapView = function() {          // refresh the view to the initial settings (center and scale)
+// if(this.showConsoleMsg) console.log("initialMapView");
+	this.map.getMapView().setCenter(this.map.initialView.center);
+	this.map.getMapView().setZoom(this.map.initialView.zoom);
+};
+openViewer.prototype.previousMapView = function() {         // recall the previous view (zoom and scale) from the views history
+ov_utils.ovLog('Previous map view...'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
+	if(this.map.historyViewIndex > 0) {
+
+		this.map.historyViewIndex--;
+		var previousIndex=this.map.historyViewIndex;
+
+		this.map.getMapView().setCenter(this.map.historyView[previousIndex].center);
+		this.map.getMapView().setResolution(this.map.historyView[previousIndex].resolution);
+		this.map.historyViewCaller='ZoomPrev';
+
+
+	} else {
+// ov_utils.ovLog('No previous map view'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
+	}
+};
+openViewer.prototype.nextMapView = function() {             // recall the next historical view (zoom and scale) from the views history
+ov_utils.ovLog('Next map view'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
+	if(this.map.historyView.length-1 > this.map.historyViewIndex) {
+		this.map.historyViewIndex++;
+		var nextIndex=this.map.historyViewIndex;
+
+		this.map.getMapView().setCenter(this.map.historyView[nextIndex].center);
+		this.map.getMapView().setResolution(this.map.historyView[nextIndex].resolution);
+		this.map.historyViewCaller='ZoomNext';
+	
+	} else {
+// ov_utils.ovLog('No next map view'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
+	}
+};
+openViewer.prototype.zoomIn = function() {                  // cantered zoomin (+1 zoom level)
+ov_utils.ovLog('Zoom in...'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
+	//this.map.getMapView().setResolution(this.map.getMapView().constrainResolution(this.map.getMapView().getResolution()))
+	this.map.getMapView().setZoom(this.map.getMapView().getZoom()+1);
+    this.map.historyViewCaller='ZoomIn';
+}
+openViewer.prototype.zoomOut = function() {                 // centerd zoomout (-1 zoom level)
+ov_utils.ovLog('Zoom out...'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
+	//this.map.getMapView().setResolution(this.map.getMapView().constrainResolution(this.map.getMapView().getResolution()))
+	this.map.getMapView().setZoom(this.map.getMapView().getZoom()-1); 
+    this.map.historyViewCaller='ZoomOut';
+}
+openViewer.prototype.zoomToView = function(x,y,scale) {     // Set the current view (center coordinates, based on data projection, and scale, in map units)
+	this.map.setCenterProjected(x, y, this.map.dataProjection);
+	this.setMapScale(scale);
 };
 
 
-/** TOOLS - HANDLING THE USER INTERACTION TOOLS
+/** TOOLS - MAP INTERACTION (SELECTION, MESURE)
  * ---------------------------------------------------------------
  */
 
@@ -2341,7 +2959,438 @@ openViewer.prototype.toggleToolStatus = function(toolname) {
 		break;
 	} 
 }
-/** Additional function to manage the "measure" interactive tool */
+/** Callback of an "add to" current selection of features
+ *  - response contains the features selected (in GeoJSON format)
+ *  - layer_name is the layer of the selected features
+ */
+openViewer.prototype.addFeaturesToSelection = function(response, infoFormat, layer_name, flag_new_selection, flag_show_attributes, flag_show_attribute_of_last_selected_only, flag_last_layer_to_process) {
+	if(typeof flag_new_selection == 'undefined') flag_new_selection = false;
+	if(typeof flag_show_attributes == 'undefined') flag_show_attributes = false;
+	if(typeof flag_show_attribute_of_last_selected_only == 'undefined') flag_show_attribute_of_last_selected_only = false;
+	var that = open_viewer; // as "this" does not work because it is a callback from another class
+	var stato = that.getStato();
+	var responseType = infoFormat;
+	
+ov_utils.ovLog('****************************************');
+ov_utils.ovLog('Layer name: '+layer_name+'\ntype of data to be processed: '+responseType, 'ADD FEATURE TO SELECTION');
+ov_utils.ovLog('****************************************');
+// console.log(layer_name, 
+//            '\nnew selection:', flag_new_selection, 
+//            '\nshow attributes:', flag_show_attributes, 
+//            '\nshow only last one:', flag_show_attribute_of_last_selected_only,
+//            '\nresponse:', response,
+//            '\nurl:', response.query_url,
+//            '\ntype of data to be processed:', responseType
+//           );
+	
+	switch (responseType) {
+		case 'text/plain':
+			// in this case, it is not possible to retrive the geographical object from the response/string,
+			// and, optionally, add to the current selection; then
+			// - we clear the selection
+			// - we show only the information of this layer
+ov_utils.ovLog(response.query_url,'url','consolelog'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
+			
+			if(flag_new_selection) {
+				// retrieve the layer of the selected features
+				var selectOverlay=that.map.getMapLayerByName('selection');
+				// clear the layer of the selected features
+				selectOverlay.getSource().clear();
+				// refresh the footer message with the number of selected features
+				that.footerUpdateText();
+			}
+			
+			// optionally retrieve and show the attributes information of the selected features
+			if(flag_show_attributes) {
+				var layer_title = that.getSubLayerStatoByFeature(layer_name).legend_label; // the "stato" ID equals the name of the OL layer
+				var layer_type = that.getStato()[layer_name].tipo;
+				that.showFeaturesAttributes (response.datatext, layer_title, layer_type, flag_last_layer_to_process);
+			}
+			
+		break;
+		        
+		default: // text/javascript
+			var geojsonFormat = new ol.format.GeoJSON();
+// console.log('layer_name',layer_name);
+			
+			// get the selected features ("response" is a geoJson object)
+			features=geojsonFormat.readFeatures(response,{dataProjection: that.map.dataProjection,featureProjection: that.map.mapProjection});
+// console.log('features length', features.length);
+// console.log('features', features);
+			
+			// retrieve the layer where "copying" the selected features (to be highlighted)
+			var selectOverlay=that.map.getMapLayerByName('selection');
+			
+			// optionally clear the previous selection
+			if(flag_new_selection) selectOverlay.getSource().clear();
+			
+// console.log('LAYER SELECTION NUMBER',selectOverlay.getSource().getFeatures().length);
+// console.log('LAYER SELECTION',selectOverlay.getSource().getFeatures());
+			
+			// add the features selected to the ones already selected
+			if(features.length > 0) {
+				// TODO We should check if the feature is already included in the previous selection (to avoid doubling it)
+				selectOverlay.getSource().addFeatures(features);
+			}
+	
+			// optionally retrieve and show the attributes information of the selected features
+			if(flag_show_attributes) {
+				if(flag_show_attribute_of_last_selected_only) that.showFeaturesAttributes (features,layer_name,'',flag_last_layer_to_process)
+				else that.showFeaturesAttributes (selectOverlay.getSource().getFeatures(),layer_name,'',flag_last_layer_to_process)
+			}
+			
+			// refresh the footer message with the number of selected features
+			that.footerUpdateText();
+			
+		break;
+    }
+	
+	
+	
+}
+/** Display the "features attributes" on the "query result" page
+ *  - if the parameter "features" is undefined, the information of all selected features are processed and displayed
+ *  - if one or more feature are passed as parameter, the information of those features are displayed
+ */
+openViewer.prototype.showFeaturesAttributes = function(features, layer_name, layer_type, flag_last_layer_to_process) {
+    var that = open_viewer;
+	
+	// special case, the function is called without a valid parameter
+	// then show the attributes of all currently selected features (if any)
+	if(typeof features == 'undefined') {
+		var selectOverlay = that.map.getMapLayerByName('selection');
+		var features = selectOverlay.getSource().getFeatures();
+	}
+	
+	var typeFeatures = (typeof features);
+// console.log('typeof features',typeFeatures);
+	
+// console.log('layer_name', layer_name, '\nlayer_type', layer_type);
+	
+	// fill the info results page with the information contained in the parameter "features"
+	var html='';
+	switch(typeFeatures) {
+		case 'string':
+// console.log('Rows number:', (features.match(/\r\n|\r|\n/g)).length);
+			if(features!=undefined&&features!='') {
+				
+				var isHTML = false;
+				
+				// parse the string
+// console.log('features',features);
+				var chkmatch = features.match(/\r\n|\r|\n/g);
+				if(chkmatch!=null&&chkmatch!=undefined&&chkmatch.length > 0) {				// the string already contains cr or lf
+					// nothing to do
+				} else {
+					chkmatch = features.match(/\<br\>|\<p\>/g);
+					if(chkmatch!=null&&chkmatch!=undefined&&chkmatch.length > 0) {			// the string is HTML
+						isHTML = true;
+					} else {
+						chkmatch = features.match(/;/g);
+						if(chkmatch!=null&&chkmatch!=undefined&&chkmatch.length > 0) {		// the string contains ';', the we split on it
+							features = features.replace(/;/g,'\r\n');
+						} else {
+							chkmatch = features.match(/,/g);
+							if(chkmatch!=null&&chkmatch!=undefined&&chkmatch.length > 0) {	// the string contains ',', the we split on it
+								features = features.replace(/,/g,'\r\n');
+							}
+						}
+					}
+				}
+					
+				// WARNING: the variable "response", even if nothing is selected, not always is blank
+				
+				//html+='<br><h1 class="page_container">'+layer_type+' '+strings_interface.word_layer+' '+layer_name+'</h1>'; // strings_interface.word_feature
+				html+='<br><h1 class="page_container">'+layer_type+' '+layer_name+'</h1>';
+				if(isHTML) 
+					html+='<p class="page_container">'+features+'</p>';
+				else {
+					html+='<p class="page_container"><pre>'+features+'</pre></p>';
+				}
+			}   
+		break;
+		
+		default:
+			// here it is assumed that the type of the "features" parameter is really "features"
+			if(features.length > 0) {
+				
+				html+='<p class="page_container">'+strings_interface.sentence_foundfeatures+' : '+features.length+' '+strings_interface.word_in.toLowerCase()+' '+layer_name.toUpperCase()+'</p>';
+				for(var i=0;i<features.length;i++) {
+					var ol_ID = features[i].getId();
+					var feature_type = features[i].getGeometry().getType();
+					var layer_name = ol_ID.split('.')[0]; // here get the layer name from the feature iD, without taking into account the parameter passed to the function
+					layer_name = that.getSubLayerStatoByFeature(layer_name).legend_label;
+					var feature_ID = ol_ID.substring(layer_name.length+1);
+// console.log('features[i]',features[i]);                
+// console.log('feature_type',feature_type);
+// console.log('layer_name',layer_name);
+// console.log('feature_ID',feature_ID);
+					
+					//html+='<p class="page_container"><span class="page_container"><u>'+feature_type+' ('+feature_ID+')</span></u></p>'; // strings_interface.word_feature
+					html+='<br><h1 class="page_container">'+feature_type+' ('+feature_ID+') '+strings_interface.word_layer+' '+layer_name+'</h1>'; // strings_interface.word_feature
+					
+					// retrieve the feature attributes
+					properties=features[i].getProperties();
+// console.log(properties);                
+					// format the attributes
+					html+=ov_utils.createElementsFromJSON(properties);
+				}
+			}
+		break;
+	}
+	
+	// add the information related to the current feature to the global variable
+	that.htmlFeaturesInfo+=html;
+	
+	// refresh the info results page - query results (if it is the last layer to be processed)
+	if(flag_last_layer_to_process) {
+		setTimeout(function(){
+			$("#ov_info_wms_container").html(that.htmlFeaturesInfo); 
+			that.loadInfoPage('tabQueryResult',that.infoPanel); // this.loadInfoPage('tabQueryResult','infoWMSGetFeatureInfo.php');
+			if (that.titleToggleInfo.hasClass("active")) {that.toggleInfo(0);} // OVD strange behviour
+		}, that.timeout_RefreshFeaturesAttributesInfo);
+	}
+
+
+// OVD remove commented lines before deploying
+/*
+return;
+
+console.log(response);
+	var that = open_viewer;
+	if (typeof ov_WMSGetFeatureInfoCustomPage !== "undefined") {
+		this.loadInfoPage('tabQueryResult',ov_WMSGetFeatureInfoCustomPage, false, response);
+	} else {
+		this.loadInfoPage('tabQueryResult',this.infoPanel); // this.loadInfoPage('tabQueryResult','infoWMSGetFeatureInfo.php');
+		//var json = this.map.gmlToJson(response);
+		var features = response.features;
+		if(features.length > 0) {
+			var html='<p>'+strings_interface.sentence_foundfeatures+' : '+features.length+'</p>';
+			for(var i=0;i<features.length;i++) {
+//console.log(features[i].geometry.type);
+//console.log(features[i].properties);
+				html = html + '<p>'+features[i].geometry.type+' ('+features[i].id+')</p>'; // strings_interface.word_feature
+			
+				// retrieve the feature attributes
+				properties=features[i].properties;
+				// format the attributes
+				var html = html + ov_utils.createElementsFromJSON(properties);
+			}
+			
+			setTimeout(function(){$("#ov_info_wms_container").html(html);}, 500);
+			if (that.titleToggleInfo.hasClass("active")) {that.toggleInfo(0);} // OVD strange behviour
+			
+		}
+	}
+
+
+
+
+	return;
+	
+	    
+					// if the layer is an external WMS layer
+					var BreakException = {};
+					var map_ol_layer_names=this_viewer.map.getMapLayers();
+
+					try{
+						map_ol_layer_names.forEach(function(item,index) {
+							if(item.getVisible()) {
+								
+								var layer_name = item.get('name');
+								var is_basemap_layer=item.get('baselayer');
+								
+//	 							if(this_viewer.map.ol_map_layers.indexOf(layer_name) == -1) {
+								if(item.getSource() instanceof ol.source.TileWMS || item.getSource() instanceof ol.source.ImageWMS) {
+									
+									var ol_layer_source=this_viewer.map.getMapLayerSourceByName(layer_name);
+									
+									if (typeof ol_layer_source.getParams().INFO_FORMAT != 'undefined') {
+										var info_format=ol_layer_source.getParams().INFO_FORMAT;
+									} else {
+										// the basemap layers are queried only if INFO_FORMAT is set
+                                        // all the other layers are queried always (for backward compatibility)
+										if (!is_basemap_layer) {
+											var info_format="text/javascript";
+										} else {
+											var info_format=null;
+										}
+									}
+									
+									if(pointerType=='mouse') {
+										var url = ol_layer_source.getFeatureInfoUrl(
+											event.coordinate, this_viewer.map.getMapView().getResolution(), this_viewer.map.mapProjection,
+											{'INFO_FORMAT': info_format}
+										);
+									} else {
+										var url = ol_layer_source.getFeatureInfoUrl(
+											event.coordinate, this_viewer.map.getMapView().getResolution(), this_viewer.map.mapProjection,
+											{'INFO_FORMAT': info_format, 'buffer': this_viewer.touchBuffer}
+										);
+									}
+									
+									// internal WMS
+									// OVD to be checked (no example available)
+									// -----------------------------------------
+									if(ol_layer_url==wms_url_internal) {
+										
+										var url_argument=url.split("?");
+										
+										$.ajax({
+											url: OpenViewer_proxy,
+											method: "POST",
+											dataType: "json",
+											async: false,
+											data: {'service_type': 'featureinfo', 'service_url': ol_layer_url, 'action': 'GetFeatureInfo', 'request': url_argument[1]},
+											success: function(ret) {
+												response = ret.data;
+												
+												// if the answer is not null
+												if(response != null) {
+													if(response.features.length > 0) {
+console.log('IDENTIFY INTERNAL WMS',response);
+														this_viewer.openInfoWMS(response);
+console.log('IDENTIFY INTERNAL WMS ENDED');
+														throw BreakException;
+													}
+												}
+												
+												return;
+											},
+											error: function() {
+ov_utils.ovLog('Error while retrieving feature info','INTERNAL WMS GetFeatureInfo','error'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
+													return;
+											}
+										});
+									
+									} else {
+										
+//console.log('NO INTERNAL WMS');
+//console.log('LAYER---------------------', item);
+//console.log('INFO----------------------', info_format);
+//console.log('URL-----------------------', url);
+										
+										switch (info_format) {
+											case "text/javascript":
+												
+												$.ajax({
+													url: url,
+													dataType: 'jsonp',
+													jsonpCallback: 'parseResponse'
+												}).then(function(response) { 
+													if(response != null) {
+														if (response.features.length > 0) {
+															if (typeof response.features[0].properties.GRAY_INDEX == "undefined" || response.features[0].properties.GRAY_INDEX != 0) {
+console.log('IDENTIFY GENERIC WMS',response);
+																this_viewer.openInfoWMS(response);
+console.log('IDENTIFY GENERIC WMS ENDED');
+																//throw BreakException;
+															}
+														}
+													}
+												});
+												
+											break;
+											
+											case "text/html":
+												
+												var data={'service_type': 'featureinfoHtml', 'service_url': url, 'action': 'GetFeatureInfo', 'request': null};
+												this_viewer.loadInfoPage('tabQueryResult',OpenViewer_proxy,null, data,false);
+												
+											break;
+											
+											case null:
+// 												console.log("info_format null! we do nothing", info_format);
+											break;
+											
+											default:
+												console.log("info_format not expected!", info_format);
+											break;
+											
+										}
+									}
+								}
+							}
+						},this);
+					}catch (e) {
+ov_utils.ovLog('Error while looking for the feature info','TRY EXCEPTION','error'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
+						if (e === BreakException) return;
+						
+					}
+					
+*/					
+}
+/** Format and display the feature attributes information (callback after CTRL+click or after holding tap) */
+openViewer.prototype.openInfo = function(response) {
+ov_utils.ovLog('Start...','OpenInfo'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
+	var stato = this.getStato();
+	var geojsonFormat = new ol.format.GeoJSON();
+    
+	// response is a geoJson object
+	features=geojsonFormat.readFeatures(response,{dataProjection: this.map.dataProjection, featureProjection: this.map.mapProjection});
+
+	if(features.length > 0) {
+		//Per generare l'hyperlink mi prendo solamente la prima feature dell'array
+		feature=features[0];
+
+		// retrieve the layer name
+		fid=feature.getId();
+		// console.log(fid);
+		a_fid=fid.split(".");
+		var nome_feature=a_fid[0];
+		var id_feature=a_fid[1];
+
+		var layer_name=this.getSubLayerStatoByFeature(nome_feature);
+		var ol_layer=this.getMainLayerNameBySubLayerName(layer_name);
+// console.log('Layer', ol_layer);
+		
+		// retrieve the feature attributes
+		properties=feature.getProperties();
+
+		// add to the properties the feature ID
+		// if properties.id doesn't exist, add a default one, and set it as primary_key (useful only if "Expose primary keys" is not exposed in the data store)
+		if ( typeof properties.id == "undefined" ) {
+				properties.id=id_feature;
+		}
+
+// console.log('Properties',properties);
+/*            
+		// The name of the WMS layer could be different from the name of the feature source (table)
+		// Then we must retrieve the name of the layer of the feature
+		// Special case: if multiple layers refer to the same table in the DB, we get only the first found
+
+		var a_layers_hyperlinked=stato[ol_layer].list_layers_hyperlinked.split(",");
+
+		var ind=a_layers_hyperlinked.indexOf(layer_name);
+
+		if(ind != -1) {
+			if(stato[ol_layer].layers_info[layer_name].hyperlink == 'standard'){
+				stringa_hyperlink = stato[ol_layer].layers_info[layer_name].hyperlink.replace(/%\w+%/g, function(all) {
+					return eval("properties."+all.replace(/%/g,''));
+				});
+
+				this.loadInfoPage('tabQueryResult',stringa_hyperlink);
+
+				// if the panel is hidden, it is open 
+				this.infoPanelContainer.show(500);
+				this.titleToggleInfo.addClass("active");
+				
+			}
+			else{
+*/
+				this.loadInfoPage('tabQueryResult','infoWMSGetFeatureInfo.php');
+				var html = ov_utils.createElementsFromJSON(properties);
+// console.log('Html',html)
+				setTimeout(function(){$("#ov_info_wms_container").html(html);}, 500);
+				this.titleToggleInfo.addClass("active");
+ov_utils.ovLog('... completed.','OpenInfo'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
+/* OVD The function has been simplified, and the content is directly derived from the feature attributes
+			}
+		}
+*/
+	}
+}
+/** Additional function to manage the "measure line" and "measure area" interactive tools */
 openViewer.prototype.measure = function(type, callback_function){
 	if(type == 'measure_line'){
 		this.toggleToolStatus("measure_line");
@@ -2352,109 +3401,59 @@ openViewer.prototype.measure = function(type, callback_function){
 		this.map.measure('area',callback_function);
 	}
 }
-
-
-/** TOOLS - NAVIGATION FUNCTIONS (ZOOM, ETC.)
- * ---------------------------------------------------------------
- */
-
-openViewer.prototype.initialMapView = function() {          // refresh the view to the initial settings (center and scale)
-// if(this.showConsoleMsg) console.log("initialMapView");
-	this.map.getMapView().setCenter(this.map.initialView.center);
-	this.map.getMapView().setZoom(this.map.initialView.zoom);
+/* OVD CURRENTLY UNUSED: addRedlineWKT (add a WKT object to a layer)
+openViewer.prototype.addRedlineWKT = function(layer_name,wkt,clear_before) {
+// console.log("addRedLineWkt");
+	clear_before = (typeof clear_before !== 'undefined') ?  clear_before : true;
+	return this.map.addRedlineWKT(layer_name,wkt,clear_before);
 };
-openViewer.prototype.previousMapView = function() {         // recall the previous view (zoom and scale) from the views history
-// if(this.showConsoleMsg) console.log("previousMapView");
-	
-	if(this.map.historyViewIndex > 0) {
-
-		this.map.historyViewIndex--;
-		var previousIndex=this.map.historyViewIndex;
-
-		this.map.getMapView().setCenter(this.map.historyView[previousIndex].center);
-		this.map.getMapView().setResolution(this.map.historyView[previousIndex].resolution);
-		this.map.historyViewCaller='ZoomPrev';
-
-
+*/
+/* OVD CURRENTLY UNUSED: clearRedline (clear the redline objects of a layer)
+openViewer.prototype.clearRedline = function(layer_name) {
+	return this.map.clearRedline(layer_name);
+};
+*/
+/** Clear all "service" layers or one of them, and optionally cancel the features selection */
+openViewer.prototype.clearTempLayers = function(layers_names, flag_clear_service_layers, flag_cancel_selection) {
+	if (typeof flag_clear_service_layers == 'undefined') {flag_clear_service_layers=true;}
+	if (typeof layers_names !== 'undefined') {
+		var a_layers_names=layers_names.split(",");
+		for (var i=0;i < a_layers_names.length;i++) {
+			this.map.clearTempLayers(a_layers_names[i],flag_clear_service_layers,flag_cancel_selection);
+		}
 	} else {
-// if(this.showConsoleMsg) console.log("No previous view");
+		this.map.clearTempLayers(undefined,true,flag_cancel_selection);
 	}
-};
-openViewer.prototype.nextMapView = function() {             // recall the next historical view (zoom and scale) from the views history
-// if(this.showConsoleMsg) console.log("nextMapView");
-	
-	if(this.map.historyView.length-1 > this.map.historyViewIndex) {
-		this.map.historyViewIndex++;
-		var nextIndex=this.map.historyViewIndex;
-
-		this.map.getMapView().setCenter(this.map.historyView[nextIndex].center);
-		this.map.getMapView().setResolution(this.map.historyView[nextIndex].resolution);
-		this.map.historyViewCaller='ZoomNext';
-	
-	} else {
-// if(this.showConsoleMsg) console.log("Non esiste nessuna vista successiva");
-	}
-};
-openViewer.prototype.zoomIn = function() {                  // cantered zoomin (+1 zoom level)
-// if(this.showConsoleMsg) console.log("zoomIn");
-	//this.map.getMapView().setResolution(this.map.getMapView().constrainResolution(this.map.getMapView().getResolution()))
-	this.map.getMapView().setZoom(this.map.getMapView().getZoom()+1);
-    this.map.historyViewCaller='ZoomIn';
-}
-openViewer.prototype.zoomOut = function() {                 // centerd zoomout (-1 zoom level)
-// if(this.showConsoleMsg) console.log("zoomOut");
-	//this.map.getMapView().setResolution(this.map.getMapView().constrainResolution(this.map.getMapView().getResolution()))
-	this.map.getMapView().setZoom(this.map.getMapView().getZoom()-1); 
-    this.map.historyViewCaller='ZoomOut';
-}
-openViewer.prototype.zoomToView = function(x,y,scale) {     // Set the current view (center coordinates, based on data projection, and scale, in map units)
-	this.map.setCenterProjected(x, y, this.map.dataProjection);
-	this.setMapScale(scale);
+	$("#ov_info_wms_container").html('');
 };
 
 
-/** TOOLS - LAYER SETTINGS/INFORMATION
- * ---------------------------------------------------------------
- */
-
-/** Set the opacity/transparency of a layer */
-openViewer.prototype.setLayerOpacity = function(layerName,opacityDelta){
-	var ol_layer = this.map.getMapLayerByName(layerName)
-	if (ol_layer==false) return false;
-	var newOpacity = ol_layer.getOpacity();
-	if(newOpacity == undefined) newOpacity = 1;
-	var newOpacity = Math.max(0.1, Math.min(1,newOpacity+opacityDelta));
-	ol_layer.setOpacity(newOpacity);
-	return true;
-}
-
-
-/** MAIN LAYERS INTEGRATION (MAPGUIDE, DEFAULT WMS) - CURRENTLY "ALMOST" UNUSED
+/** MAIN METHODS - MAIN LAYERS INTEGRATION (MAPGUIDE, DEFAULT WMS) - CURRENTLY UNUSED
  * -------------------------------------------------------------------------------
  */
-
-/* OVD CURRENTLY UNUSED: startDraw
+/*
+/ * OVD CURRENTLY UNUSED: startDraw
 openViewer.prototype.startDraw = function(type,callback_function) {
 	this.toggleToolStatus("draw");
 	this.map.startDraw(type,callback_function);
 }
-*/
+* /
 /* OVD CURRENTLY UNUSED: endDraw
 openViewer.prototype.endDraw = function() {
 	this.toggleToolStatus("select");
 	//this.map.endDraw();
 }
-*/
+* /
 /* OVD CURRENTLY UNUSED: cancelDraw
 openViewer.prototype.cancelDraw = function() {
 	this.map.cancelDraw();
 }
-*/
+* /
 /* OVD CURRENTLY UNUSED: digitizePoint
 openViewer.prototype.digitizePoint = function(callback_function) {
 	this.startDraw('Point',callback_function);
 }
-*/
+* /
 /* OVD CURRENTLY UNUSED: isDigitizing
 openViewer.prototype.isDigitizing = function() {
 	var stato_interazione=this.map.getStatusInteraction();
@@ -2464,30 +3463,17 @@ openViewer.prototype.isDigitizing = function() {
 		return false;
 	}
 }
-*/
+* /
 /* OVD CURRENTLY UNUSED: cancelDigitization (used for backward compatibility)
 openViewer.prototype.cancelDigitization = function() {
 	this.endDraw();
 }
-*/
+* /
 /* OVD CURRENTLY UNUSED: fit 
 openViewer.prototype.fit = function(wkt, crs, pixelPadding) {
 	this.map.fit(wkt, crs, pixelPadding);
 }
-*/
-/* OVD CURRENTLY UNUSED: footerUpdateText
-openViewer.prototype.footerUpdateText = function() {
-// 	console.log("footerUpdateText");
-	var stato = this.getStato();
-	
-	var selectOverlay=this.map.getMapLayerByName('selection');
-	var numeroFeature = selectOverlay.getSource().getFeatures().length;
-	if (numeroFeature == 1)
-		this.footerPanelInfoSelezione.html(numeroFeature + " feature selezionata");
-	else
-		this.footerPanelInfoSelezione.html(numeroFeature + " feature selezionate");
-}
-*/
+* /
 /* OVD CURRENTLY UNUSED: mapClearSelection
 openViewer.prototype.mapClearSelection = function() {
 	var stato = this.getStato();
@@ -2499,7 +3485,7 @@ openViewer.prototype.mapClearSelection = function() {
 	//Footer
 	this.footerUpdateText();
 }
-*/
+* /
 /* OVD CURRENTLY UNUSED: mapClearSnap
 openViewer.prototype.mapClearSnap = function() {
 	var stato = this.getStato();
@@ -2513,7 +3499,7 @@ openViewer.prototype.mapGetSelectedFeatures = function(xml,a_layers,callback,pri
 	var selection=this.map.getSelectedFeatures(xml,a_layers,callback,primary_key,extra_field);
 	return selection;
 }
-*/
+* /
 /* OVD CURRENTLY UNUSED: refreshSnapVector
 openViewer.prototype.refreshSnapVector = function(layers,tipo_snap,tolleranza) {	
 	var stato = this.getStato();
@@ -2580,12 +3566,12 @@ openViewer.prototype.refreshSnapVector = function(layers,tipo_snap,tolleranza) {
 						dataType: 'json',
 						data: data2send,
 						error: function(a, b, c) {
-							console.log("GET_FEATURES_INFO() - ERROR");
+// console.log("GET_FEATURES_INFO() - ERROR");
 						},
 						success: function(response) {
 
 							if(response.status=="ok") {
-								//console.log(response.data);
+// console.log(response.data);
 								this_viewer.mapClearSnap();
 								this_viewer.mapSetSnap(response.data);
 								
@@ -2603,36 +3589,15 @@ openViewer.prototype.refreshSnapVector = function(layers,tipo_snap,tolleranza) {
 }
 
 }
-*/
+* /
 /* OVD CURRENTLY UNUSED: getMapGuideSelection
 openViewer.prototype.getMapGuideSelection = function() {
 	var selection=this.map.getMapGuideSelection();
 	
 	return selection;
 }
-*/
-/* OVD CURRENTLY UNUSED: getWMSlayerSelection (callback of the selection over a default WMS layer)
-openViewer.prototype.getWMSlayerSelection = function(response) {
-//console.log("getWMSlayerSelection",response);
-	var stato = this.getStato();
-	var geojsonFormat = new ol.format.GeoJSON();
+* /
 
-	var selectOverlay=this.map.getMapLayerByName('selection');
-
-	//Si ripulisce la selezione precedente
-	selectOverlay.getSource().clear();
-	
-	//response è un oggetto geoJson
-	features=geojsonFormat.readFeatures(response,{dataProjection: this.map.dataProjection,featureProjection: this.map.mapProjection});
-// console.log(features);
-	if(features.length > 0) {
-		selectOverlay.getSource().addFeatures(features);
-	}
-
-	//Footer
-	this.footerUpdateText();
-}
-*/
 /* OVD CURRENTLY UNUSED: setSelection_legacy (valid only for MapGuide)
 openViewer.prototype.setSelection_legacy = function(layer, ids, primary_key) {
 	var this_viewer=this;
@@ -2663,12 +3628,12 @@ openViewer.prototype.setSelection_legacy = function(layer, ids, primary_key) {
 		dataType: 'json',
 		data: data2send,
 		error: function(a, b, c) {
-			console.log("SET_SELECTION() - ERROR");
+// console.log("SET_SELECTION() - ERROR");
 		},
 		success: function(response) {
 
 			if(response.status=="ok") {
-				//console.log(response.data);
+// console.log(response.data);
 				this_viewer.mapClearSelection();
 				this_viewer.mapSetSelection(response.data);
 			}
@@ -2676,7 +3641,7 @@ openViewer.prototype.setSelection_legacy = function(layer, ids, primary_key) {
 	});
 	
 }
-*/
+* /
 /* OVD CURRENTLY UNUSED: setSelection_multilayer_legacy (valid only for MapGuide)
 openViewer.prototype.setSelection_multilayer_legacy = function(selection_string) {
 	var this_viewer=this;
@@ -2701,7 +3666,7 @@ openViewer.prototype.setSelection_multilayer_legacy = function(selection_string)
 		dataType: 'json',
 		data: data2send,
 		error: function(a, b, c) {
-			console.log("SET_SELECTION_MULTI() - ERROR");
+// console.log("SET_SELECTION_MULTI() - ERROR");
 		},
 		success: function(response) {
 
@@ -2716,7 +3681,7 @@ openViewer.prototype.setSelection_multilayer_legacy = function(selection_string)
 		}
 	});
 }
-*/
+* /
 /* OVD CURRENTLY UNUSED: mapSetSnap
 openViewer.prototype.mapSetSnap = function(response, crs) {
 	var stato = this.getStato();
@@ -2740,23 +3705,23 @@ openViewer.prototype.mapSetSnap = function(response, crs) {
 				for (var i = 0; i < features.length; i++) {
 					var feature = features[i];
 					// faccio l'hash della geometria e lo uso come id della feature, per poterla poi ricercare
-					feature.setId( this.simpleHash( wktformat.writeFeature(feature) ) );
+					feature.setId( ov_utils.simpleHash( wktformat.writeFeature(feature) ) );
 					feature.set("layer",layer,true);
 					feature.set("feature_id",feature_id,true);
 					var featureId = feature.getId();
-		//  			console.log("featureId",featureId, "feature", feature );
+// console.log("featureId",featureId, "feature", feature );
 					if ( snapOverlaySource.getFeatureById(featureId) === null ) {
 						snapOverlaySource.addFeature(feature);
 					} else {
 						// feature già presente
-		// 				console.log('feature ' + featureId + ' già presente');
+// console.log('feature ' + featureId + ' già presente');
 					}
 				}
 			}
 		}
 	}
 }
-*/
+* /
 /* OVD CURRENTLY UNUSED: mapSetSelection
 openViewer.prototype.mapSetSelection = function(response, crs) {
 // console.log("mapSetSelection");
@@ -2784,17 +3749,17 @@ openViewer.prototype.mapSetSelection = function(response, crs) {
 			for (var i = 0; i < features.length; i++) {
 				var feature = features[i];
 				// faccio l'hash della geometria e lo uso come id della feature, per poterla poi ricercare
-				feature.setId( this.simpleHash( wktformat.writeFeature(feature) ) );
+				feature.setId( ov_utils.simpleHash( wktformat.writeFeature(feature) ) );
 				feature.set("layer",layer,true);
 				feature.set("feature_id",feature_id,true);
 				feature.set("extra_fields",extra_fields,true);
 				var featureId = feature.getId();
-	//  			console.log("featureId",featureId, "feature", feature );
+// console.log("featureId",featureId, "feature", feature );
 				if ( selectOverlaySource.getFeatureById(featureId) === null ) {
 					selectOverlaySource.addFeature(feature);
 				} else {
 					// feature già presente
-	// 				console.log('feature ' + featureId + ' già presente');
+// console.log('feature ' + featureId + ' già presente');
 				}
 			}
 		}
@@ -2804,104 +3769,15 @@ openViewer.prototype.mapSetSelection = function(response, crs) {
 	//Footer
 	this.footerUpdateText();
 }
-*/
-/* OVD CURRENTLY UNUSED: mapAddFeatureSelection
-openViewer.prototype.mapAddFeatureSelection = function(response) {
-	var stato = this.getStato();
-	var geojsonFormat = new ol.format.GeoJSON();
-
-	var selectOverlay=this.map.getMapLayerByName('selection');
-	
-	//response è un oggetto geoJson
-	features=geojsonFormat.readFeatures(response,{dataProjection: this.map.dataProjection,featureProjection: this.map.mapProjection});
-	
-	if(features.length > 0) {
-		///TODO Per evitare di aggiungere più volte la stessa feature alla selezione si dovrebbe controllare che non sia già presente tra le feature
-		
-		selectOverlay.getSource().addFeatures(features);
-	}
-
-	//Footer
-	this.footerUpdateText();
-}
-*/
-/* OVD CURRENTLY UNUSED: openInfo (callback after CTRL+click or after holding tap) */
-openViewer.prototype.openInfo = function(response) {
-console.log ('dentro OpenINFO');    
-	var stato = this.getStato();
-	var geojsonFormat = new ol.format.GeoJSON();
-	//response è un oggetto geoJson
-	features=geojsonFormat.readFeatures(response,{dataProjection: this.map.dataProjection,featureProjection: this.map.mapProjection});
-
-	if(features.length > 0) {
-		//Per generare l'hyperlink mi prendo solamente la prima feature dell'array
-		feature=features[0];
-
-		//Mi ricavo il nome del layer
-		fid=feature.getId();
-		// console.log(fid);
-		a_fid=fid.split(".");
-		var nome_feature=a_fid[0];
-		var id_feature=a_fid[1];
-
-		var layer_name=this.getMainLayerNameByFeature(nome_feature);
-		var ol_layer=this.getMainLayerByName(layer_name);
-		
-		//Mi ricavo gli attributi
-		properties=feature.getProperties();
-
-		//Aggiungo anche l'id alle properties
-		// Se properties.id non esiste lo aggiungo, definendolo come la primary_key (dovrebbe servire solo se "Expose primary keys" non è impostato nel data store)
-		if ( typeof properties.id == "undefined" ) {
-				properties.id=id_feature;
-		}
-
-// 		console.log(properties);
-		//Questo è dovuto al fatto che non sempre il nome del layer del wms è uguale al nome della feature source (tabella)
-		//Mi devo ricavare il nome del layer a cui appartiene la feature
-		//Nel caso particolare in cui più layer fanno riferimento alla stessa tabella del db, prendo solo il primo layer trovato
-
-		var a_layers_hyperlinked=stato[ol_layer].list_layers_hyperlinked.split(",");
-
-		var ind=a_layers_hyperlinked.indexOf(layer_name);
-		if(ind != -1) {
-			if(stato[ol_layer].layers_info[layer_name].hyperlink != 'standard'){
-				stringa_hyperlink = stato[ol_layer].layers_info[layer_name].hyperlink.replace(/%\w+%/g, function(all) {
-					return eval("properties."+all.replace(/%/g,''));
-				});
-
-				this.loadInfoPage('tabQueryResult',stringa_hyperlink);
-
-				//Se è nascosto, si mostra
-				this.infoPanelContainer.show(500);
-				this.titleToggleInfo.addClass("active");
-				
-			}
-			else{
-				//return properties;
-				this.loadInfoPage('tabQueryResult','infoWMSGetFeatureInfo.php');
-				var html = this.createElementsFromJSON(properties);
-				setTimeout(function(){$("#ov_info_wms_container").html(html);}, 500);
-				this.titleToggleInfo.addClass("active");
-			}
-		}
-	}
-}
+* /
 
 /* OVD CURRENTLY UNUSED: mapRefresh
 openViewer.prototype.mapRefresh = function() {
 	var centro = ol.proj.transform([this.getMapCenter().X , this.getMapCenter().Y], this.map.mapProjection,this.map.dataProjection);
 	this.zoomToView(centro[0]-1,centro[1], this.getMapScale());
 }
-*/
-/** Return the settings of the main layers ("stato") */
-openViewer.prototype.getStato = function() {
-	return this.map.getStato();
-};
-/** Set the settings of the main layers ("stato") */
-openViewer.prototype.setStato = function(stato) {
-	return this.map.setStato(stato);
-};
+* /
+
 /* OVD CURRENTLY UNUSED: addPolygonsInLayer_legacy (valid only for MapGuide)
 openViewer.prototype.addPolygonsInLayer_legacy = function(wkt,layer_name,doRefresh, onSuccess, onFail) {
 	///Nella vecchia chiamata wkt contiene una lista di wkt separata da |, si deve ciclare e aggiungere una wkt alla volta...
@@ -2921,7 +3797,7 @@ openViewer.prototype.addPolygonsInLayer_legacy = function(wkt,layer_name,doRefre
 		eval(onSuccess);
 	}
 }
-*/
+* /
 /* OVD CURRENTLY UNUSED: addPointsInLayer_legacy (valid only for MapGuide)
 openViewer.prototype.addPointsInLayer_legacy = function(wkt,layer_name,doRefresh, onSuccess, onFail, emptyLayerBefore) {
 	///Nella vecchia chiamata wkt contiene una lista di wkt separata da |, si deve ciclare e aggiungere una wkt alla volta...
@@ -2946,13 +3822,13 @@ openViewer.prototype.addPointsInLayer_legacy = function(wkt,layer_name,doRefresh
 		eval(onSuccess);
 	}
 }
-*/
+* /
 /* OVD CURRENTLY UNUSED: putLabelInLayer_legacy (valid only for MapGuide)
 openViewer.prototype.putLabelInLayer_legacy = function(layer_name,wkt,labelText,size, angle, sizex, doRefresh,onSuccess) {
 	var clear=1;
 	this.map.addLabelInLayer(layer_name,wkt,labelText,size, angle,clear);
 }
-*/
+* /
 /* OVD CURRENTLY UNUSED: putLabelsInLayer_legacy (valid only for MapGuide)
 openViewer.prototype.putLabelsInLayer_legacy = function(layer_name,params,sizex,doRefresh,onSuccess) {
 	
@@ -2962,7 +3838,7 @@ openViewer.prototype.putLabelsInLayer_legacy = function(layer_name,params,sizex,
 			this.map.addLabelInLayer(layer_name,params[i].wkt,params[i].text,params[i].size, params[i].angle,params[i].clear);
 		}
 }
-*/
+* /
 /* OVD CURRENTLY UNUSED: creaPointLayer_legacy (valid only for MapGuide)
 openViewer.prototype.creaPointLayer_legacy = function(nome, colore, spessore, angolo, height, group, groupLabel, onSuccess, onFail) {
 	//controllo parametri. Se vuoti passo valori di default
@@ -2971,7 +3847,7 @@ openViewer.prototype.creaPointLayer_legacy = function(nome, colore, spessore, an
 	if ( empty(nome) ) { nome = "tmp_punti"; }
 	this.map.createTempLayer(nome,colore,'',spessore);
 }
-*/
+* /
 /* OVD CURRENTLY UNUSED: creaLineLayer_legacy (valid only for MapGuide)
 openViewer.prototype.creaLineLayer_legacy = function(nome, colore, spessore, group, groupLabel, onSuccess, onFail) {
 	//controllo parametri. Se vuoti passo valori di default
@@ -2980,7 +3856,7 @@ openViewer.prototype.creaLineLayer_legacy = function(nome, colore, spessore, gro
 	if ( empty(spessore) ) { spessore = 4; }
 	this.map.createTempLayer(nome,colore,'',spessore);
 }
-*/
+* /
 /* OVD CURRENTLY UNUSED: creaPolygonLayer_legacy (valid only for MapGuide)
 openViewer.prototype.creaPolygonLayer_legacy = function(nome, colore, spessore_bordo, colore_bordo, group, groupLabel, onSuccess, onFail, setVisible) {
 	//controllo parametri. Se vuoti passo valori di default
@@ -2990,7 +3866,7 @@ openViewer.prototype.creaPolygonLayer_legacy = function(nome, colore, spessore_b
 	if ( empty(spessore_bordo) ) { spessore_bordo = 4; }
 	this.map.createTempLayer(nome,colore,colore_bordo,spessore_bordo);
 }
-*/
+* /
 /* OVD CURRENTLY UNUSED: creaGeneralLayers_legacy (valid only for MapGuide)
 openViewer.prototype.creaGeneralLayers_legacy = function(nomi, tipologie, colori, spessori_bordo, colori_bordo, nomiGruppi, onSuccess) {
 
@@ -3014,7 +3890,7 @@ openViewer.prototype.creaGeneralLayers_legacy = function(nomi, tipologie, colori
 
 		//nel vecchio visualizzatore si passa il colore e la trasparanza (primi due caratteri) in un'unica stringa, mentro adesso il colore e l'opacità devono essere divisi quindi si splitta la stringa del colore per ogni layer temporaneo. Si considera anche il caso in cui sia stato passato solo il colore e non la trasparenza. Per la trasparenza si deve convertire il vaore da esadecimale a decimale.
 		if (a_colori[i].length=='8'){
-			var fill_opacity=this.hex2dec(a_colori[i].substr(0,2));
+			var fill_opacity=ov_utils.hex2dec(a_colori[i].substr(0,2));
 			var fill_color = '#'+a_colori[i].substr(2,6);
 		}else{
 			var fill_opacity=1;
@@ -3022,7 +3898,7 @@ openViewer.prototype.creaGeneralLayers_legacy = function(nomi, tipologie, colori
 		}
 		
 		if (a_colori_bordo[i].length=='8'){
-			var stroke_opacity=this.hex2dec(a_colori_bordo[i].substr(0,2));
+			var stroke_opacity=ov_utils.hex2dec(a_colori_bordo[i].substr(0,2));
 			var stroke_color = '#'+a_colori_bordo[i].substr(2,6);
 		}else{
 			var stroke_opacity=1;
@@ -3040,12 +3916,12 @@ openViewer.prototype.creaGeneralLayers_legacy = function(nomi, tipologie, colori
 		this.map.createTempLayer(a_layers[i],fill_color_array,stroke_color_array,a_spessori_bordo[i]);
 	}
 }
-*/
+* /
 /* OVD CURRENTLY UNUSED: creaLabelLayer_legacy (valid only for MapGuide)
 openViewer.prototype.creaLabelLayer_legacy = function(layer_name,colore,spessore,doRefresh,onSuccess) {
 	this.map.createTempLayer(layer_name,colore,colore,spessore);
 }
-*/
+* /
 /* OVD CURRENTLY UNUSED: addLinesInLayer_legacy (valid only for MapGuide)
 openViewer.prototype.addLinesInLayer_legacy = function(wkt,layer_name,doRefresh, onSuccess, onFail) {
 	///Nella vecchia chiamata wkt contiene una lista di wkt separata da |, si deve ciclare e aggiungere una wkt alla volta...
@@ -3068,7 +3944,7 @@ openViewer.prototype.addLinesInLayer_legacy = function(wkt,layer_name,doRefresh,
 		eval(onSuccess);
 	}
 }
-*/
+* /
 /* OVD CURRENTLY UNUSED: emptyLayers_legacy (valid only for MapGuide)
 openViewer.prototype.emptyLayers_legacy = function(layers_names,mapRefresh) {
 	var lista_layer=layers_names.split("|");
@@ -3084,530 +3960,7 @@ openViewer.prototype.emptyLayers_legacy = function(layers_names,mapRefresh) {
 */
 
 
-/** WMS LAYERS INTEGRATION - CURRENTLY UNUSED
- * ---------------------------------------------------------------
- */
-
-/* OVD CURRENTLY UNUSED - Fill the "QueryResult" page with plain text, and open it
-openViewer.prototype.openInfoExtWMS = function(response) {
-	if (typeof ov_WMSGetFeatureInfoCustomPage !== "undefined") {
-		this.loadInfoPage('tabQueryResult',ov_WMSGetFeatureInfoCustomPage, false, response);
-	} else {
-		this.loadInfoPage('tabQueryResult','infoWMSGetFeatureInfo.php');
-		//var json = this.map.gmlToJson(response);
-		var features = response.features;
-		if(features.length > 0) {
-			var html="<h1>Oggetti trovati: "+features.length+"</h1>";
-			for(var i=0;i<features.length;i++) {
-				html = html + "<h2>Oggetto</h2>";
-	// 			//Per generare l'hyperlink mi prendo solamente la prima feature dell'array
-	// 			feature=features[0];
-				
-				//Mi ricavo gli attributi
-				properties=features[i].properties;
-				//Mi ricavo il nome del layer
-				var html = html + this.createElementsFromJSON(properties);
-			
-			}
-			
-			setTimeout(function(){$("#ov_info_wms_container").html(html);}, 500);
-		}
-	}
-}
-*/
-/* OVD CURRENTLY UNUSED: createElementsFromJSONCustom
-openViewer.prototype.createElementsFromJSONCustom = function(json, html){
-	var html = "<ul>" + json + "</ul>";
-	return html;
-}
-*/
-/* OVD CURRENTLY UNUSED: createElementsFromJSON
-openViewer.prototype.createElementsFromJSON = function(json){
-	//console.log(json);
-	var key;
-	var html = "<ul>";
-	for (key in json) {
-		if (json.hasOwnProperty(key)) {
-			//console.log(key + " = " + json[key]);
-			html = html + "<li><label>" + key + "</label>:&nbsp;<span>" + json[key] + "</span>"; 
-		}
-
-	}  
-	html = html + "</ul>";
-	return html;
-}
-*/
-
-
-/** CUSTOM WMS LAYERS INTEGRATION
- * ---------------------------------------------------------------
- */
-
-/** Retrive the information/capabilities associated to a WMS url - STEP 1 (call overlayWmsSelectorScanUrl) */
-openViewer.prototype.WMSopenCatalog = function(anUrl){
-// 	$("#overlay_wms_selector_url").val(anUrl);
-	this.inputWMSUrl.val(anUrl);
-	this.overlayWmsSelectorScanUrl();
-}
-/* OVD ELIMINARE - NECESSARIO PRIMA CORREGGERE IL CODICE: this function has been renamed WMSopenCatalog (the original was unused) */
-openViewer.prototype.WMSInternalCatalog = function(internalUrl){
-    this.WMSopenCatalog(internalUrl);
-}
-/** Retrive the information/capabilities associated to a WMS url - STEP 2 (call urlToProxyWMS) */
-openViewer.prototype.overlayWmsSelectorScanUrl = function(){
-	var wms_url = this.inputWMSUrl.val();
-	this.urlToProxyWMS(wms_url);
-}
-/** Retrive the information/capabilities associated to a Proxy WMS - STEP 3 (run an AJAX call) */
-openViewer.prototype.urlToProxyWMS = function(wms_url){
-	var that = this;
-	var wms_url = wms_url.trim();
-	
-	this.editWMSselectorContainer.append("<span class='fa fa-spinner fa-spin'></div>");
-	
-	// console.log(OpenViewer_proxy);
-	if ( this.ValidURL(wms_url) == true ) {
-		// console.log(wms_url);
-		$.ajax({
-			url: OpenViewer_proxy,
-			method: "POST",
-			dataType: "json",
-			data: {'service_type': 'wms', 'service_url': wms_url, 'action': 'GetCapabilities'},
-			success: function(ret) {
-if(this.showConsoleMsg) console.log(' WMS layer retrieved:',ret.data);
-               
-                if ( typeof ret == 'undefined' || typeof ret.success == 'undefined' || ret.success == false ) {
-						that.printMessages(that.editOverlayMessages,'<span>'+strings_interface.sentence_impossiblegetlayersfromurl+'</span>','warning',true);
-						that.editWMSContainer.scrollTop(0);
-				} else {
-						that.editWMSselectorContainer.empty("");
-						
-						that.userWmsLayersList = ret.data;
-						that.userWmsURL = wms_url;
-						that.userWmsFormats = ret.formats;
-						that.editWMSselectorContainer.html('<div id="ov_wms_selector_filter"><input id="ov_wms_selector_filter_text" placeholder="'+strings_interface.wms_filterlayers+'" title="'+strings_interface.wms_filterlayers+'"/></div>');
-						that.editWMSselectorContainer.append('<div id="overlay_wms_selector_layers"></div>');
-						that.overlayWmsSelectorShowData();
-						$("#ov_wms_selector_filter_text").on("keyup", function() { that.overlayWmsSelectorShowData(); } );
-				}
-			},
-			error: function() {
-				that.printMessages(that.editOverlayMessages,'<span>'+strings_interface.sentence_impossiblegetlayersfromurl+'</span>','warning',true);
-				that.editWMSContainer.scrollTop(0);
-			}
-		});
-
-	} else {
-		this.editWMSselectorContainer.empty("");
-		this.printMessages(this.editOverlayMessages,'<span>'+strings_interface.sentence_invalidurl+'</span>','warning',true);
-		this.editWMSContainer.scrollTop(0);
-	}
-}
-/** Retrieve the bitmap of the legend for a WMS layer */
-openViewer.prototype.getWMSLegendFromProxy = function(url, scala, layer, tipo) {
-
-	var that = this;
-	var url_legend_action = "REQUEST=GetLegendGraphic&VERSION=1.3.0&FORMAT=image/png&LEGEND_OPTIONS=fontName:Serif;fontAntiAliasing:true;fontSize=6;dpi:100&WIDTH=20&HEIGHT=20&SCALE="+scala+"&LAYER="+layer;
-	var returned = '';
-	$.ajax({
-		url: OpenViewer_proxy,
-		method: "POST",
-		dataType: "json",
-		async: false,
-		data: {'service_type': 'legends', 'service_url': url, 'action': 'GetLegendGraphic', 'request': url_legend_action, 'tipo': tipo, 'layer' : layer },
-		success: function(ret) {
-			//html_stile="<br/><img id='stile_"+layerName+"' "+stile_immagine+" src='"+url+"REQUEST=GetLegendGraphic&VERSION=1.3.0&FORMAT=image/png&LEGEND_OPTIONS=fontName:Serif;fontAntiAliasing:true;fontSize=6;dpi:100&WIDTH=20&HEIGHT=20&SCALE="+scala+"&LAYER="+image_legend_layer+"' title='' />";
-			//htmlLegenda+="<li "+style+">"+htmlExpandCollapse+"<input id='"+layerName+"' type='checkbox' "+checked+" class='legenda_layer_checkbox' /><label for='"+layerName+"'><img class='legend-small' src='"+url+"REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=20&HEIGHT=20&SCALE="+scala+"&LAYER="+image_legend_layer+"' title='' />"+legend_label+"</label>"+html_stile+"</li>";
-			returned = ret.data;
-		},
-		error: function() {
-			return;
-		}
-	});
-	return returned;
-}
-/** Show the list of available WMS layer as a table - STEP 4 */
-openViewer.prototype.overlayWmsSelectorShowData = function(){
-    var flagTwoLinesVersion = true;
-	var layersData = this.userWmsLayersList;
-	var wms_url = this.userWmsURL;
-	var hash = this.hashCode(wms_url);
-	
-	var filterText = $('#ov_wms_selector_filter_text').val();
-	filterText = filterText.toLowerCase();
-	var abs_class=""
-	//var img_scroll="<td class=\"scroll_y\">";
-    var html = '';
-	var img_html= '';
-    
-	// OVD added the visualization of the supported coordinates systems 
-	// --------------------------------------------------------------------------------
-	// We assume that the CRS supported by the server are the same for each layer
-	// then we only look to the supported CRSs of the first layer found (layersData[0])
-	html += '<table id="overlay_wms_selector_layers_table">';
-	html += '<thead><tr class="head"><th scope="col" id="CRSsupported">'+strings_interface.wms_supportedCRS+'</th></tr></thead>';
-	html += '<tbody><td headers="CRSsupported">';
-	if (layersData[0].crs_supported.includes(this.map.mapProjection)) {
-		html += '<div id="overlay_wms_selector_layers_table_crs_supported">';
-		html += layersData[0].crs_supported.join(' ')+'</div></td></tbody>';
-	}
-	else if (layersData[0].crs_supported.includes('CRS:84')&&(this.map.mapProjection=='EPSG:4326'||this.map.mapProjection=='EPSG:3857'||this.map.mapProjection=='EPSG:900913')) {
-		// very special case: WMS supporting CRS:84 (for example some data from te Nasa Earth Obvservation service) can provide data to map projected similarly to EPSG 4326
-		html += '<div id="overlay_wms_selector_layers_table_crs_supported">';
-		html += layersData[0].crs_supported.join(' ')+'</div></td></tbody>';
-	}
-	else {
-		html += '<div id="overlay_wms_selector_layers_table_crs_notsupported">';
-		html += layersData[0].crs_supported.join(' ')+'<br>';
-		html += strings_interface.wms_CRSunsupported+'</div></td></tbody>';
-	}
-	html += '</table>';
-	html += '&nbsp;<br>&nbsp;';
-    
-	// creation of the table to display the characteristics of the layers provided by the current WMS server
-	// -----------------------------------------------------------------------------------------------------
-	html += '<table id="overlay_wms_selector_layers_table"><thead><tr class="head">';
-	html += '<th scope="col" id="title">'+strings_interface.word_title+'</th>';
-	html += '<th scope="col" id="layer">'+strings_interface.word_layer+'</th>';
-    if(flagTwoLinesVersion != true) html += '<th scope="col" id="description">'+strings_interface.word_description+'</th>';
-	//html += '<th scope="col" id="addlayer"><span class="fa fa-plus-circle"></span> '+strings_interface.word_add+'</th>';
-	html += '<th scope="col" id="addlayer"><center>'+strings_interface.word_add+'</center></th>';
-	html += '<th scope="col" id="layerstyles"><center>'+strings_interface.word_styles+'</center></th>';
-	html += '<th scope="col" id="scalevisibility">'+strings_interface.word_visibility+'</th>';
-	//html += '<th>'+strings_interface.word_actions+'</th>';
-	html += '</tr></thead>';
-	html += '<tbody>';
-	for (var i=0; i < layersData.length; i++) {
-		
-		var layer_name = layersData[i].name;  // this.userWmsLayersList[i].name;
-		var layer_title = layersData[i].title; // this.userWmsLayersList[i].title;
-		var layer_abstract = layersData[i].abstract.trim();
-		var layer_minscale = layersData[i].min_scale; // minimum scale of visibility allowed by the server
-		var layer_maxscale = layersData[i].max_scale; // maximum scale of visibility allowed by the server
-		
-		if ( layer_title.toLowerCase().indexOf(filterText) == -1 && 
-			layer_name.toLowerCase().indexOf(filterText) == -1 && 
-			layer_abstract.toLowerCase().indexOf(filterText) == -1)
-			continue;
-			
-		// calculate the minimum and maximum supported resolution
-		//var correctionFactor = 0.00000001; // correction factor used to fix potential problems related to the visualization close to the scale constraints, and due to approximation on the calculation of "resolution"
-		var scaleToResolution = this.map.getMapView().getResolution()/this.map.getScale();
-		if (layer_minscale != undefined && layer_minscale != '' && layer_minscale > 0)
-			layersData[i].minResolution = Math.max(this.map.getMapView().getMinResolution(), (layer_minscale * scaleToResolution)+this.correctionOffsetScaleMin);
-		else
-			layersData[i].minResolution = this.map.getMapView().getMinResolution();
-        
-		if (layer_maxscale != undefined && layer_maxscale != '' && layer_maxscale > 0 && layer_maxscale > layer_minscale)
-			layersData[i].maxResolution = Math.min(this.map.getMapView().getMaxResolution(), (layer_maxscale * scaleToResolution)+this.correctionOffsetScaleMax);
-		else
-			layersData[i].maxResolution = this.map.getMapView().getMaxResolution();
-            
-		//layersData[i].minZoom = this.map.getMapView().getZoomForResolution(layersData[i].maxResolution);
-		//layersData[i].maxZoom = this.map.getMapView().getZoomForResolution(layersData[i].minResolution);
-//console.log(layer_title+':\n- min resolution '+layersData[i].minResolution +'\n- max resolution '+layersData[i].maxResolution +'\n- min scale '+layer_minscale +'\n- max scale '+layer_maxscale +'\n- scaleToResolution '+scaleToResolution );
-
-		html += '<tr class="';
-		if ( (i % 2) == 0 ) { html += 'odd'; } else { html += 'even'; }
-//		if (layersData[i].styles[style_name].legend_url_height > 200){
-//			img_scroll="class=\"scroll_y\"";
-//		}
-		// fill column "TITLE"
-		html += '"><td headers="title">' + layer_title + '</td>';
-		        
-		// fill column "NAME"
-		html += '<td class="scroll" headers="layer">' + layer_name + '</td>';
-		
-		// fill column "DESCRIPTION" (1 line version)
-		if(flagTwoLinesVersion != true) html += '<td '+abs_class+' headers="description">' + layer_abstract + '</td>';
-		
-		// fill columns "ADDLAYER" and "STYLES"
-        
-		for (var style_name in layersData[i].styles) {
-            // style_name equals layersData[i].styles[style_name].name
-            var style_leg_url = layersData[i].styles[style_name].legend_url_href;
-			var style_leg_width = layersData[i].styles[style_name].legend_url_width;
-			
-/* OVD OLD VERSION - DELETE
-			if(style_leg_height<200){
-				img_html = '<td headers="addlayer"><center>';
-			}
-			else{
-				//style_leg_height=200;
-                var img_scroll="<td class=\"scroll_y\">";
-				img_html = img_scroll;
-			}
-			html+=img_html;
-*/	
-/* OVD OLD VERSION - DELETE
-			if ( typeof style_leg_url != 'undefined' && style_leg_url != '') {
-				legend_html = "<a href='javascript:;' onclick='open_viewer.openCloseDiv(\"img_"+ hash + "_" + i +"\")' title='"+strings_interface.wms_showhidestyle+"'><img id='img_" + hash + "_" + i +"' src='"+style_leg_url+"' class='hide' style='width: "+ style_leg_width + "px; height: " + style_leg_height + "px;'/><span class='fa fa-eye'></span>";
-				//legend_html += " "+strings_interface.wms_showhidestyle.toLowerCase();
-				legend_html += "</a>";
-            } else {
-                legend_html = strings_interface.wms_notavailable.toLowerCase();
-            }
-*/            
-			// If the source is an internal WMS server, we call the Proxy to get the legend image server
-			var wms_url_internal = this.internalWmsURL;
-/* OVD OLD VERSION - DELETE
-			if(wms_url == wms_url_internal) {
-				var scala=""; //Non serve?
-				var returned_img = this.getWMSLegendFromProxy(wms_url, scala, layer_name,'wms');
-			
-				html += "<div><a class='overlay_wms_selector_layers_layer_add nowrap' href='javascript:;' onclick='open_viewer.overlayWmsSelectorAdd(\"" + wms_url + "\", \"" + i + "\", \"" + layersData[i].styles[style_name].name + "\")' title='Aggiungi questo layer alla mappa'><span class='fa fa-plus-circle'></span> aggiungi</a></div></td><td headers='layerstyles' class='nowrap'><a href='javascript:;' onclick='open_viewer.openCloseDiv(\"img_"+ hash + "_" + i +"\")'><img id='img_" + hash + "_" + i +"' src='data:image/png;base64," + returned_img + "' class='hide' style='width: \'"+ layersData[i].styles[style_name].legend_url_width + "\'px; height: \'" + layersData[i].styles[style_name].legend_url_height + "\' px;/><span class='fa fa-eye'></span> "+strings_interface.wms_showhidestyle.toLowerCase()+"</a><br/>";
-			} else if (false) {
-				html += "<div><a class='overlay_wms_selector_layers_layer_add nowrap' href='javascript:;' onclick='open_viewer.overlayWmsSelectorAdd(\"" + wms_url + "\", \"" + i + "\", \"" + layersData[i].styles[style_name].name + "\")' title='Aggiungi questo layer alla mappa'><span class='fa fa-plus-circle'></span> aggiungi</a></div></td><td headers='layerstyles' class='nowrap'><a href='javascript:;' onclick='open_viewer.openCloseDiv(\"img_"+ hash + "_" + i +"\")'><img id='img_" + hash + "_" + i +"' src='"+layersData[i].styles[style_name].legend_url_href+"' class='hide' style='width: \'"+ layersData[i].styles[style_name].legend_url_width + "\'px; height: \'" + layersData[i].styles[style_name].legend_url_height + "\' px;/><span class='fa fa-eye'></span> "+strings_interface.wms_showhidestyle.toLowerCase()+"</a><br/>";
-			}
-*/
-            if(wms_url == wms_url_internal) { // wms_url is the URL selected by the user, from which we must retrieve the layers
-				var scala="";
-				var returned_img = this.getWMSLegendFromProxy(wms_url, scala, layer_name,'wms');
-                var img_source_html = " src='data:image/png;base64," + returned_img+"' ";
-			
-/* OVD OLD VERSION - DELETE
-				// fill column "ADDLAYER"
-				html += '<td headers="addlayer"><center>';
-				html += "<div><a class='overlay_wms_selector_layers_layer_add nowrap' href='javascript:;' onclick='open_viewer.overlayWmsSelectorAdd(\"" + wms_url + "\", \"" + i + "\", \"" + style_name + "\", \"" + style_leg_url + "\")' title='"+strings_interface.sentence_addlayertomap+"'/><span class='fa fa-plus-circle'></span>";
-				//html += " "+strings_interface.sentence_addtomap.toLowerCase();
-				html += "</a></div></center></td>";
-				
-				// fill column "LAYERSTYLES"
-				html += "<td headers='layerstyles' class='nowrap'><a href='javascript:;' onclick='open_viewer   .openCloseDiv(\"img_"+ hash + "_" + i +"\")'><img id='img_" + hash + "_" + i +"' src='data:image/png;base64," + returned_img + "' class='hide' style='width: \'"+ style_leg_width + "\'px; height: \'" + style_leg_height + "\' px; title='"+strings_interface.wms_showhidestyle+"'/><center><span class='fa fa-eye'></span>";
-				//html += " "+strings_interface.wms_showhidestyle.toLowerCase();
-				html += "</a><br/>";
-*/
-                
-			} else {
-                var img_source_html = "' src='"+style_leg_url+"' ";
-/* OVD OLD VERSION - DELETE
-				// fill column "ADDLAYER"
-				html += '<td headers="addlayer"><center>';
-				html += "<div><a class='overlay_wms_selector_layers_layer_add nowrap' href='javascript:;' onclick='open_viewer.overlayWmsSelectorAdd(\"" + wms_url + "\", \"" + i + "\", \"" + style_name + "\", \"" + style_leg_url + "\")' title='"+strings_interface.sentence_addlayertomap+"'><center><span class='fa fa-plus-circle'></span>";
-				//html += " "+strings_interface.sentence_addtomap.toLowerCase();
-				html += "</a></div></center></td>";
-				
-				// fill column "LAYERSTYLES"
-				html += "<td headers='layerstyles' class='nowrap'><center>" + legend_html + "<br/>";
-*/
-			}
-			
-			// create the content of the column "LAYERSTYLES"
-			if ( typeof style_leg_url != 'undefined' && style_leg_url != '') {
-				legend_html = "<a href='javascript:;' onclick='open_viewer.openCloseDiv(\"img_"+ hash + "_" + i +"\")' title='"+strings_interface.wms_showhidestyle+"'>";
-				//legend_html = "<img id='img_" + hash + "_" + i +img_source_html+" class='hide' style='width: "+ style_leg_width + "px; height: " + style_leg_height + "px;'/><span class='fa fa-eye'></span>";
-				legend_html += "<img id='img_" + hash + "_" + i +img_source_html+" class='hide' style='width: "+ style_leg_width + "px;'/><span class='fa fa-eye'></span>";
-				//legend_html += " "+strings_interface.wms_showhidestyle.toLowerCase();
-				legend_html += "</a>";
-			} else {
-				legend_html = strings_interface.wms_notavailable.toLowerCase();
-			}
-			
-			// fill column "ADDLAYER"
-			html += '<td headers="addlayer"><center>';
-			html += "<div><a class='overlay_wms_selector_layers_layer_add nowrap' href='javascript:;' onclick='open_viewer.overlayWmsSelectorAdd(\"" + wms_url + "\", \"" + i + "\", \"" + style_name + "\", \"" + style_leg_url + "\")' title='"+strings_interface.sentence_addlayertomap+"'><center><span class='fa fa-plus-circle'></span>";
-			//html += " "+strings_interface.sentence_addtomap.toLowerCase();
-			html += "</a></div></center></td>";
-			
-			// fill column "LAYERSTYLES"
-			html += "<td headers='layerstyles' class='nowrap'><center>" + legend_html + "<br/>";
-// 	
-		}
-		html += '</center></td>';
-	
-		// fill column "SCALEVISIBILITY" (SCALE LIMITS)
-		html += '<td headers="scalevisibility">'+strings_interface.word_visible;
-		if ( typeof layer_minscale != 'undefined' && layer_minscale != '')
-			html += ' '+strings_interface.word_from.toLowerCase()+' 1:' + Math.round(layer_minscale);
-		if ( typeof layer_maxscale != 'undefined' && layer_maxscale != '' )
-			html += ' '+strings_interface.word_to.toLowerCase()+' 1:' + Math.round(layer_maxscale);
-		if ( (typeof layer_minscale == 'undefined' || layer_minscale == '') && (typeof layer_maxscale == 'undefined' || layer_maxscale == '' ) )
-			html += ' '+strings_interface.sentence_atallscales.toLowerCase();
-		html += '</td>';
-
-        html += '</tr>';
-        
-		// fill row "DESCRIPTION" (2 lines version)
-		if(flagTwoLinesVersion && layer_abstract != '') {
-			html += '<tr><td '+abs_class+' colspan=5><span id="overlay_wms_selector_layers_table_description">'+strings_interface.word_description+':<br>'+layer_abstract + '</span></td></tr>';
-		}
-	
-	}
-	
-	html += '</tbody>';
-	html += '</table>';
-	
-	$('#overlay_wms_selector_layers').html(html);
-}
-/** Add a WMS layer to the map */
-openViewer.prototype.overlayWmsSelectorAdd = function(wms_url, i, style_name, style_url){
-	if (typeof style_url == 'undefined') style_url='';
-
-	var layersData = this.userWmsLayersList;
-	var formats = this.userWmsFormats;
-	var wms_url = this.userWmsURL;
-	var wms_url_internal = this.internalWmsURL;
-
-    // set the best format among the supported ones (priorities: PNG8, PNG, JPEG)
-	var format = '';
-	formats.forEach(function(f) {
-		if (f == 'image/png; mode=8bit')
-			format = 'image/png; mode=8bit';
-	});
-	if (format == '') {
-		formats.forEach(function(f) {
-			if (f == 'image/png8')
-				format = 'image/png8';
-		});
-	}
-	if (format == '') {
-		formats.forEach(function(f) {
-			if (f == 'image/png')
-				format = 'image/png';
-		});
-	}
-	if (format == '') {
-		formats.forEach(function(f) {
-			if (f == 'image/jpeg')
-				format = 'image/jpeg';
-		});
-	}
-	if (format == '') {
-		// PNG is the fallback
-		format = 'image/png';
-	}
-	
-	var hash = this.hashCode(wms_url);
-	var layer_name = layersData[i].name;
-	var layer_title = layersData[i].title;
-	
-	if(wms_url == wms_url_internal) {
-		var newLayer = this.map.addWmsInternalLayer(wms_url, layersData, i, style_name, format);
-	} else {
-		var newLayer = this.map.addWmsLayer(wms_url, layersData, i, style_name, format);
-	}
-	//if (typeof newLayer != "undefined" && newLayer != '') newLayer.set('legendUrl','uffa'); //style_url);
-
-	var responseMsg = '';
-	var responseType = 'ok';
-
-	if (layersData[i].crs_supported.includes(this.map.mapProjection)) {
-		// nothing to do
-	}
-	else {
-		responseMsg += strings_interface.sentence_layerwillbereprojected+'<br>';
-		//responseType = 'warning';
-		responseType = 'ok';
-	}
-		
-	if(this.map.WmsLayerAdded != true) {
-		responseMsg += strings_interface.sentence_layeraleradyexisting+'<br>';
-        responseType = 'warning';
-		this.printMessages(this.editOverlayMessages,'<span>'+responseMsg+'</span>',responseType,true);
-	}
-	else {
-		var layerCrs = newLayer.getSource().getProjection().getCode();
-        
-        responseMsg += strings_interface.sentence_layeradded+'<br>';
-		this.printMessages(this.editOverlayMessages,'<span>'+responseMsg+'</span>',responseType,true);
-	
-		if ( $('#map_wms_custom_label').length == 0 ) {
-			var label = $('<div>');
-			label.attr('id','map_wms_custom_label');
-			label.html(strings_interface.sentence_thirdpartyWMS);
-			$('#ov_legend_wmsUser').append(label);
-			var div = $('<div>');
-			div.attr('id','map_wms_custom_container');
-			div.addClass('form-checkboxes');
-			$('#ov_legend_wmsUser').append(div);
-			var ul = $('<ul>');
-			ul.attr('id','map_ul_legenda_wms_custom');
-			ul.attr('class', 'legenda childrenof');
-			$('#map_wms_custom_container').append(ul);
-		}
-
-		if(wms_url == wms_url_internal) {
-			var scale=''; // needed?
-			var returned_img = this.getWMSLegendFromProxy(wms_url, scale, layer_name,'wms');
-			
-			///TODO check why the legend is not visible
-			var div_legend_html = '<div id="custom_wms_layer_legend_' + hash + '_' + i + '" class="custom_wms_legend hide" style="background: url(\'data:image/png;base64,' + returned_img + '\'); width: '+ layersData[i].styles[style_name].legend_url_width +'px; height: '+ layersData[i].styles[style_name].legend_url_height +'px;""></div>';
-			
-		} else {
-			var div_legend_html = '<div id="custom_wms_layer_legend_' + hash + '_' + i + '" class="custom_wms_legend hide" style="background: url(\'' + layersData[i].styles[style_name].legend_url_href +'\'); width: '+ layersData[i].styles[style_name].legend_url_width +'px; height: '+ layersData[i].styles[style_name].legend_url_height +'px;""></div>';
-		}
-	
-		var labelTip = strings_interface.sentence_scalevisibility+layersData[i].min_scale+'-'+layersData[i].max_scale+' ('+layerCrs+')';
-        var labelDef = '<li><a id="expand_' + hash + '_' + i +'" href="javascript:;" onclick="open_v/*i*/ewer.openCloseDiv(\'custom_wms_layer_legend_' + hash + '_' + i + '\')" class="plus_stile"></a><input id="custom_wms_layer_checkbox_' + hash + '_' + i + '" type="checkbox" checked="checked" onclick="open_viewer.userWmsLayerViewToggle(\'' + hash + '_' + i + '\', \'' + layer_title +'\')" class="form-checkbox">&nbsp;</input><label title="'+labelTip+'">'+ layer_title +'</label><br/>' + div_legend_html + '</li>';
-		// OVD changed "append" to "prepend" to create a list of legend items coherent with the real list of layers
-		$("#map_ul_legenda_wms_custom").prepend(labelDef);
-	}
-	this.editWMSContainer.scrollTop(0);
-}
-/** Write a notification message on the WMS adding panel */
-openViewer.prototype.printMessages = function(div,message,status,timeout){
-	div.empty();
-	if(status=='ok'){
-		div.html(message);
-		div.css("color","black");
-	}
-	else{
-		div.html(message);
-		div.css("color","red");
-	}
-	if(timeout != false){
-		setTimeout(function(){
-			div.empty();
-		}, 4000);
-	}
-}
-/** Show/Hide a custom WMS layer */
-openViewer.prototype.userWmsLayerViewToggle = function(name, layer_name) {
-	if ( $('#custom_wms_layer_checkbox_' + name).is(':checked') )
-		this.map.layerViewToggle(layer_name, true);
-	else
-		this.map.layerViewToggle(layer_name, false);
-}
-/** Remove all custom WMS layers */
-openViewer.prototype.removeAllWmsUserLayers = function() {
-	this.map.removeAllWmsUserLayers(layer);
-	// refresh the legend
-	this.refreshLegend();
-}
-
-
-/** REDLINE - CURRENTLY UNUSED
- * ---------------------------------------------------------------
- */
-
-/* OVD CURRENTLY UNUSED: addRedlineWKT (add a WKT object to a layer)
-openViewer.prototype.addRedlineWKT = function(layer_name,wkt,clear_before) {
-// if(this.showConsoleMsg) console.log("addRedLineWkt");
-	clear_before = (typeof clear_before !== 'undefined') ?  clear_before : true;
-	return this.map.addRedlineWKT(layer_name,wkt,clear_before);
-};
-*/
-/* OVD CURRENTLY UNUSED: clearRedline (clear the redline objects of a layer)
-openViewer.prototype.clearRedline = function(layer_name) {
-	return this.map.clearRedline(layer_name);
-};
-*/
-/* OVD CURRENTLY UNUSED: clearTempLayers (clear all or a subset of layers)
-openViewer.prototype.clearTempLayers = function(layers_names,clear_ol_layers) {
-	if (typeof clear_ol_layers == 'undefined') {var clear_ol_layers=true;}
-	if (typeof layers_names !== 'undefined') {
-		var a_layers_names=layers_names.split(",");
-		for (var i=0;i < a_layers_names.length;i++) {
-			this.map.clearTempLayers(a_layers_names[i],clear_ol_layers);
-		}
-	} else {
-		this.map.clearTempLayers();
-	}
-};
-*/
-
-
-/** MAP PRINT FUNCTIONALITY
+/** SPECIAL FUNCTIONALITIES - MAP PRINT FUNCTIONALITY
  * ---------------------------------------------------------------
  */
 
@@ -3622,8 +3975,8 @@ openViewer.prototype.loadPrintMap = function(url) {
 		autoOpen:false,
 		modal: true,
 		hide: 'fade',
-		width:500,
-		height:550
+		width:550,
+		height:600
 // 		,close: function () {
 // console.log("dialog close");
 // 			$(div_print_dialog).dialog("close");
@@ -3635,8 +3988,9 @@ openViewer.prototype.loadPrintMap = function(url) {
 	}); 
 };
 /* OVD CURRENTLY UNUSED: getPrintablePage - COME RIATTIVARLA ?
-openViewer.prototype.getPrintablePage = function(label,format,adatta_scala) {
-	
+ */
+openViewer.prototype.getPrintablePageNEW = function(label,format,adatta_scala) { // NEW - NOT WORKING
+// console.log(label,format,adatta_scala);
 	var ol_map=this.map.map;
 	
 	var dims = {	//mm
@@ -3662,7 +4016,8 @@ openViewer.prototype.getPrintablePage = function(label,format,adatta_scala) {
 	var dim = dims[format];
 		
 	var current_center=this.getMapCenter();
-	var current_scale=this.getMapScale();
+	var current_scale=this.getMapScale(true);
+console.log("current_center",current_center,"current_scale",current_scale);
 	
 	//Dimensione in pixel dell'immagine
 	var width = Math.round(dim[0] * dpi / 25.4);
@@ -3683,6 +4038,136 @@ openViewer.prototype.getPrintablePage = function(label,format,adatta_scala) {
 			var extent = [parseFloat(current_center.X-(width_reale_m/2)),parseFloat(current_center.Y-(height_reale_m/2)),parseFloat(current_center.X+(width_reale_m/2)),parseFloat(current_center.Y+(height_reale_m/2))];
 		break;
 	}
+console.log('image size: '+width+' x '+height);
+console.log('map size: ',size);
+console.log('map extent',extent);
+	
+// console.log("dim",dim);
+// console.log("width",width);
+// console.log("height",height);
+// 
+// console.log("width_reale_m",width_reale_m);
+// console.log("height_reale_m",height_reale_m);
+// 
+// console.log("size",size);
+// console.log("extent",extent);
+
+	var stato = this.getStato();
+
+	var a_ol_layers=Object.keys(stato);
+
+	//TODO Si prende il primo layer. Se ci sono wms esterni andranno presi tutti(?)
+	var ol_layer=a_ol_layers[0];
+	var source=this.map.getMapLayerSourceByName(ol_layer);
+console.log('source',source);
+	var that=this;
+	
+    // to be corrected correct from here
+ol_map.once('rendercomplete', function() {
+    var convertMeToImg = ol_map.getViewport().querySelector('.ol-layers');
+console.log('convertMeToImg',convertMeToImg);
+
+
+    var element = $("#widget"); // global variable
+    var getCanvas; // global variable
+    
+    html2canvas(convertMeToImg, {
+             onrendered: function (canvas) {
+                    $("#copyDiv").append(canvas);
+                    getCanvas = canvas;
+                 }
+      });
+console.log('getCanvas',getCanvas);
+    
+    domtoimage.toJpeg(ol_map.getViewport().querySelector('.ol-layers')).then(function(dataUrl) {
+      const pdf = new jsPDF('landscape', undefined, format);
+      pdf.addImage(dataUrl, 'JPEG', 0, 0, dim[0], dim[1]);
+      pdf.save('map.pdf');
+      // Reset original map size
+      ol_map.setSize(size);
+      ol_map.getView().fit(extent, {size});
+      exportButton.disabled = false;
+      document.body.style.cursor = 'auto';
+    });
+  });
+
+	ol_map.setSize([width, height]);
+	//var size = @type {ol.Size} ;
+	var size = (ol_map.getSize());
+	ol_map.getView().fit(extent,{size: size, constrainResolution: false});
+	ol_map.renderSync();
+}
+
+openViewer.prototype.getPrintablePageNEW2 = function(label,format,adatta_scala) {  // NEW - NOT WORKING
+// console.log(label,format,adatta_scala);
+	var ol_map=this.map.map;
+	
+//var scaleLine = new ScaleLine({bar: true, text: true, minWidth: 125});
+//ol_map.addControl(scaleLine);
+
+	var dims = {	//mm
+		a0: [1189, 841],
+		a1: [841, 594],
+		a2: [594, 420],
+		a3: [420, 297],
+		a4: [297, 210],
+		a5: [210, 148]
+	};
+
+
+// export options for html-to-image.
+// See: https://github.com/bubkoo/html-to-image#options
+var exportOptions = {
+  filter: function (element) {
+    var className = element.className || '';
+    return (
+      className.indexOf('ol-control') === -1 ||
+      className.indexOf('ol-scale') > -1 ||
+      (className.indexOf('ol-attribution') > -1 &&
+        className.indexOf('ol-uncollapsible'))
+    );
+  },
+};    
+    
+// 	var loading = 0;
+// 	var loaded = 0;
+
+// 	document.body.style.cursor = 'progress';
+
+// console.log(format);
+	
+	//Cambiare i dpi se si vogliono stampe con più qualità!!!Controindicazioni: dimensione del pdf generato più grande, le etichette dei testi vengono più piccole per cui
+	// non è garantito che la mappa stampata sia uguale a quella che si vede a schermo 
+	var dpi = 150; //dpi
+	
+	var dim = dims[format];
+		
+	var current_center=this.getMapCenter();
+	var current_scale=this.getMapScale(true);
+console.log("current_center",current_center,"current_scale",current_scale);
+	
+	//Dimensione in pixel dell'immagine
+	var width = Math.round(dim[0] * dpi / 25.4);
+	var height = Math.round(dim[1] * dpi / 25.4);
+
+	switch (adatta_scala) {
+		
+		case "adatta":
+			var size = ol_map.getSize();
+			var extent = ol_map.getView().calculateExtent(size);
+		break;
+		
+		case "scala":
+			//Dimensione in metri su mappa
+			var width_reale_m = Math.round(dim[0]*current_scale/1000); 
+			var height_reale_m = Math.round(dim[1]*current_scale/1000);
+			
+			var extent = [parseFloat(current_center.X-(width_reale_m/2)),parseFloat(current_center.Y-(height_reale_m/2)),parseFloat(current_center.X+(width_reale_m/2)),parseFloat(current_center.Y+(height_reale_m/2))];
+		break;
+	}
+console.log('image size: '+width+' x '+height);
+console.log('map size: ',size);
+console.log('map extent',extent);
 	
 // console.log("dim",dim);
 // console.log("width",width);
@@ -3703,6 +4188,7 @@ openViewer.prototype.getPrintablePage = function(label,format,adatta_scala) {
 	var source=this.map.getMapLayerSourceByName(ol_layer);
 
 	var that=this;
+    // to be corrected correct from here
 
 
 	var imageLoadStart = function() {
@@ -3716,6 +4202,7 @@ openViewer.prototype.getPrintablePage = function(label,format,adatta_scala) {
 // 		if (loading === loaded) {
 
 			var canvas = this;
+console.log("canvas",canvas)
 			window.setTimeout(function() {
 //				loading = 0;
 // 				loaded = 0;
@@ -3731,8 +4218,9 @@ openViewer.prototype.getPrintablePage = function(label,format,adatta_scala) {
 				var destinationCanvas = document.createElement("canvas");
 				destinationCanvas.width = canvas.width;
 				destinationCanvas.height = canvas.height;
-
+console.log("destinationCanvas",destinationCanvas)
 				var destCtx = destinationCanvas.getContext('2d');
+console.log("destCtx",destCtx)
 
 				//create a rectangle with the desired color
 				destCtx.fillStyle = "#FFFFFF";
@@ -3777,6 +4265,9 @@ openViewer.prototype.getPrintablePage = function(label,format,adatta_scala) {
 				source.un('imageloadstart', imageLoadStart);
 				source.un('imageloadend', imageLoadEnd, canvas);
 				source.un('imageloaderror', imageLoadEnd, canvas);
+
+                
+                
 // 				ol_map.setSize(size);
 // 				ol_map.getView().fit(extent);
 				
@@ -3791,37 +4282,255 @@ openViewer.prototype.getPrintablePage = function(label,format,adatta_scala) {
 			}, 200);
 // 		}
 	};
-
+/* ORIGINAL
 	ol_map.once('postcompose', function(event) {
-		source.on('imageloadstart', imageLoadStart);
+console.log('event', event);
+		source.on('imageloadstart', imageLoadStart);  
 		source.on('imageloadend', imageLoadEnd, event.context.canvas);
 		source.on('imageloaderror', imageLoadEnd, event.context.canvas);
 	});
+	
+	ol_map.setSize([width, height]);
+	//var size = @type {ol.Size} ;
+	var size = (ol_map.getSize());
+	ol_map.getView().fit(extent,{size: size, constrainResolution: false});
+	ol_map.renderSync();
+*/
+    
+    
+    ol_map.once('rendercomplete', function () {
+      exportOptions.width = width;
+      exportOptions.height = height;
+      domtoimage
+        .toJpeg(ol_map.getViewport(), exportOptions)
+        .then(function (dataUrl) {
+          var pdf = new jsPDF('landscape', undefined, format);
+          pdf.addImage(dataUrl, 'JPEG', 0, 0, dim[0], dim[1]);
+          pdf.save('map.pdf');
+          // Reset original map size
+          //scaleLine.setDpi();
+          ol_map.getTargetElement().style.width = '';
+          ol_map.getTargetElement().style.height = '';
+          ol_map.updateSize();
+          //ol_map.getView().setResolution(viewResolution);
+          exportButton.disabled = false;
+          document.body.style.cursor = 'auto';
+        });
+    });
 
+    // Set print size
+    //scaleLine.setDpi(resolution);
+    ol_map.getTargetElement().style.width = width + 'px';
+    ol_map.getTargetElement().style.height = height + 'px';
+    ol_map.updateSize();
+    //ol_map.getView().setResolution(scaleResolution);
+    
+    
+    
+    
+}
+
+openViewer.prototype.getPrintablePage = function(label,format,adatta_scala) { // NOT WORKING
+// console.log(label,format,adatta_scala);
+	var ol_map=this.map.map;
+	
+	var dims = {	//mm
+		a0: [1189, 841],
+		a1: [841, 594],
+		a2: [594, 420],
+		a3: [420, 297],
+		a4: [297, 210],
+		a5: [210, 148]
+	};
+
+// 	var loading = 0;
+// 	var loaded = 0;
+
+// 	document.body.style.cursor = 'progress';
+
+// console.log(format);
+	
+	//Cambiare i dpi se si vogliono stampe con più qualità!!!Controindicazioni: dimensione del pdf generato più grande, le etichette dei testi vengono più piccole per cui
+	// non è garantito che la mappa stampata sia uguale a quella che si vede a schermo 
+	var dpi = 150; //dpi
+	
+	var dim = dims[format];
+		
+	var current_center=this.getMapCenter();
+	var current_scale=this.getMapScale(true);
+console.log("current_center",current_center,"current_scale",current_scale);
+	
+	//Dimensione in pixel dell'immagine
+	var width = Math.round(dim[0] * dpi / 25.4);
+	var height = Math.round(dim[1] * dpi / 25.4);
+
+	switch (adatta_scala) {
+		
+		case "adatta":
+			var size = ol_map.getSize();
+			var extent = ol_map.getView().calculateExtent(size);
+		break;
+		
+		case "scala":
+			//Dimensione in metri su mappa
+			var width_reale_m = Math.round(dim[0]*current_scale/1000); 
+			var height_reale_m = Math.round(dim[1]*current_scale/1000);
+			
+			var extent = [parseFloat(current_center.X-(width_reale_m/2)),parseFloat(current_center.Y-(height_reale_m/2)),parseFloat(current_center.X+(width_reale_m/2)),parseFloat(current_center.Y+(height_reale_m/2))];
+		break;
+	}
+console.log('image size: '+width+' x '+height);
+console.log('map size: ',size);
+console.log('map extent',extent);
+	
+// console.log("dim",dim);
+// console.log("width",width);
+// console.log("height",height);
+// 
+// console.log("width_reale_m",width_reale_m);
+// console.log("height_reale_m",height_reale_m);
+// 
+// console.log("size",size);
+// console.log("extent",extent);
+
+	var stato = this.getStato();
+
+	var a_ol_layers=Object.keys(stato);
+
+	//TODO Si prende il primo layer. Se ci sono wms esterni andranno presi tutti(?)
+	var ol_layer=a_ol_layers[0];
+	var source=this.map.getMapLayerSourceByName(ol_layer);
+
+	var that=this;
+    // to be corrected correct from here
+
+
+	var imageLoadStart = function() {
+		
+// 		++loading;
+	};
+
+	var imageLoadEnd = function() {
+
+// 		++loaded;
+// 		if (loading === loaded) {
+
+			var canvas = this;
+console.log("canvas",canvas)
+			window.setTimeout(function() {
+//				loading = 0;
+// 				loaded = 0;
+				
+				///TODO sarebbe migliore la qualità, ma troppo pesante il file generato
+// 				//PNG
+// 				var data = canvas.toDataURL('image/png');
+// 				var pdf = new jsPDF('landscape', 'mm', format,true);
+// 				pdf.addImage(data, 'PNG', 0, 0, dim[0], dim[1],'','FAST');
+				
+				//workaround per aggirare il problema di stampa con sfondi con trasparenza:  con il jpeg lo sfondo in trasparenza viene nero (es. catasto senza limiti amministrativi), quindi si crea un altro canvas con sfondo bianco su cui poi copiare l'immagine jpeg creata con la funzione toDataURL.
+
+				var destinationCanvas = document.createElement("canvas");
+				destinationCanvas.width = canvas.width;
+				destinationCanvas.height = canvas.height;
+console.log("destinationCanvas",destinationCanvas)
+				var destCtx = destinationCanvas.getContext('2d');
+console.log("destCtx",destCtx)
+
+				//create a rectangle with the desired color
+				destCtx.fillStyle = "#FFFFFF";
+				destCtx.fillRect(0,0,canvas.width,canvas.height);
+
+				//draw the original canvas onto the destination canvas
+				destCtx.drawImage(canvas, 0, 0);
+				
+				
+				//JPEG
+				var data = destinationCanvas.toDataURL('image/jpeg');
+				var pdf = new jsPDF('landscape', 'mm', format);
+				
+				pdf.addImage(data, 'JPEG', 0, 0, dim[0], dim[1]);
+				
+				//pdf.setTextColor(100,100,100);
+			
+				//Si disegna il rettangolo che contiene titolo e scala
+				pdf.setFillColor(255,255,255);
+				pdf.rect(0, 0, dim[0], 7, 'F');
+				
+				//Si setta la dimensione del testo
+				pdf.setFontSize(14);
+				
+				//Titolo (se compilato)
+				if (label!="") {
+					pdf.text(label,2,5);
+				}
+				
+				if (adatta_scala=="scala") {
+				
+					//Scala
+					//Si calcola la larghezza del testo della scala per posizionarlo correttamente
+					var strWidth = pdf.getStringUnitWidth("Scala 1:"+current_scale) * pdf.internal.getFontSize() /(72/25.6);
+					pdf.text("Scala 1:"+current_scale,dim[0]-strWidth-2,5);
+					
+				}
+				
+				//Si salva il pdf
+				pdf.save('map.pdf');
+				
+				source.un('imageloadstart', imageLoadStart);
+				source.un('imageloadend', imageLoadEnd, canvas);
+				source.un('imageloaderror', imageLoadEnd, canvas);
+
+                
+                
+// 				ol_map.setSize(size);
+// 				ol_map.getView().fit(extent);
+				
+				ol_map.updateSize();
+				
+				that.setMapCenter(current_center);
+				that.setMapScale(current_scale);
+				
+				ol_map.renderSync();
+
+				document.body.style.cursor = 'auto';
+			}, 200);
+// 		}
+	};
+	ol_map.once('postcompose', function(event) {
+console.log('event', event);
+		source.on('imageloadstart', imageLoadStart);  
+		source.on('imageloadend', imageLoadEnd, event.context.canvas);
+		source.on('imageloaderror', imageLoadEnd, event.context.canvas);
+	});
 	ol_map.setSize([width, height]);
 	//var size = @type {ol.Size} ;
 	var size = (ol_map.getSize());
 	ol_map.getView().fit(extent,{size: size, constrainResolution: false});
 	ol_map.renderSync();
 }
-*/
 
-
-/** TRACKING FUNCTIONALITY
+/** SPECIAL FUNCTIONALITIES - TRACKING FUNCTIONALITY
  * ---------------------------------------------------------------
  */
 
 /** tracking/Geolocation - E' POSSIBILE ATTIVARLO ??? */
 openViewer.prototype.trackingPosition = function(){
-	console.log("setTracking");
+ov_utils.ovLog('Set tracking...'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
 	this.map.mapSetTracking(true);
 }
 
-
-/** GENERAL UTILITIES
+/** OTHER PROCEDURES
  * ---------------------------------------------------------------
  */
 
+/** Return the settings of the main layers ("stato") */
+openViewer.prototype.getStato = function() {
+	return this.map.getStato();
+};
+/** Set the settings of the main layers ("stato") */
+openViewer.prototype.setStato = function(stato) {
+	return this.map.setStato(stato);
+};
 /** Return the current range scale */
 openViewer.prototype.getCurrentRange = function (ranges) {
 	var currentRange = null;
@@ -3836,21 +4545,6 @@ openViewer.prototype.getCurrentRange = function (ranges) {
 	
 	return currentRange;
 }
-/** Calculate a simple hash code */
-openViewer.prototype.simpleHash = function(s) {
-	return s.split("").reduce(function(a,b){a=((a<<5)-a)+b.charCodeAt(0);return a&a},0);              
-}
-/** Calculate the hash code of an url (used to create unique ID for layers names) */
-openViewer.prototype.hashCode = function(str) {
-	var hash = 0, i, chr;
-	if (str.length === 0) return hash;
-	for (i = 0; i < str.length; i++) {
-		chr   = str.charCodeAt(i);
-		hash  = ((hash << 5) - hash) + chr;
-		hash |= 0; // Convert to 32bit integer
-	}
-	return hash;
-};
 /** Open/Close a DIV by adding/removing the classes "hide" or "show" */
 openViewer.prototype.openCloseDiv = function(div){
 	var div = $('#'+div);
@@ -3861,31 +4555,11 @@ openViewer.prototype.openCloseDiv = function(div){
 		div.removeClass('hide').addClass('show');
 	}
 }
-/** Check the validity of an URL */
-openViewer.prototype.ValidURL = function(str) {
-	var regex = /(http|https):\/\/(\w+:{0,1}\w*)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%!\-\/]))?/;
-	if(!regex .test(str)) {
-		return false;
-	} else {
-		return true;
-	}
-}
-/** Convert an hexadecimal to decimal */
-openViewer.prototype.hex2dec = function (theHex) {
-   if ( (theHex.charAt(0) > "F") || (theHex.charAt(1) > "F") ) {
-      console.log("Hexadecimal (00-FF) only, please...");
-      return 0;
-   }
-   var retDec  = parseInt(theHex,16)/255;
-   return retDec;
-}
 
-
-
-/* OVD ELIMINARE - AL MOMENTO NON E' USATO, MA POTREBBE ESSERE UTILE SE SI RIPRISTINA I WMS INTERNAL
+/* OVD ELIMINARE - AL MOMENTO NON E' USATO, MA POTREBBE ESSERE UTILE SE SI RIPRISTINANO I WMS INTERNAL
 openViewer.prototype.overlayWmsInternal = function() {
 	var wms_url_internal = this.internalWmsURL;
-	this.urlToProxyWMS(wms_url_internal);
+	ov_wms_plugin.WMSuserScanUrlViaProxy(wms_url_internal); // this.WMSuserScanUrlViaProxy(wms_url_internal);
 }
 */
 /* OVD ELIMINARE - UNUSED
@@ -3920,3 +4594,25 @@ ovLegendTreeItem.prototype.Attach = function(child) { // Add a child to a TreeIt
 };
 
 
+/* OVD BUTTARE
+async function returnTrue() {
+  
+  console.log('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX');
+  console.log(new Date());
+  // create a new promise inside of the async function
+  let promise = new Promise((resolve, reject) => {
+    setTimeout(() => resolve(true), 5000) // resolve
+  });
+  
+  // wait for the promise to resolve
+  let result = await promise;
+   
+  // console log the result (true)
+  console.log('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX');
+  console.log(new Date());
+  console.log(result);
+}
+
+// call the function
+returnTrue();
+*/

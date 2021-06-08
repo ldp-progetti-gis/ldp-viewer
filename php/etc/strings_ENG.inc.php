@@ -15,11 +15,12 @@
 	 * Strings used by the general INTERFACE
 	 */
 	$GLOBALS['strings']['interface'] = array(
-         'tab_query_title'              => $PREFIX . 'Query',
+         'tab_query_title'              => $PREFIX . 'Results',
          'tab_query_content'            => 'Show the related information',
          'tab_search_title'             => $PREFIX . 'Search',
          'tab_search_content'           => 'Find a city, a place, an address',
          'tab_custom_title'             => $PREFIX . 'Custom',
+         'tab_custom_title'             => 'Map info',
          'tab_custom_content'           => 'Show a custom page',
          'tab_appinfo_title'            => $PREFIX . 'About',
          'tab_appinfo_content'          => 'Show the information about the application',
@@ -39,7 +40,8 @@
          'button_guidedtour'            => 'Help guided tour',
 
          'welcome_msg_statusbar'        => 'Ready',
-         'no_feature_selected_statusbar'=> '0 selected features',
+         'feature_selected_statusbar'   => 'selected feature',
+         'features_selected_statusbar'  => 'selected features',
          
          'wms_CRSunsupported'           => 'The map projection is not directly supported by the WMS server',
          'wms_clicktogetlistwmslayers'  => 'Click here to retrieve the list of availalble WMS layers',
@@ -58,16 +60,22 @@
          'word_add'                     => 'Add',
          'word_close'                   => 'Close',
          'word_description'             => 'Description',
+         'word_feature'                 => 'Feature',
          'word_from'                    => 'From',
+         'word_in'                      => 'In',
          'word_information'             => 'Information',
          'word_layer'                   => 'Layer',
          'word_legend'                  => 'Legend',
          'word_libreria'                => 'Library',
          'word_license'                 => 'Licence',
+         'word_no'                      => 'No',
          'word_of'                      => 'Of',
          'word_open'                    => 'Open',
          'word_or'                      => 'Or',
          'word_original'                => 'Original',
+         'word_queryability'            => 'Queryability',
+         'word_queryableas'             => 'Queryable as',
+         'word_release'                 => 'Release',
          'word_styles'                  => 'Styles',
          'word_themes'                  => 'Themes',
          'word_title'                   => 'Title',
@@ -85,6 +93,7 @@
          'sentence_datasource'                  => 'Data source',
          'sentence_epsgsupported'               => 'Supported coordinate systems (EPSG)',
          'sentence_forexample'                  => 'For example',
+         'sentence_foundfeatures'               => 'Found features',
          'sentence_generaldescription'          => 'General description',
          'sentence_impossiblegetlayersfromurl'  => 'Impossible to retrieve the layers list from the URL defined',
          'sentence_increasetransparency'        => 'Increase the transparency',
@@ -94,18 +103,22 @@
          'sentence_layeraleradyexisting'        => 'Layer not added to the map. A layer with the same name is already existing.',
          'sentence_layerwillbereprojected'      => 'The layer does not directly support the coordinate system used in the map: hence it will be automatically reprojected.',
          'sentence_nobasemap'                   => 'No basemap',
+         'sentence_noselectedobjects'           => 'No selected objects',
          'sentence_noselfeaturesinsidelayer'    => 'No selection within the layers',
          'sentence_opencloselegend'             => 'Open/Close the legend',
          'sentence_opencloseinfopanel'          => 'Open/Close the information panel',
          'sentence_openprintdialog'             => 'Print the current map view',
+         'sentence_problemsgetcapabilities'     => 'Encountered problems while retrieving GetCapabilities from',
          'sentence_queryresultpage'             => 'Page of the results',
          'sentence_reducetransparency'          => 'Reduce the transparency',
          'sentence_releasenote'                 => 'Notes about the version',
          'sentence_removealluserwms'            => 'Remove all user WMS layers',
          'sentence_renderingprojection'         => 'Projection used for map rendering',
+         'sentence_retrievingtheinformation'    => 'Retrieving the information, please wait ...',
          'sentence_scalevisibility'             => 'Visible in the scale range ',
-         'sentence_sendemailto'                 => 'For additional info email to',
          'sentence_searchpage'                  => 'Search page',
+         'sentence_sendemailto'                 => 'For additional info email to',
+         'sentence_servercapabilities'          => 'Server capabilities',
          'sentence_showyourposonthemap'         => 'Show your position on the map',
          'sentence_usedlibraries'               => 'Open source libraries used',
          'sentence_thirdpartyWMS'               => 'Third party WMS',
@@ -157,6 +170,37 @@
          'template_next_forward'        => 'Forward »',
          'template_close_tour'          => 'Exit the tour',
          'template_close_close'         => 'Exit',
+
+         'varempty'                     => '');
+	 
+	/**
+	 * Strings used by the TOUR/HELP functionality
+	 */
+	$GLOBALS['strings']['application_info'] = array(
+         'license_description'          => 'This program is free software; you can redistribute it and/or modify it under the terms '.
+                                           'of the GNU General Public License as published by the Free Software Foundation; either '.
+                                           'version 2 of the License, or (at your option) any later version.'.
+                                           '<br>&nbsp;<br>'.
+                                           'This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; '.
+                                           'without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. '.
+                                           'See the <u><i><a href="GNU General Public License v2.0 - GNU Project - Free Software Foundation.html" '.
+                                           'target="_blank">GNU General Public License</a></i></u> for more details.',
+         'application_description'      => 'is an Internet application that allows the publication of geographic data. The interactive viewer '.
+                                           'allows users to navigate the map (zoom, pan, view at a defined scale), modify the displayed geographic levels, '.
+                                           'add on the fly geographic layers published by WMS servers, query the associated data and generate print reports.',
+         'application_mainfeatures'     => 'Supported data: <ul>'.
+                                           '<li> WMS data sources </li>'.
+                                           '<li> MapGuide data sources </li>'.
+                                           '<li> basemap OpenStreetMap </li>'.
+                                           '</ul>'.
+                                           'Features: <ul>'.
+                                           '<li> interactive pan and zoom on rectangle </li>'.
+                                           '<li> initial view, zoom in, zoom out, previous view, next view </li>'.
+                                           '<li> measurement of distances and areas </li>'.
+                                           '<li> print </li>'.
+                                           '</ul>',
+         'application_noterelease1'     => 'Initial development of the application, based on the review of the most complex and complete applications '.
+                                           'created by LdpGIS for the management of geographic data for territorial management.',
 
          'varempty'                     => '');
 	 

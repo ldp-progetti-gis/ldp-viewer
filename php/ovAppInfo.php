@@ -4,9 +4,9 @@
 	
 	$pageTitle		= $GLOBALS['app_name'].' - '.$GLOBALS['strings']['interface']['word_information'];
 	$appLanguage	= $GLOBALS[$GLOBALS['package']]['language'];
-	$appCopyright	= 'Copyright (C) '.$GLOBALS['year'].' '.$GLOBALS['app_name'].' '.$GLOBALS['app_maintainer'];
+	$appCopyright	= 'Copyright (C) '.$GLOBALS['release_year'].' '.$GLOBALS['app_name'].' '.$GLOBALS['app_maintainer'];
 
-	$lineVersion	= ucwords(strtolower($GLOBALS['strings']['interface']['word_version'])).' '.$GLOBALS['app_version'].' ('.$GLOBALS['year'].')';
+	$lineVersion	= ucwords(strtolower($GLOBALS['strings']['interface']['word_version'])).' '.$GLOBALS['app_version'].' ('.$GLOBALS['release_year'].')';
 	$lineLicense	= ucwords(strtolower($GLOBALS['strings']['interface']['word_license'])).' '.$GLOBALS['license'];
 
 	$lineOLVersion	= 'OpenLayers '.ucwords(strtolower($GLOBALS['strings']['interface']['word_version'])).' '.$GLOBALS['lib_openlayers_version'];
@@ -28,41 +28,41 @@
 	</head>
 
 	<body>
-		<div class="page_container">
-			<h4><?php echo $pageTitle ?></h4>
-			<p>
+		<div class="page_about">
+			<h1 class="page_about"><?php echo $pageTitle ?></h1>
+			<p class="page_about">
 				<?php echo $lineVersion .'<br>'.
-				           $appCopyright .'<br>&nbsp;<br><u>'.
-				           $lineLicense . '</u>' ?>
+							$appCopyright .'<br>&nbsp;<br><u>'.
+							$lineLicense . '</u>' ?>
 			</p>
 			
-			<p>
-				<?php echo $GLOBALS['license_description'] ?>
+			<p class="page_about">
+				<?php echo $GLOBALS['strings']['application_info']['license_description'] ?>
 				<br>&nbsp;<br><i>(<?php echo $GLOBALS['strings']['interface']['sentence_sendemailto'] ?>: 
-				<a href='mailto:ldp@ldpgis.it' title='(<?php echo $GLOBALS['strings']['interface']['sentence_sendemailto'].' '.$GLOBALS['app_maintainer'] ?>'><u>ldp@ldpgis.it</u></a>)</i>
+				<a href='mailto:<?php echo $GLOBALS['contact_email'] ?>' title='(<?php echo $GLOBALS['strings']['interface']['sentence_sendemailto'].' '.$GLOBALS['app_maintainer'] ?>'><u><?php echo $GLOBALS['contact_email'] ?></u></a>)</i>
 			</p>
-			<p>
-				<?php echo '<u>'.$GLOBALS['strings']['interface']['sentence_generaldescription'] .'</u><br><ul>'.
-				           '<li>'.$GLOBALS['general_description'] .'</li>'.
-				           '<li>'.$GLOBALS['main_features'] .'</li>'.
-				           '</ul>' ?>
+			<p class="page_about">
+				<?php echo '<u>'.$GLOBALS['strings']['interface']['sentence_generaldescription'] .'</u><br><ul class="page_about">'.
+							'<li class="page_about">'.'<b>'.$GLOBALS['app_name'].'</b> '.$GLOBALS['strings']['application_info']['application_description'] .'</li>'.
+							'<li class="page_about">'.$GLOBALS['strings']['application_info']['application_mainfeatures'] .'</li>'.
+							'</ul>' ?>
 			</p>
-			<p>
-				<?php echo '<u>'.$GLOBALS['strings']['interface']['sentence_epsgsupported'] .'</u><br><ul>'.
-				           '<li>'.implode(" ",$GLOBALS['epsg_supported']).'</li>'.
-				           '</ul>' ?>
+			<p class="page_about">
+				<?php echo '<u>'.$GLOBALS['strings']['interface']['sentence_epsgsupported'] .'</u><br><ul class="page_about">'.
+							'<li class="page_about">'.implode(" ",$GLOBALS['epsg_supported']).'</li>'.
+							'</ul>' ?>
 			</p>
-			<p>
-				<?php echo $GLOBALS['strings']['interface']['sentence_releasenote'] .'<br><ul>'.
-				           '<li>'.$GLOBALS['release_note_beta'] .'</li>'.
-				           '</ul>' ?>
+			<p class="page_about">
+				<?php echo $GLOBALS['strings']['interface']['sentence_releasenote'] .'<br><ul class="page_about">'.
+							'<li class="page_about">'.'<u>'.$GLOBALS['strings']['interface']['word_release'].' '.$GLOBALS['app_version'].' ('.$GLOBALS['release_year'].'.'.$GLOBALS['release_month'].')</u><br> '.$GLOBALS['strings']['application_info']['application_noterelease1'] .'</li>'.
+							'</ul>' ?>
 			</p>
-			<p>
-				<?php echo $GLOBALS['strings']['interface']['sentence_usedlibraries'] .'<br><ul>'.
-				           '<li>'.$lineOLVersion.'</li>'.
-				           '<li>'.$lineP4Version.'</li>'.
-				           '<li>'.$lineJQVersion.'</li>'.
-				           '</ul>' ?>
+			<p class="page_about">
+				<?php echo $GLOBALS['strings']['interface']['sentence_usedlibraries'] .'<br><ul class="page_about">'.
+							'<li class="page_about">'.$lineOLVersion.'</li>'.
+							'<li class="page_about">'.$lineP4Version.'</li>'.
+							'<li class="page_about">'.$lineJQVersion.'</li>'.
+							'</ul>' ?>
 			</p>
 		</div>
 	</body>

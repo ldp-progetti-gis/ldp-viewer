@@ -4,7 +4,7 @@
 	
 	$pageTitle		= $GLOBALS['app_name'].' - '.$GLOBALS['strings']['interface']['word_queryresultpage'];
 	$appLanguage	= $GLOBALS[$GLOBALS['package']]['language'];
-	$appCopyright	= 'Copyright (C) '.$GLOBALS['year'].' '.$GLOBALS['app_name'].' '.$GLOBALS['app_maintainer'];
+	$appCopyright	= 'Copyright (C) '.$GLOBALS['release_year'].' '.$GLOBALS['app_name'].' '.$GLOBALS['app_maintainer'];
 	
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
@@ -17,12 +17,13 @@
 		<meta http-equiv="Content-Script-Type" content="text/javascript" />
 		<meta name="language" content="<?php echo $appLanguage ?>" />
 		<meta name="copyright" content="<?php echo $appCopyright ?>"/>
-
+		
 	</head>
 
 	<body>
 		<div class="page_container">
-			<h4><?php echo $GLOBALS['strings']['interface']['sentence_queryresultpage'] ?></h4>
+			<h1 class='page_container_title'><?php echo $GLOBALS['strings']['interface']['sentence_queryresultpage'] ?></h1>
+			<div id="ov_info_wms_container" class="page_container"></div>
 		</div>
 	</body>
 </html>

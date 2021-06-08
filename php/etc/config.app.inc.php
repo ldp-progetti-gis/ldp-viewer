@@ -58,16 +58,6 @@
 
 	*/
 
-	$GLOBALS[$GLOBALS['package']]['map_definition']=array(
-// 			"mapguide"=> array(
-// 					"tipo"=> "mapguide",
-// 					"mapDefinition"=>$GLOBALS[$GLOBALS['package']]['mapDefinition'],
-// 					"url"=>"/mapguide/mapagent/mapagent.fcgi?USERNAME=Anonymous",
-// 					"api_url"=>"/mapguide/ldpolviewer/api.php",
-// 					"layers_info" => array()
-// 			)
-	);
-	
 	/**
 	 * ENABLE/DISABLE/SET INTERFACE COMPONENTS
 	 * definition of the visibility and of the layout of the main interface components
@@ -96,11 +86,11 @@
 	 * - general info (title, ...)
 	 * - map definition (layers, projection, ...)
 	 */
-	$GLOBALS[$GLOBALS['package']]['map_title']="Test Map";
-
+	$GLOBALS[$GLOBALS['package']]['map_title']="Test Comune Pisa (3003)";
+	$GLOBALS[$GLOBALS['package']]['map_description']="Map of Comune Pisa to visualize the buildings and some related administration documents.<br>&nbsp;<br>The map is projected using the GaussBoaga coordinates: this projection is not supported by some global data server as, for example, the NASA Earth Observations Server, which thereforecannot be overlaid on the map.";
 	$GLOBALS[$GLOBALS['package']]['map_options']=array(
 			'data_projection'=>'EPSG:3003',					// default projection (used for example to set the initial zoom, to calculate the scale, to measure the distances, ...
-			'initial_map_center'=>array(1691030, 4798730),	// coordinate of the center of the default view (based on data_projection)
+			'initial_map_center'=>array(1673500, 4815330),	// coordinate of the center of the default view (based on data_projection)
 			'initial_zoom'=>17,								// zoom level of the default view
 			'default_base_layer'=>"open_street_map",		// 
 			'map_projection'=>'EPSG:3003',					// projection used for the map rendering and for the visualization of the coordinates while moving the mouse
@@ -109,13 +99,39 @@
 			'map_measure_sub_units_number'=>1,				// number of subunits for 1 unit
 			'map_measure_sub_units'=>'m',					// symbol used in the measure tooltip when the value is <= map_measure_threshold
 			'show_coordinates_mouse'=>true,					// used to enable/disable the display of the coordinates while moving the mouse over the map
-			'show_number_selected_features'=>false,			// used to enable/disable the display of the number of selected features
+			'show_number_selected_features'=>true,			// used to enable/disable the display of the number of selected features
 			'show_view_scale'=>true,						// used to enable/disable the display of the scale of the current view
-			'show_view_crs'=>true							// used to enable/disable the display of the CRS of the current view
+			'show_view_crs'=>true,							// used to enable/disable the display of the CRS of the current view
+			'show_feature_attribute_without_ctrl'=>true		// enable the visualization of the feature attribute also without pressing the CTRL key
 			//'show_epsg_on_coordinates'=>true,				// show the "data" coordinate system beside the coordinates related to the mouse position
 	);
-$GLOBALS[$GLOBALS['package']]['map_options']['map_projection'] = 'EPSG:4326'; // OVD ELIMINARE       'EPSG:3857';
-
+	/*
+	$GLOBALS[$GLOBALS['package']]['map_title']="Test Comune Pisa (3857)";
+	$GLOBALS[$GLOBALS['package']]['map_description']="Map of Comune Pisa to visualize the buildings and some related administration documents.<br>&nbsp;<br>The map is projected using the metric projection Spherical Mercator: this projection is widely supported by the most global data server, even if the accuracy is quite low.";
+	$GLOBALS[$GLOBALS['package']]['map_options']=array(
+			'data_projection'=>'EPSG:3003',					// default projection (used for example to set the initial zoom, to calculate the scale, to measure the distances, ...
+			'initial_map_center'=>array(1673500, 4815330),	// coordinate of the center of the default view (based on data_projection)
+			'initial_zoom'=>17,								// zoom level of the default view
+			'default_base_layer'=>"open_street_map",		// 
+			'map_projection'=>'EPSG:3857',					// projection used for the map rendering and for the visualization of the coordinates while moving the mouse
+			'map_measure_threshold'=>1000,					// threshold for the defaults measure tooltip visualization
+			'map_measure_units'=>'km',						// symbol used in the measure tooltip when the value is > map_measure_threshold
+			'map_measure_sub_units_number'=>1,				// number of subunits for 1 unit
+			'map_measure_sub_units'=>'m',					// symbol used in the measure tooltip when the value is <= map_measure_threshold
+			'show_coordinates_mouse'=>true,					// used to enable/disable the display of the coordinates while moving the mouse over the map
+			'show_number_selected_features'=>true,			// used to enable/disable the display of the number of selected features
+			'show_view_scale'=>true,						// used to enable/disable the display of the scale of the current view
+			'show_view_crs'=>true,							// used to enable/disable the display of the CRS of the current view
+			'show_feature_attribute_without_ctrl'=>true		// enable the visualization of the feature attribute also without pressing the CTRL key
+			//'show_epsg_on_coordinates'=>true,				// show the "data" coordinate system beside the coordinates related to the mouse position
+	);
+	*/
+/*
+*/
+//$GLOBALS[$GLOBALS['package']]['map_options']['data_projection'] = 'EPSG:4326';                  // OVD ELIMINARE
+//$GLOBALS[$GLOBALS['package']]['map_options']['initial_map_center'] = array(11.15, 43.47);       // OVD ELIMINARE - PISA
+//$GLOBALS[$GLOBALS['package']]['map_options']['initial_map_center'] = array(1673500.0, 4815330.0);       // OVD ELIMINARE - PISA
+//$GLOBALS[$GLOBALS['package']]['map_options']['map_projection'] = 'EPSG:4326';                   // OVD ELIMINARE  'EPSG:3857';
 /*
 	$GLOBALS[$GLOBALS['packagee']]['map_options']=array(
 			'data_projection'=>'EPSG:4326',					// default projection (used for example to set the initial zoom, to calculate the scale, to measure the distances, ...
@@ -152,8 +168,92 @@ $GLOBALS[$GLOBALS['package']]['map_options']['map_projection'] = 'EPSG:4326'; //
 	// OVD handles in another way		,"aggiungiWMS" => true
 
 	/**
-	 * LAYERS SETTINGS
-	 * definition of the layers to be handled:
+	 * MAIN LAYERS SETTINGS
+	 * definition of the "main layers" (MapGuide, WMS, ...) to be handled:
+	 */
+//	$GLOBALS[$GLOBALS['package']]['map_definition']=array(                            // OVD delete this example
+// 			"mapguide"=> array(
+// 					"tipo"=> "mapguide",
+// 					"mapDefinition"=>$GLOBALS[$GLOBALS['package']]['mapDefinition'],
+// 					"url"=>"/mapguide/mapagent/mapagent.fcgi?USERNAME=Anonymous",
+// 					"api_url"=>"/mapguide/ldpolviewer/api.php",
+// 					"layers_info" => array()
+// 			)
+//	);
+	
+	$GLOBALS[$GLOBALS['package']]['map_definition']= array(
+			'wms_geoserver'=> array(
+					'tipo'=> 'wms_geoserver',
+					'url' => 'https://sit.spid.comune.poggibonsi.si.it/services/wms',
+					'layers_info'=> array(
+							'view_pratiche_punti'=> array(
+									'min_scale'=> 1,
+									'max_scale'=> 50000,
+									'tooltip'=> 'Pratica n. %numero_pratica%',
+									'hyperlink'=> 'ricerca_info_pratica_edilizia.php?id=%ogc_fid%',
+									'selectable'=> true,
+									'visible'=> true,
+									'legend_label'=> 'Pratiche edilizie schedario',
+									'image_legend_layer'=> 'view_pratiche_punti',
+									'feature_name'=> 'view_pratiche_punti',
+									'group'=> 'pratiche_edilizie'
+							),
+							'edifici'=> array(
+									'min_scale'=> 1,
+									'max_scale'=> 10000,
+									'tooltip'=> 'Edificio %id%',
+									'hyperlink'=> 'extra_info/info_edifici.php?id=%id%',
+									'selectable'=> true,
+									'visible'=> true,
+									'legend_label'=> 'Edifici',
+									'image_legend_layer'=> 'edifici',
+									'feature_name'=> 'edifici',
+									'group'=> 'pratiche_edilizie'
+							),
+							'elementi_lineari_2k_10k'=> array(
+									'min_scale'=> 1,
+									'max_scale'=> 5000,
+									'tooltip'=> '%topon%',
+									'hyperlink'=> '',
+									'selectable'=> true,
+									'visible'=> true,
+									'legend_label'=> 'Elementi lineari 2k_10k',
+									'image_legend_layer'=> 'elementi_lineari_2k_10k',
+									'feature_name'=> 'elementi_lineari_2k_10k',
+									'group'=> 'ctc'
+							),
+							'limiti_amministrativi'=> array(
+									'min_scale'=> 500,
+									'max_scale'=> 50000,
+									'tooltip'=> '%nome%',
+									'hyperlink'=> '',
+									'selectable'=> false,
+									'visible'=> true,
+									'legend_label'=> 'Limiti comunali',
+									'image_legend_layer'=> 'limiti_amministrativi',
+									'feature_name'=> 'limiti_amministrativi',
+									'group'=> 'ctc'
+							)
+					),
+					'groups_info'=> array(
+							'pratiche_edilizie'=> array(
+									'visible'=> true,
+									'legend_label'=> 'Pratiche edilizie schedario',
+									'expanded'=> true
+							),
+							'ctc'=> array(
+									'visible'=> true,
+									'legend_label'=> 'Carta Tecnica Comunale',
+									'expanded'=> true
+							)
+					)
+			)
+	);
+	
+	
+	 /**
+	 * BASEMAP LAYERS SETTINGS
+	 * definition of the "basemap" layers to be handled:
 	 */
 	$GLOBALS[$GLOBALS['package']]['basemap_layers_definition']=array(
 			'open_street_map' => array(	//open_street_map
@@ -284,7 +384,8 @@ $GLOBALS[$GLOBALS['package']]['map_options']['map_projection'] = 'EPSG:4326'; //
 										'is_basemap_layer' => true
 										)
 	);
-
+	
+	
 	/**
 	 * LAYERS VISIBILITY SETTINGS
 	 * definition of the list of the layers to be shown as basemap
@@ -356,22 +457,26 @@ $GLOBALS[$GLOBALS['package']]['map_options']['map_projection'] = 'EPSG:4326'; //
 	
 	
 	/**
-	 * EXAMPLE WMS SERVER - ATTUALMENTE INUTILIZZATO
-	 * used for the "example" panel
+	 * PLUGINS SETTINGS
 	 */
-	$GLOBALS[$GLOBALS['package']]['wms_example_server']['title'] = "Cartografia di base - IGM 100.000  ";
-	$GLOBALS[$GLOBALS['package']]['wms_example_server']['source'] = "Geoportale Nazionale";
-	$GLOBALS[$GLOBALS['package']]['wms_example_server']['portal_url'] = "http://www.pcn.minambiente.it/mattm/servizio-wms/";
-	$GLOBALS[$GLOBALS['package']]['wms_example_server']['description_url'] = "http://wms.pcn.minambiente.it/ogc?map=/ms_ogc/WMS_v1.3/raster/IGM_100000.map&service=wms&request=getCapabilities&version=1.3.0";
-	$GLOBALS[$GLOBALS['package']]['wms_example_server']['server_url'] = "http://wms.pcn.minambiente.it/ogc?map=/ms_ogc/WMS_v1.3/raster/IGM_100000.map";
+	 $GLOBALS[$GLOBALS['package']]['plugins'] = array(
+	 	 	 'wmslayers' => array(
+	 	 	 	 	 'jsLib' => 'include/openViewerPlugins/openViewerWms.js'
+	 	 	 )
+	 );
 	
 	
-	
-	/**
+	 /**
 	 * OTHER SETTINGS
 	 */
 	 $GLOBALS[$GLOBALS['package']]['show_console_messages'] = true;
-	/* FINE Nuovo visualizzatore */
+	 $GLOBALS[$GLOBALS['package']]['show_getcapabilities_button'] = true;
+	 $GLOBALS[$GLOBALS['package']]['show_getcapabilities_in_a_new_tab'] = true;
+
+	 
+	 
+	 
+	 /* FINE Nuovo visualizzatore */
 
 /* OVD - USATO DALLE FUNZIONI DELL?APPLICAZIONE (RICERCHE, INTERROGAZIONI, EXPORT)
 
