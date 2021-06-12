@@ -2,9 +2,10 @@
 	require_once 'etc/config.app.inc.php';
 	require_once $GLOBALS['resources_file'];
 	
-	//$pageTitle			= $GLOBALS['app_name'].' - '.$GLOBALS['strings']['interface']['word_custompage'];
-	//$appLanguage		= $GLOBALS[$GLOBALS['package']]['language'];
-	//$appCopyright		= 'Copyright (C) '.$GLOBALS['release_year'].' '.$GLOBALS['app_name'].' '.$GLOBALS['app_maintainer'];
+	$pageTitle			= $GLOBALS['app_name'].' - '.$GLOBALS['strings']['interface']['tab_custom_title'];
+	$appLanguage		= $GLOBALS[$GLOBALS['package']]['language'];
+	$appCopyright		= 'Copyright (C) '.$GLOBALS['release_year'].' '.$GLOBALS['app_name'].' '.$GLOBALS['app_maintainer'];
+	
 	$mapTitle			= $GLOBALS[$GLOBALS['package']]['map_title'];
 	$mapDescription		= $GLOBALS[$GLOBALS['package']]['map_description'];
 	$mapProjection		= $GLOBALS['strings']['interface']['sentence_renderingprojection'].': '.$GLOBALS[$GLOBALS['package']]['map_options']['map_projection'];

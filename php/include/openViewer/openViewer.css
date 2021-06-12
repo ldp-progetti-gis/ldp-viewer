@@ -291,7 +291,6 @@ body {
 	stroke: #2a8aa1;
 }
 
-
 #ov_show_hide_leftTabs.active{
 	-moz-transform: scaleX(1);
 	-o-transform: scaleX(1);
@@ -377,6 +376,8 @@ body {
 	position:relative; 
 }
 
+#mapAttribution {
+}
 
 /***********/
 /* TOOLBAR */
@@ -710,6 +711,7 @@ p.page_container {
 
 li.page_about,
 ul.page_about,
+label.page_about,
 ul.page_container,
 li.page_container,
 label.page_container {
@@ -732,6 +734,23 @@ h1.page_about {
     font-weight: bold;
 	line-height: 100%;
 }
+
+
+label.tab_search_options,
+input.tab_search_options {
+	font-size: 90%;
+	line-height: 100%;
+    margin-top: 2px;
+    margin-bottom: 4px;
+	white-space: nowrap;
+}
+
+#ov_run_search {
+	background-color: #2a8aa1;
+	color: #fff;
+	font-size: 90%;
+}
+
 
 /**********/
 /* LEGEND */
@@ -1575,6 +1594,9 @@ code {
 
 #ov_wms_selector_container {clear: both;}
 
+#search_by_text_filter, 
+#search_by_coordx_filter,
+#search_by_coordy_filter,
 #ov_wms_selector_filter_text {
 	font-size:14px;
 	padding: 3px;

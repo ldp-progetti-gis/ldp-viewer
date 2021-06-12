@@ -477,7 +477,10 @@ if(flag_console_messages) console.log('Configuration of the base layers...');
 							wms_layers_names: '{$GLOBALS[$GLOBALS["package"]]["basemap_layers_definition"].$ln.wms_layers_names}',
 							wms_server_type: '{$GLOBALS[$GLOBALS["package"]]["basemap_layers_definition"].$ln.wms_server_type}',
 							wms_layer_projection: '{$GLOBALS[$GLOBALS["package"]]["basemap_layers_definition"].$ln.wms_layer_projection}',
+							max_zoom: '{$GLOBALS[$GLOBALS["package"]]["basemap_layers_definition"].$ln.max_zoom}',
 							layer_title: '{$GLOBALS[$GLOBALS["package"]]["basemap_layers_definition"].$ln.layer_title}',
+							layer_description: '{$GLOBALS[$GLOBALS["package"]]["basemap_layers_definition"].$ln.layer_description}',
+							layer_copyright: '{$GLOBALS[$GLOBALS["package"]]["basemap_layers_definition"].$ln.layer_copyright}',
 							layer_visible: '{json_encode($GLOBALS[$GLOBALS["package"]]["basemap_layers_definition"].$ln.layer_visible)}',
 							is_basemap_layer: '{json_encode($GLOBALS[$GLOBALS["package"]]["basemap_layers_definition"].$ln.is_basemap_layer)}'
 							};

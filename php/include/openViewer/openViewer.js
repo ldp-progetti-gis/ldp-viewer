@@ -856,6 +856,143 @@ openViewer.prototype.ev_footer_scala_click = function(event) {
 	},this));
 };
 
+/** Search an address or a location by coordinates (based on the settings of the "search" tab */
+openViewer.prototype.ev_run_location_search = function(params) {
+// ov_utils.ovLog('RunLocationSearch'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
+	
+    var that = this;
+    
+//					$('#search_by_text_filter')[0].disabled = true;
+//					$('#search_by_coordx_filter')[0].disabled = false;
+//					$('#search_by_coordy_filter')[0].disabled = false;
+//					
+//					$('#search_tab_address_found').html('simone maffei');
+//					$('#search_tab_coordinates_found').html('');
+	console.log('params',params);
+	
+	var aType=params.aType;
+    var FA=params.objFoundAddress;     // JQuery object to show the result of the search in the "search" tab
+    var FC=params.objFoundCoordinates; // JQuery object to show the result of the search in the "search" tab
+    var FL=params.objFoundLicence;     // JQuery object to show the result of the search in the "search" tab
+    var flagKeepScale=params.keepCurrentScale;
+console.log('flagKeepScale',flagKeepScale);
+    
+	switch(aType) {
+		case 'coords':
+			var coordX = params.coordX;
+			var coordY = params.coordY;
+			
+			var data = {
+				"format": "json",
+				"lat": coordY,
+				"lon": coordX
+			};
+			
+			var serviceUrl = "https://nominatim.openstreetmap.org/reverse";
+			break;
+		default: // case 'text'
+			var searchText = params.searchText;
+			
+			var data = {
+				"format": "json",
+				"addressdetails": 1,
+				"q": searchText,
+				"limit": 1
+			};
+			
+			var serviceUrl = "https://nominatim.openstreetmap.org";
+			break;
+		}
+		
+	$.ajax({
+		method: "GET",
+		url: serviceUrl,
+		data: data
+	})
+	.done(function( msg ) {
+	switch(aType) {
+		case 'coords':
+ov_utils.ovLog(msg, 'AddressFounded'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
+			if(msg===undefined) {
+				FA.html(strings_interface.sentence_searchunsuccessful);
+				FC.html('');
+				FL.html('');
+				return;
+			}
+			var coordX = parseFloat(msg['lon']);
+			var coordY = parseFloat(msg['lat']);
+			var latlonProj = 'EPSG:4326';
+			
+			var foundAddress = '';
+			if(msg['display_name']!=='') foundAddress = msg['display_name'];
+			
+			var foundLocation = '';
+			if(msg['lon']!==''&&msg['lat']!=='') foundLocation = msg['lon'] +' , ' + msg['lat'];
+			
+			var foundLicence = '';
+			if(msg['licence']!=='') foundLicence = msg['licence'];
+			
+			break;
+		default: // case 'text'
+ov_utils.ovLog(msg[0], 'AddressFounded'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
+			if(msg.length<=0) {
+				FA.html(strings_interface.sentence_searchunsuccessful);
+				FC.html('');
+				FL.html('');
+				return;
+			}
+			var coordX = parseFloat(msg[0]['lon']);
+			var coordY = parseFloat(msg[0]['lat']);
+			var latlonProj = 'EPSG:4326';
+			
+			var foundAddress = '';
+			if(msg[0]['display_name']!=='') foundAddress = msg[0]['display_name'];
+			
+			var foundLocation = '';
+			if(msg[0]['lon']!==''&&msg[0]['lat']!=='') foundLocation = msg[0]['lon'] +' , ' + msg[0]['lat'];
+			
+			var foundLicence = '';
+			if(msg[0]['licence']!=='') foundLicence = msg[0]['licence'];
+			
+			break;
+		}
+		
+		/*
+		var foundCountry = msg[0]['address']['country'];
+		var foundState = msg[0]['address']['state'];
+		var foundCounty = msg[0]['address']['county'];
+		var foundVillage = msg[0]['address']['village'];
+		var foundRoad = msg[0]['address']['road'];
+		
+		if (foundRoad!==undefined&&foundRoad!=='') foundAddress=foundRoad;
+		if (foundVillage!==undefined&&foundVillage!=='') { if(foundAddress!='') foundAddress+=', '; foundAddress+=foundVillage; }
+		if (foundCounty!==undefined&&foundCounty!=='') { if(foundAddress!='') foundAddress+=' ('; foundAddress+=foundCounty; foundAddress+=')'; }
+		if (foundState!==undefined&&foundState!=='') { if(foundAddress!='') foundAddress+=', '; foundAddress+=foundState; }
+		if (foundCountry!==undefined&&foundCountry!=='') { if(foundAddress!='') foundAddress+=', '; foundAddress+=foundCountry.toUpperCase(); }
+		*/
+		
+		FA.html(foundAddress);
+		FC.html(foundLocation);
+		FL.html(foundLicence);
+		
+		// zoom to the founded location
+		open_viewer.map.setCenterProjected(coordX, coordY, latlonProj);
+		if(!flagKeepScale) open_viewer.map.setZoom(18);
+		
+/* OVD eliminate, it doesn't work
+			if(msg[0]!==undefined) {
+				if(msg[0]['lon']!==''&&msg[0]['lat']!=='') {
+					var coordX = parseFloat(msg[0]['lon']);
+					var coordY = parseFloat(msg[0]['lat']);
+					var latlonProj = 'EPSG:4326';
+					open_viewer.map.setCenterProjected(coordX, coordY, latlonProj);
+					if(!flagKeepScale) open_viewer.map.setZoom(18);
+				}
+			}
+*/		
+		});         
+    return;
+};
 
 /** EVENTS - HANDLING OF LAYERS ON THE LEGEND
  * ---------------------------------------------------------------

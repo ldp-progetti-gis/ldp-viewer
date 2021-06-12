@@ -222,6 +222,10 @@ ovMap.prototype.getZoom = function() {
 	var zoom = view.getZoom();
 	return zoom;
 };
+/** Set the current zoom level */
+ovMap.prototype.setZoom = function(zoomLevel) {
+	this.map.getView().setZoom(zoomLevel);
+}
 /** Return the coordinates of the center of the current view, according to the "map projection" */
 ovMap.prototype.getCenter = function() {
 	var view = this.map.getView();
@@ -384,6 +388,7 @@ ovMap.prototype.LoadMap = function() {
 			for(var j=0; j < map_baseLayers.length; j++){
                 
 				var aLayerDef = map_baseLayersDefinition[j]
+console.log('amaxLayerDef',aLayerDef);
 
 // console.log('- Layer '+map_baseLayers[j]);
 // console.log('  - key '+aLayerDef.key);
@@ -431,10 +436,28 @@ ovMap.prototype.LoadMap = function() {
 									'serverType: aLayerDef.wms_server_type,'+
 									'projection: aLayerDef.wms_layer_projection'+
 								'}),'+
+								'attribution: "simone",'+
 								'name: "'+aLayerDef.layer_title+'",'+
 								'visible: '+aLayerDef.layer_visible+','+
 								'baselayer: '+aLayerDef.is_basemap_layer+
 							'});')
+						break;
+					case "XYZ": // OVD3 setAttributions(attributions)
+						eval('var '+aLayerDef.key+' = new ol.layer.Tile({'+
+								'source: new ol.source.XYZ ({'+
+									'url: aLayerDef.wms_url'+
+								'}),'+
+								'maxZoom: '+aLayerDef.max_zoom+','+
+//								'maxZoom: '+5+','+
+//								'projection: aLayerDef.wms_layer_projection,'+
+								'name: "'+aLayerDef.layer_title+'",'+
+								'visible: '+aLayerDef.layer_visible+','+
+								'baselayer: '+aLayerDef.is_basemap_layer+
+//							');')
+							'});')
+console.log('maxurl: aLayerDef.wms_url');
+console.log('maxname: "'+aLayerDef.layer_title+'",');
+console.log('maxZoom: '+aLayerDef.max_zoom+',');
 						break;
 					case "":
 						eval('var '+aLayerDef.key+' = new ol.layer.Tile({'+
@@ -450,7 +473,6 @@ ovMap.prototype.LoadMap = function() {
 			}
 		}
 	}
-	
 	
 	/**
 	 * CREATION OF THE ADDITIONAL LAYERS
@@ -758,9 +780,13 @@ ovMap.prototype.LoadMap = function() {
 	//var controls = [ new ol.control.ScaleLine(), new ol.control.Zoom(), mousePositionControl ];
     //var controls = [ new ol.control.ScaleLine(), mousePositionControl ];
 
+    var attribution = new ol.control.Attribution({collapsible: false,});
+    
+    
     var controls = [];
     if(this.mapOptions['show_coordinates_mouse']) controls.push(mousePositionControl);
     if(this.mapOptions['show_view_scale']) controls.push(new ol.control.ScaleLine());
+    if(this.mapOptions['show_coordinates_mouse']) controls.push(attribution);
 	
 	
 	/**
@@ -1452,7 +1478,7 @@ ov_utils.ovLog('Saving an "historical" view...'); // supported types: <empty> or
 				resolution: this.map.getView().getResolution()
 			});
 			this.historyViewIndex++;
-ov_utils.ovLog('... '+this.historyViewIndex+ ' saved views'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
+ov_utils.ovLog('... '+this.historyViewIndex+ ' saved views ('+this.getZoom()+')'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
             // restore the previous "caller" (=interact state) if the caller is not an interactive tool, but a button
 			if(this.historyViewCaller=='ZoomIn'||this.historyViewCaller=='ZoomOut')
 				this.historyViewCaller = this.historyViewPreviousCaller
@@ -1470,6 +1496,7 @@ ov_utils.ovLog('... '+this.historyViewIndex+ ' saved views'); // supported types
 		// it is a different status than the last
 	}
 */
+
 }
 // Convert the features defeined as GML to JSON
 ovMap.prototype.gmlToJson = function(xml) {
