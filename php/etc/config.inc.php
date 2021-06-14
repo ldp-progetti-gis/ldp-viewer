@@ -36,7 +36,7 @@
 	 * INTERFACE SETTINGS
 	 */
 	$GLOBALS['favicon']					= $GLOBALS['URLBaseInclude'].'/img/favicon.ico';
-	$GLOBALS['language_default']		= 'italiano';				// this variable can be overrided in the specific config.app.inc.php configuration file
+	$GLOBALS['language_default']		= 'english';				// this variable can be overrided in the specific config.app.inc.php configuration file
 	
 	$GLOBALS['exit_url_default']		= 'https://www.ldpgis.it/';	// this variable can be overrided in the specific config.app.inc.php configuration file
 	

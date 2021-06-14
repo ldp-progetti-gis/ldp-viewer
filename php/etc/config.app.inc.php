@@ -21,7 +21,7 @@
 	session_start();
 	
 	$GLOBALS['package']='app';
-	$GLOBALS['resources_file'] = 'etc/strings_ITA.inc.php';
+	$GLOBALS['resources_file'] = 'etc/strings_ENG.inc.php';
 	require_once $GLOBALS['resources_file'];
 
 	/**

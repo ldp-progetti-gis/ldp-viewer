@@ -436,7 +436,6 @@ console.log('amaxLayerDef',aLayerDef);
 									'serverType: aLayerDef.wms_server_type,'+
 									'projection: aLayerDef.wms_layer_projection'+
 								'}),'+
-								'attribution: "simone",'+
 								'name: "'+aLayerDef.layer_title+'",'+
 								'visible: '+aLayerDef.layer_visible+','+
 								'baselayer: '+aLayerDef.is_basemap_layer+
@@ -786,7 +785,7 @@ console.log('maxZoom: '+aLayerDef.max_zoom+',');
     var controls = [];
     if(this.mapOptions['show_coordinates_mouse']) controls.push(mousePositionControl);
     if(this.mapOptions['show_view_scale']) controls.push(new ol.control.ScaleLine());
-    if(this.mapOptions['show_coordinates_mouse']) controls.push(attribution);
+    if(false) controls.push(attribution);
 	
 	
 	/**
