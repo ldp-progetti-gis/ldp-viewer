@@ -119,11 +119,13 @@ It was developed using PHP and JavaScript, and for almost all used libraries (li
 
 ### Installation
 
-1. Clone the repo
+Clone the repo in your folder
    ```sh
    git clone https://github.com/ldp-progetti-gis/ldp-viewer.git
    ```
-2. Configure the php/etc/config.inc.php file<br>
+### Customization
+
+1. Configure the php/etc/config.inc.php file<br>
    This file includes the general definitions common to all scripts. This file is very general, and it is not
    "directly" included inside the script, but it is referenced (included) by other more specific configuration
    files, focused on specific applications (config.app.inc.php).
@@ -134,7 +136,7 @@ It was developed using PHP and JavaScript, and for almost all used libraries (li
    - version and date
    - other "service" variables
    
-3. Configure the php/etc/config.app.inc.php file<br>
+2. Configure the php/etc/config.app.inc.php file<br>
    This file includes the specific definitions common to all scripts. This file extends the general configuration
    file "config.inc.php" (this script is included).<br>
    The main sections of this configuration file relate to:<br>
@@ -267,18 +269,37 @@ It was developed using PHP and JavaScript, and for almost all used libraries (li
    
    ```
      
+   - definition of additional "service" parameter
 
 
+### Make it working (publish)
 
+You may decide to publish the application using your own infrastructure and following your own habit.
 
-<!-- USAGE EXAMPLES -->
-## Usage
+As an alternative, in the git folder there is a "docker" configuration file which allows to publish the application directly from your local computer.
 
-Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
+[Docker](https://www.docker.com/) is an open platform for developing, shipping, and running applications. Docker enables you to separate your applications from your infrastructure so you can deliver software quickly. With Docker, you can manage your infrastructure in the same ways you manage your applications. By taking advantage of Docker’s methodologies for shipping, testing, and deploying code quickly, you can significantly reduce the delay between writing code and running it in production.
 
-_For more examples, please refer to the [Documentation](https://example.com)_
+Below an example of Docker configuration file to start a php server named "php73" on the port 7000:80
 
-
+   ```sh
+    version: '3.3'
+    services:
+            web:
+                    build:
+                            context: ./php
+                            dockerfile: Dockerfile
+                    container_name: php73
+                    volumes:
+                            - ./php:/var/www/html/
+                    ports:
+                            - 7000:80
+   ```
+To launch the server you must run from the console:
+```sh
+	sudo docker-compose.yml up
+	... and type the password of the "sudo"
+```
 
 <!-- ROADMAP -->
 ## Roadmap
