@@ -38,7 +38,8 @@
 <br />
 <p align="center">
   <a href="https://github.com/ldp-progetti-gis/ldp-viewer">
-    <img src="images/logo.png" alt="Logo" width="80" height="80">
+    <img src="images/logo_solo_ldp_169x194.png" border="5" alt="Logo" width="169" height="194" style="border:5px solid black">
+    <img src="images/logo_solo_ldp_169x194.png" bstyle="border:5px solid black">
   </a>
 
   <h3 align="center">gisOpenViewer</h3>
