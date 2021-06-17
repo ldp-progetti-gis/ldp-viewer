@@ -74,7 +74,7 @@
         <li><a href="#prerequisites">Prerequisites</a></li>
         <li><a href="#installation">Installation</a></li>
         <li><a href="#customization">Customization</a></li>
-        <li><a href="#make-it-working">Make it working)</a></li>
+        <li><a href="#make-it-working">Make it working</a></li>
       </ul>
     </li>
     <li><a href="#roadmap">Roadmap</a></li>
@@ -338,31 +338,22 @@ Project Link: [https://github.com/ldp-progetti-gis/ldp-viewer](https://github.co
 
 
 
-<!-- ACKNOWLEDGEMENTS -->
-## Acknowledgements
-
-* []()
-* []()
-* []()
-
-
-
 
 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-[product-screenshot]: images/gisOpenViewer.png
-[Product Name Screen Shot]: simone
 [contributors-shield]: https://img.shields.io/github/contributors/ldp-progetti-gis/repo.svg?style=for-the-badge
 [contributors-url]: https://github.com/ldp-progetti-gis/repo/graphs/contributors
 [forks-shield]: https://img.shields.io/github/forks/ldp-progetti-gis/repo.svg?style=for-the-badge
 [forks-url]: https://github.com/ldp-progetti-gis/repo/network/members
 [stars-shield]: https://img.shields.io/github/stars/ldp-progetti-gis/repo.svg?style=for-the-badge
 [stars-url]: https://github.com/ldp-progetti-gis/repo/stargazers
+
 [issues-shield]: https://img.shields.io/github/issues/ldp-progetti-gis/repo.svg?style=for-the-badge
-[issues-url]: https://github.com/ldp-progetti-gis/repo/issues
+[issues-url]: https://github.com/ldp-progetti-gis/ldp-viewer/issues
+
 [license-shield]: https://img.shields.io/github/license/ldp-progetti-gis/repo.svg?style=for-the-badge
-[license-url]: https://github.com/ldp-progetti-gis/repo/blob/master/LICENSE.txt
+[license-url]: https://github.com/ldp-progetti-gis/ldp-viewer/blob/main/LICENSE.txt
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://it.linkedin.com/company/ldp-progetti-gis
 
