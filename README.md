@@ -372,6 +372,5 @@ Project Link: [https://github.com/ldp-progetti-gis/ldp-viewer](https://github.co
 [twitter-url]: https://twitter.com/ldpgis
 
 [linkedin-shield]: https://img.shields.io/badge/LINKEDIN-orange?style=for-the-badge&logo=linkedin&colorB=555
->>>>>>> d31a62956ec202078da1e0df34d6871a63780174
 [linkedin-url]: https://it.linkedin.com/company/ldp-progetti-gis
 
