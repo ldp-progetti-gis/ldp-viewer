@@ -38,7 +38,7 @@
 <br />
 <p align="center">
   <a href="https://github.com/ldp-progetti-gis/ldp-viewer">
-    <img src="images/logo_solo_ldp_169x194.png" border="0" alt="Logo" width="194" height="169">
+    <img src="images/logo_solo_ldp_182x158.png" border="0" alt="Logo" width="194" height="169">
   </a>
 
   <h3 align="center">gisOpenViewer</h3>
@@ -96,6 +96,7 @@ gisOpenViewer is an Internet application that allows the publication of geograph
 allows users to navigate the map (zoom, pan, view at a defined scale), modify the displayed geographic levels,
 add on the fly geographic layers published by WMS servers, query the associated data and generate print reports.
 
+<img src="images/gisOpenViewer.png" border="0" alt="Sample">
 
 
 ### Built With
