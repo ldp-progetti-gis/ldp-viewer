@@ -113,11 +113,9 @@ To get a local copy up and running follow these simple steps.
 
 ### Prerequisites
 
-This is an example of how to list things you need to use the software and how to install them.
-* npm
-  ```sh
-  npm install npm@latest -g
-  ```
+The application has no prerequisites.
+
+It was developed using PHP and JavaScript, and for almost all used libraries (listed above) there is a local copy of the related code (with the exception of few exceptions where there is a link to an online resource).
 
 ### Installation
 
@@ -128,16 +126,147 @@ This is an example of how to list things you need to use the software and how to
 2. Configure the php/etc/config.inc.php file<br>
    This file includes the general definitions common to all scripts. This file is very general, and it is not
    "directly" included inside the script, but it is referenced (included) by other more specific configuration
-   files, focused on specific applications.
+   files, focused on specific applications (config.app.inc.php).
+   
+   In this file it is possible to customize:
+   - name and links to the organization
+   - name of the application
+   - version and date
+   - other "service" variables
+   
 3. Configure the php/etc/config.app.inc.php file<br>
    This file includes the specific definitions common to all scripts. This file extends the general configuration
    file "config.inc.php" (this script is included).<br>
    The main sections of this configuration file relate to:<br>
    - configuration of the interface
-   - configuration of the map options
-   - definition of the main layers (representing the main contents of the application/map)
-   - definition of the basemaps (used as background)
-   - definition of the predefined external WMS server (to let the user add additional layers on the fly)
+   - configuration of the map options (projection, initial view, map units, etc.)
+   - definition of the **main layers** (representing the main contents of the application/map)<br>
+     Usually this layers derive from a WMS server.<br>
+     The definition of the list of the layers can be done by setting a set of variables for each layers, 
+     and the sub-layers can be grouped using a two levels structure (groups and layers).<br>
+     Below an example of the code:
+   ```sh
+	$GLOBALS[$GLOBALS['package']]['map_definition']= array(
+			'wms_geoserver'=> array(
+					'tipo'=> 'wms_geoserver',
+					'url' => 'https://sit.spid.comune.poggibonsi.si.it/services/wms',
+					'layers_info'=> array(
+							'view_pratiche_punti'=> array(
+									'min_scale'=> 1,
+									'max_scale'=> 50000,
+									'tooltip'=> 'Pratica n. %numero_pratica%',
+									'hyperlink'=> 'ricerca_info_pratica_edilizia.php?id=%ogc_fid%',
+									'selectable'=> true,
+									'visible'=> true,
+									'legend_label'=> 'Pratiche edilizie schedario',
+									'image_legend_layer'=> 'view_pratiche_punti',
+									'feature_name'=> 'view_pratiche_punti',
+									'group'=> 'pratiche_edilizie'
+							),
+							'edifici'=> array(
+									'min_scale'=> 1,
+									'max_scale'=> 10000,
+									'tooltip'=> 'Edificio %id%',
+									'hyperlink'=> 'extra_info/info_edifici.php?id=%id%',
+									'selectable'=> true,
+									'visible'=> true,
+									'legend_label'=> 'Edifici',
+									'image_legend_layer'=> 'edifici',
+									'feature_name'=> 'edifici',
+									'group'=> 'pratiche_edilizie'
+							),
+							'elementi_lineari_2k_10k'=> array(
+									'min_scale'=> 1,
+									'max_scale'=> 5000,
+									'tooltip'=> '%topon%',
+									'hyperlink'=> '',
+									'selectable'=> true,
+									'visible'=> true,
+									'legend_label'=> 'Elementi lineari 2k_10k',
+									'image_legend_layer'=> 'elementi_lineari_2k_10k',
+									'feature_name'=> 'elementi_lineari_2k_10k',
+									'group'=> 'ctc'
+							),
+							'limiti_amministrativi'=> array(
+									'min_scale'=> 500,
+									'max_scale'=> 50000,
+									'tooltip'=> '%nome%',
+									'hyperlink'=> '',
+									'selectable'=> false,
+									'visible'=> false,
+									'legend_label'=> 'Limiti comunali',
+									'image_legend_layer'=> 'limiti_amministrativi',
+									'feature_name'=> 'limiti_amministrativi',
+									'group'=> 'ctc'
+							)
+					),
+					'groups_info'=> array(
+							'pratiche_edilizie'=> array(
+									'visible'=> true,
+									'legend_label'=> 'Pratiche edilizie schedario',
+									'expanded'=> true
+							),
+							'ctc'=> array(
+									'visible'=> true,
+									'legend_label'=> 'Carta Tecnica Comunale',
+									'expanded'=> true
+							)
+					)
+			)
+	);
+   ```
+   - definition of the **basemaps**<br>
+     These layers are used as background and reference for the overlapped layers.<br>
+     It is not possible to show more than one basemap at the time.<br>
+     The definition of the basemaps is similar to the main layers. Below a sample code:
+   ```sh
+	$GLOBALS[$GLOBALS['package']]['basemap_layers_definition']=array(
+		'open_street_map' => array(	//open_street_map
+			'source_type' => 'OSM',  
+			'wms_url' => null,
+			'wms_layers_names' => null,
+			'wms_query_layers_names' => '',
+			'wms_info_format' => '',
+			'wms_server_type' => null,
+			'wms_layer_projection' => 'EPSG:4326',
+			'layer_title' => 'OpenStreetMap',
+			'layer_visible' => ($GLOBALS[$GLOBALS['package']]['map_options']['default_base_layer'] == 'open_street_map'),
+			'is_basemap_layer' => true
+		),
+		'no_basemap' => array(
+			'source_type' => '',
+			'wms_url' => '',
+			'wms_layers_names' => '',
+			'wms_query_layers_names' => '',
+			'wms_info_format' => '',
+			'wms_server_type' => '',
+			'wms_layer_projection' => '',
+			'layer_title' => $GLOBALS['strings']['interface']['sentence_nobasemap'],
+			'layer_visible' => ($GLOBALS[$GLOBALS['package']]['map_options']['default_base_layer'] == 'no_basemap'),
+			'is_basemap_layer' => true
+		)
+	);   
+   ```
+   - definition of the **predefined external WMS server**<br>
+     The predefined WMS servers are listed in the "add WMS layer" window and make easier the selection of the layers to be added on the fly.<br>
+     In any case, the user can type directly the url of her/his preferred WMS source, even if this source is not present as predefined.<br>
+     Below a sample code:
+   ```sh
+	$GLOBALS[$GLOBALS['package']]['wms_server'] = array(
+		"neo_nasa"=> array(
+			"title"			=> "NASA Earth Observation",
+			"description_url"	=> "https://neo.sci.gsfc.nasa.gov/",
+			"server_url"		=> "https://neo.sci.gsfc.nasa.gov/wms/wms?version=1.3.0&service=WMS"
+		),
+		"corine_2018"=> array(
+			"title"			=> "Corine Land Cover 2018",
+			"description_url"	=> "https://copernicus.discomap.eea.europa.eu/arcgis/rest/services/Corine/CLC2018_WM/MapServer",
+			"server_url"		=> "https://copernicus.discomap.eea.europa.eu/arcgis/services/Corine/CLC2018_WM/MapServer/WMSServer"
+		)
+	);
+   
+   ```
+     
 
 
 
