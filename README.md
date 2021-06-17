@@ -35,7 +35,6 @@
 
 
 <!-- PROJECT LOGO -->
-<br />
 <p align="center">
   <a href="https://github.com/ldp-progetti-gis/ldp-viewer">
     <img src="images/logo_solo_ldp_182x158.png" border="0" alt="Logo" width="194" height="169">
@@ -90,13 +89,12 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
+[![gisOpenViewer application example](images/gisOpenViewer.png "gisOpenViewer application example")](https://www.ldpgis.it/)
 
 gisOpenViewer is an Internet application that allows the publication of geographic data. The interactive viewer
 allows users to navigate the map (zoom, pan, view at a defined scale), modify the displayed geographic levels,
-add on the fly geographic layers published by WMS servers, query the associated data and generate print reports.
+add on the fly geographic layers published by WMS servers, query the associated data.
 
-<img src="images/gisOpenViewer.png" border="0" alt="Sample">
 
 
 ### Built With
@@ -202,6 +200,8 @@ Project Link: [https://github.com/ldp-progetti-gis/ldp-viewer](https://github.co
 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
+[product-screenshot]: images/gisOpenViewer.png
+[Product Name Screen Shot]: simone
 [contributors-shield]: https://img.shields.io/github/contributors/ldp-progetti-gis/repo.svg?style=for-the-badge
 [contributors-url]: https://github.com/ldp-progetti-gis/repo/graphs/contributors
 [forks-shield]: https://img.shields.io/github/forks/ldp-progetti-gis/repo.svg?style=for-the-badge
