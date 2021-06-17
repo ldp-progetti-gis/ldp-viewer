@@ -25,11 +25,14 @@
 *** for contributors-url, forks-url, etc. This is an optional, concise syntax you may use.
 *** https://www.markdownguide.org/basic-syntax/#reference-style-links
 -->
+<!--
 [![Contributors][contributors-shield]][contributors-url]
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
-[![MIT License][license-shield]][license-url]
+-->
+[![GNU GPL v2 License][license-shield]][license-url]
+[![Twitter][twitter-shield]][twitter-url]
 [![LinkedIn][linkedin-shield]][linkedin-url]
 
 
@@ -81,7 +84,6 @@
     <li><a href="#contributing">Contributing</a></li>
     <li><a href="#license">License</a></li>
     <li><a href="#contact">Contact</a></li>
-    <li><a href="#acknowledgements">Acknowledgements</a></li>
   </ol>
 </details>
 
@@ -332,7 +334,7 @@ Distributed under the GNU GENERAL PUBLIC LICENSE, Version 2 License. See `LICENS
 <!-- CONTACT -->
 ## Contact
 
-LDP Progetti GIS - [@twitter_handle](https://twitter.com/twitter_handle) - helpdesk@ldpgis.it
+LDP Progetti GIS - [@twitter](https://twitter.com/ldpgis) - [LinkedIn](https://it.linkedin.com/company/ldp-progetti-gis) - helpdesk@ldpgis.it
 
 Project Link: [https://github.com/ldp-progetti-gis/ldp-viewer](https://github.com/ldp-progetti-gis/ldp-viewer)
 
@@ -342,19 +344,23 @@ Project Link: [https://github.com/ldp-progetti-gis/ldp-viewer](https://github.co
 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
+<!--
 [contributors-shield]: https://img.shields.io/github/contributors/ldp-progetti-gis/repo.svg?style=for-the-badge
 [contributors-url]: https://github.com/ldp-progetti-gis/repo/graphs/contributors
 [forks-shield]: https://img.shields.io/github/forks/ldp-progetti-gis/repo.svg?style=for-the-badge
 [forks-url]: https://github.com/ldp-progetti-gis/repo/network/members
 [stars-shield]: https://img.shields.io/github/stars/ldp-progetti-gis/repo.svg?style=for-the-badge
 [stars-url]: https://github.com/ldp-progetti-gis/repo/stargazers
-
 [issues-shield]: https://img.shields.io/github/issues/ldp-progetti-gis/repo.svg?style=for-the-badge
 [issues-url]: https://github.com/ldp-progetti-gis/ldp-viewer/issues
+-->
 
-[license-shield]: https://img.shields.io/github/license/ldp-progetti-gis/repo.svg?style=for-the-badge
+[license-shield]: https://img.shields.io/badge/LICENSE-GNU%20GPL%20v.2-orange?style=for-the-badge
 [license-url]: https://github.com/ldp-progetti-gis/ldp-viewer/blob/main/LICENSE.txt
 
-[linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
+[twitter-shield]: https://img.shields.io/badge/TWITTER-orange?style=for-the-badge&logo=twitter&colorB=555
+[twitter-url]: https://twitter.com/ldpgis
+
+[linkedin-shield]: https://img.shields.io/badge/LINKEDIN-orange?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://it.linkedin.com/company/ldp-progetti-gis
 
