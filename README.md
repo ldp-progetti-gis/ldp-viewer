@@ -74,7 +74,7 @@
         <li><a href="#prerequisites">Prerequisites</a></li>
         <li><a href="#installation">Installation</a></li>
         <li><a href="#customization">Customization</a></li>
-        <li><a href="#Make-it-working-(publish)">Make it working (publish)</a></li>
+        <li><a href="#make-it-working">Make it working)</a></li>
       </ul>
     </li>
     <li><a href="#roadmap">Roadmap</a></li>
@@ -273,7 +273,7 @@ Clone the repo in your folder
    - definition of additional "service" parameter
 
 
-### Make it working (publish)
+### Make it working
 
 You may decide to publish the application using your own infrastructure and following your own habit.
 
