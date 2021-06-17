@@ -175,9 +175,6 @@ ov_utils.ovLog(params,'openViewer parameters'); // supported types: <empty> or "
     // creation of the map    
 	this.map = new ovMap( mapParams );
 
-	// this.initPanels();
-	// this.ev_window_resize();
-	
 	// ----------------------------------------------------------------------
 	// EVENTS HANDLING "INTERFACE" - Events related to the general interface
 	// ----------------------------------------------------------------------
@@ -355,60 +352,12 @@ openViewer.prototype.getScaleToFit = function(xmin, xmax, ymin, ymax, marginFact
 };
 
 
-/** PROPERTIES - MAIN LAYERS (MAPGUIDE, WMS, ...) (get/set/is)
+/** PROPERTIES - MAIN LAYERS (WMS, WMS_GEOSERVER, ...) (get/set/is)
  * ---------------------------------------------------------------
  * These procedures are required to handle the "main layers" defined in the
  * variable "stato" (map_definition in the PHP configuration file)
  */
 
-/* OVD CURRENTLY UNUSED: getMapGuideLayersNamesByIDs (return an array of the names of the layers served by MapGuide - used also by LibViewer.js)
-openViewer.prototype.getMapGuideLayersNamesByIDs = function(arrayID) {
-	var stato = this.getStato();
-
-	var lys= new Array();
-	// check the type for each "main layer" (MapGuide, default WMS)
-	for (var i=0;i<arrayID.length;i++) {
-		layers=stato['mapguide'].layers_info;
-		var a_layers_info=Object. (layers);
-		//a_layers_info.forEach(function(item2,index2) {
-		for (var j=0;j<a_layers_info.length;j++) {
-
-			if(layers[a_layers_info[j]].id==arrayID[i]) {
-				// found
-				lys.push(layers[a_layers_info[j]].name);
-			}
-		}
-	}
-
-	return lys;
-}
-*/
-/* OVD CURRENTLY UNUSED: getMapGuideVisibleLayersNames (return an array of the names of the layers served by MapGuide and visible at the current scale - used also by LibViewer.js)
-openViewer.prototype.getMapGuideVisibleLayersNames = function(a,b) {
-	var stato = this.getStato();
-	var ol_layer="mapguide";
-
-	var list_visible_layers=stato[ol_layer].list_layers_visible;
-// console.log(stato[ol_layer]);
-	if (list_visible_layers.indexOf(',') > -1){
-		var single_layer = list_visible_layers.split(",");
-		var visible_layer_array = [];
-		for(var i = 0; i < single_layer.length; i++){
-			var layer_id = single_layer[i];
-			
-			var layer_name = stato[ol_layer].layers_info[layer_id].name;
-// console.log(layer_name);
-				var currentRange = this.getCurrentRange(stato[ol_layer].layers_info[layer_id].ranges);
-			if (currentRange!=null){
-				var single_visible_layer=[];
-				single_visible_layer.name=layer_name;
-				visible_layer_array.push(single_visible_layer);
-			}
-		}
-	}
-	return visible_layer_array;
-}
-*/
 /** Retrieve the "name" of a "main layer" by a sub-group name (from the variable "stato" with the list of "main layers") */
 openViewer.prototype.getMainLayerNameBySubGroupName = function(group_name) {
 	var stato = this.getStato();
@@ -736,7 +685,6 @@ openViewer.prototype.toggleVistaSu = function(transition_time) {
 		}
 	}
 	
-// 	this.vistasuPanelContainer.toggle("slide",500);
 	this.toolbarPanelToggleVistasu.toggleClass("active");
 	this.vistasuPanelContainer.animate({width:'toggle'} ,transition_time);
 }
@@ -766,9 +714,7 @@ openViewer.prototype.toggleInfo = function(transition_time) {
 	
 	var width = $(window).width();
 	
-// 	this.infoPanelContainer.toggle().css('left','').css('width','');
 	this.titleToggleInfo.toggleClass("active");
-	//this.infoPanelContainer.animate({width:'toggle'}, transition_time).css('left','');
 	
 	// force the call to fix_css_left_info_panel because of bugfix IE
 	var panel_width=this.infoPanelContainer.width();
@@ -862,20 +808,11 @@ openViewer.prototype.ev_run_location_search = function(params) {
 	
     var that = this;
     
-//					$('#search_by_text_filter')[0].disabled = true;
-//					$('#search_by_coordx_filter')[0].disabled = false;
-//					$('#search_by_coordy_filter')[0].disabled = false;
-//					
-//					$('#search_tab_address_found').html('simone maffei');
-//					$('#search_tab_coordinates_found').html('');
-	console.log('params',params);
-	
 	var aType=params.aType;
     var FA=params.objFoundAddress;     // JQuery object to show the result of the search in the "search" tab
     var FC=params.objFoundCoordinates; // JQuery object to show the result of the search in the "search" tab
     var FL=params.objFoundLicence;     // JQuery object to show the result of the search in the "search" tab
     var flagKeepScale=params.keepCurrentScale;
-console.log('flagKeepScale',flagKeepScale);
     
 	switch(aType) {
 		case 'coords':
@@ -957,20 +894,6 @@ ov_utils.ovLog(msg[0], 'AddressFounded'); // supported types: <empty> or "consol
 			break;
 		}
 		
-		/*
-		var foundCountry = msg[0]['address']['country'];
-		var foundState = msg[0]['address']['state'];
-		var foundCounty = msg[0]['address']['county'];
-		var foundVillage = msg[0]['address']['village'];
-		var foundRoad = msg[0]['address']['road'];
-		
-		if (foundRoad!==undefined&&foundRoad!=='') foundAddress=foundRoad;
-		if (foundVillage!==undefined&&foundVillage!=='') { if(foundAddress!='') foundAddress+=', '; foundAddress+=foundVillage; }
-		if (foundCounty!==undefined&&foundCounty!=='') { if(foundAddress!='') foundAddress+=' ('; foundAddress+=foundCounty; foundAddress+=')'; }
-		if (foundState!==undefined&&foundState!=='') { if(foundAddress!='') foundAddress+=', '; foundAddress+=foundState; }
-		if (foundCountry!==undefined&&foundCountry!=='') { if(foundAddress!='') foundAddress+=', '; foundAddress+=foundCountry.toUpperCase(); }
-		*/
-		
 		FA.html(foundAddress);
 		FC.html(foundLocation);
 		FL.html(foundLicence);
@@ -979,17 +902,6 @@ ov_utils.ovLog(msg[0], 'AddressFounded'); // supported types: <empty> or "consol
 		open_viewer.map.setCenterProjected(coordX, coordY, latlonProj);
 		if(!flagKeepScale) open_viewer.map.setZoom(18);
 		
-/* OVD eliminate, it doesn't work
-			if(msg[0]!==undefined) {
-				if(msg[0]['lon']!==''&&msg[0]['lat']!=='') {
-					var coordX = parseFloat(msg[0]['lon']);
-					var coordY = parseFloat(msg[0]['lat']);
-					var latlonProj = 'EPSG:4326';
-					open_viewer.map.setCenterProjected(coordX, coordY, latlonProj);
-					if(!flagKeepScale) open_viewer.map.setZoom(18);
-				}
-			}
-*/		
 		});         
     return;
 };
@@ -1065,7 +977,6 @@ openViewer.prototype.ev_legenda_layer_checkbox_click = function(event) {
  *  - similar to "ev_legenda_plus_stile_click"
  */
 openViewer.prototype.ev_legenda_plus_click = function(event) {
-    alert('ffff');
 	var stato = this.getStato();
 	
 	var element = event.target;
@@ -1171,22 +1082,9 @@ openViewer.prototype.ev_map_mouse_move = function(event) {
 openViewer.prototype.ev_map_mouse_down = function(event) {
 // ov_utils.ovLog(event,'MAP MOUSE DOWN EVENT'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
 
-	var newVersionOVD = true; // OVD - reading/showing the feature attribute has been integrated in the select event
-	
 	event.preventDefault();
 	clearTimeout(this.timeoutId);
 
-if(!newVersionOVD) { // OVD ELIMINATED
-	var this_viewer = this;
-	var stato = this.getStato();
-
-	var eventType = event.type;
-
-	this.startPixel = this.map.map.getEventPixel(event);
-
-	event.coordinate = this.map.map.getCoordinateFromPixel(this.startPixel);
-    
-}    
 	this.timeoutId = setTimeout($.proxy(function() { 
 		// on devices where the "vibration" is enable
 		var canVibrate = "vibrate" in navigator || "mozVibrate" in navigator;
@@ -1199,112 +1097,6 @@ if(!newVersionOVD) { // OVD ELIMINATED
 			navigator.vibrate(50);
 		}
 		
-if(!newVersionOVD) { // OVD ELIMINATED
-		var a_ol_layers=Object.keys(stato);
-		for(var i=0; i<a_ol_layers.length; i++){
-			//var ol_layer=a_ol_layers[0];
-			var ol_layer=a_ol_layers[i];
-
-			//var ol_layer=a_ol_layers[0];
-			var source=this.map.getMapLayerSourceByName(ol_layer);
-
-			//if(stato[ol_layer].list_layers_hyperlinked!='') {
-			if(false) {
-				switch(ol_layer) {
-					case "wms_geoserver":
-						if(eventType=='mousedown') {
-							var url = source.getFeatureInfoUrl(
-								event.coordinate, this.map.getMapView().getResolution(), this.map.mapProjection,
-								{'INFO_FORMAT': 'text/javascript','QUERY_LAYERS': stato[ol_layer].list_layers_hyperlinked, 'format_options': 'callback:parseResponse'}
-							);
-						} else {
-							var url = source.getFeatureInfoUrl(
-								event.coordinate, this.map.getMapView().getResolution(), this.map.mapProjection,
-								{'INFO_FORMAT': 'text/javascript','QUERY_LAYERS': stato[ol_layer].list_layers_hyperlinked, 'buffer': this.touchBuffer, 'format_options': 'callback:parseResponse'}
-							);
-						}
-
-						$.ajax({
-							url: url,
-							dataType: 'jsonp',
-							jsonpCallback: 'parseResponse'
-						}).then(function(response) { this_viewer.openInfo(response); });
-
-					break;
-					case "mapguide":
-						var mapguide_coordinate = ol.proj.transform(event.coordinate, this.map.mapProjection,this.map.dataProjection);
-
-						var view = this_viewer.map.getMapView();
-						var resolution = view.getResolution();
-
-						if(eventType=='mousedown') {
-							var bufferPx=5;
-						} else {
-							var bufferPx=this.touchBuffer;
-						}
-
-						var buffer=resolution*bufferPx;
-
-						var x1=mapguide_coordinate[0] - buffer;
-						var x2=mapguide_coordinate[0] + buffer;
-						var y1=mapguide_coordinate[1] - buffer;
-						var y2=mapguide_coordinate[1] + buffer;
-
-						var geom="POLYGON(("+x1+" "+y2+","+x2+" "+y2+","+x2+" "+y1+","+x1+" "+y1+","+x1+" "+y2+"))";
-
-						var a_layers_hyperlinked=stato[ol_layer].list_layers_hyperlinked.split(",");
-
-
-						if (a_layers_hyperlinked.length > 0) {
-							var a_layernames=new Array();
-
-							for(var i=0;i<a_layers_hyperlinked.length; i++) {
-								a_layernames.push(stato[ol_layer].layers_info[a_layers_hyperlinked[i]].name);
-							}
-
-							var layernames=a_layernames.join();
-							data2send={
-								action:"GET_TOOLTIP_HYPERLINK",
-								mapName:stato[ol_layer].mg_session_info.mapName,
-								mapSession:stato[ol_layer].mg_session_info.mapSession,
-								layers:layernames,
-								geometry:geom,
-								maxfeatures:"1"
-							};
-
-
-							$.ajax({
-								url: stato[ol_layer].api_url,
-								method: 'POST',
-								dataType: 'json',
-								data: data2send,
-								error: function(a, b, c) {
-									ov_utils.ovLog('Ajax error','GetTooltipHyperlink', 'error'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
-								},
-								success: function(response) {
-									if(response.status=="ok") {
-										if(response.data.hyperlink!='') {
-											
-											if(response.data.hyperlink.match(/getCoords/g)){
-												var data='&x='+event.coordinate[0]+'&y='+event.coordinate[1];
-												response.data.hyperlink +=data;
-												
-											}
-											this_viewer.loadInfoPage('tabQueryResult',response.data.hyperlink,true);
-
-											// if the layer is hidden, it is toggled to visible
-											this_viewer.infoPanelContainer.show(500);
-// 											this_viewer.titleToggleInfo.addClass("active");
-										}
-									}
-								}
-							});
-						}
-					break;
-				}
-			}       
-		}
-} // OVD ELIMINATED
 	},this), 300, false); 
 };
 /** Identify/Selection of geographical features (MAIN LAYERS INTEGRATION)
@@ -1495,10 +1287,6 @@ ov_utils.ovLog('Plugin WMS LAYERS not installed, impossible to get wms feature i
 								// set the callback function
 								var cbFunc = this_viewer.addFeaturesToSelection; // it is defined in this class because it is used by other "standard" functionalities
 									
-// console.log('selectOverlay',selectOverlay);	
-// console.log('gfi_format',stato[ol_layer_name].gfi_format);	
-// console.log('list_layers_selectable',stato[ol_layer_name].list_layers_selectable);	
-									
 								// run the "query" and:
 								// - optionally show the attributes info of the selected feature
 								var aResponse = ov_wms_plugin.getWmsInfoByCoordinates(ol_layer_name, ol_layer_source, event.coordinate,
@@ -1513,127 +1301,7 @@ ov_utils.ovLog('Plugin WMS LAYERS not installed, impossible to get wms feature i
 ov_utils.ovLog('Plugin WMS LAYERS not installed, impossible to get wms feature info','MAP SELECT EVENT','warning'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
 							}
 						break;
-                        
-/* OVD SPOSTATA LA FUNZIONE NEL PLUGIN						                        
-							if(!shiftKeyPressed) {
-								if(pointerType=='mouse') {
-									var url = ol_layer_source.getFeatureInfoUrl(
-										event.coordinate, this.map.getMapView().getResolution(), this.map.mapProjection,
-										{'INFO_FORMAT': 'text/javascript','QUERY_LAYERS': stato[ol_layer_name].list_layers_selectable, 'format_options': 'callback:parseResponseSelect'}
-									);
-								} else {
-									var url = ol_layer_source.getFeatureInfoUrl(
-										event.coordinate, this.map.getMapView().getResolution(), this.map.mapProjection,
-										{'INFO_FORMAT': 'text/javascript','QUERY_LAYERS': stato[ol_layer_name].list_layers_selectable, 'buffer': this.touchBuffer, 'format_options': 'callback:parseResponseSelect'}
-									);
-									
-								}
-							
-								$.ajax({
-									url: url,
-									dataType: 'jsonp',
-									jsonpCallback: 'parseResponseSelect'
-								}).then(function(response) { this_viewer.getWMSlayerSelection(response); });
-							} else {
-								if(pointerType=='mouse') {
-									var url = ol_layer_source.getFeatureInfoUrl(
-										event.coordinate, this.map.getMapView().getResolution(), this.map.mapProjection,
-										{'INFO_FORMAT': 'text/javascript','QUERY_LAYERS': stato[ol_layer_name].list_layers_selectable, 'format_options': 'callback:parseResponseSelect'}
-									);
-								} else {
-									var url = ol_layer_source.getFeatureInfoUrl(
-										event.coordinate, this.map.getMapView().getResolution(), this.map.mapProjection,
-										{'INFO_FORMAT': 'text/javascript','QUERY_LAYERS': stato[ol_layer_name].list_layers_selectable, 'buffer': this.touchBuffer, 'format_options': 'callback:parseResponseSelect'}
-									);
-								}
-								$.ajax({
-									url: url,
-									dataType: 'jsonp',
-									jsonpCallback: 'parseResponseSelect'
-								}).then(function(response) { this_viewer.addFeaturesToSelection(response); });
-							}
-*/
-						// OVD "mapguide" case to be checked (no examples available)
-						case "mapguide":
-							
-							// the selection is performed if the key CTRL has not been pressed
-							if(!flagShowFeaturesAttributes) { // ctrlKeyPressed
-							
-								var mapguide_coordinate = ol.proj.transform(event.coordinate, this_viewer.map.mapProjection,this_viewer.map.dataProjection);
-
-								var view = this_viewer.map.getMapView();
-								var resolution = view.getResolution();
-								
-								if(pointerType=='mouse') {
-									var bufferPx=5;
-								} else {
-									var bufferPx=this.touchBuffer;
-								}
-
-								var buffer=resolution*bufferPx;
-
-								var x1=mapguide_coordinate[0] - buffer;
-								var x2=mapguide_coordinate[0] + buffer;
-								var y1=mapguide_coordinate[1] - buffer;
-								var y2=mapguide_coordinate[1] + buffer;
-								
-								var geom="POLYGON(("+x1+" "+y2+","+x2+" "+y2+","+x2+" "+y1+","+x1+" "+y1+","+x1+" "+y2+"))";
-								var a_layers_selectable=stato[ol_layer_name].list_layers_selectable.split(",");
-
-								if (a_layers_selectable.length > 0) {
-									var a_layernames=new Array();
-
-									for(var i=0;i<a_layers_selectable.length; i++) {
-
-										// if the layer is not visible at the current scale, the selection does not happen
-										if(this_viewer.getMapScale() >= stato[ol_layer_name].layers_info[a_layers_selectable[i]].min_scale && this_viewer.getMapScale() <= stato[ol_layer_name].layers_info[a_layers_selectable[i]].max_scale) {
-											a_layernames.push(stato[ol_layer_name].layers_info[a_layers_selectable[i]].name);
-										}
-									}
-									
-									if(a_layernames.length > 0) {
-										var layernames=a_layernames.join();
-										
-										data2send={
-											action:"GET_FEATURE_INFO",
-											mapName:stato[ol_layer_name].mg_session_info.mapName,
-											mapSession:stato[ol_layer_name].mg_session_info.mapSession,
-											layers:layernames,
-											geometry:geom,
-											maxfeatures:"1",
-											layers_extra_properties:ov_layers_selection_extra_fields
-										};
-
-
-										$.ajax({
-											url: stato[ol_layer_name].api_url,
-											method: 'POST',
-											dataType: 'json',
-											data: data2send,
-											error: function(a, b, c) {
-												ov_utils.ovLog('Ayax error','GetFeatureInfo MapGuide', 'error'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
-											},
-											success: function(response) {
-
-												if(response.status=="ok") {
-// console.log(response.data);
-													if(flagNewSelection) {  // !shiftKeyPressed
-														this_viewer.mapClearSelection();
-														this_viewer.mapSetSelection(response.data);
-													} else {
-														this_viewer.mapSetSelection(response.data);
-													}
-													flag_found_something = true; // to know if we have selected something (if not we must clear the result window)
-												
-												}
-											}
-										});
-									
-									}
-								}
-							
-							}
-						break;
+						                        
 					}
 				}
 				
@@ -1646,341 +1314,6 @@ ov_utils.ovLog('macro-layer '+ol_layer_name+' '+(i+1)+'/'+a_ol_layers_names.leng
 ov_utils.ovLog('****************************************');
 ov_utils.ovLog(stato[ol_layer_name],'stato[ol_layer_name]');
 					
-				}
-
-// OVD remove commented lines before deploying
-//console.log("**************************");
-//console.log('IDENTIFY');
-//console.log("**************************");
-				// **************************************************************************
-				// 
-				// IDENTIFY - macro task
-				// - it is executed if the CTRL has been pressed
-				// 
-				// **************************************************************************
-				if(flagShowFeaturesAttributes) { // ctrlKeyPressed
-/*
-					// if the layer is an external WMS layer
-					var BreakException = {};
-					var map_ol_layer_names=this_viewer.map.getMapLayers();
-
-					try{
-						map_ol_layer_names.forEach(function(item,index) {
-							if(item.getVisible()) {
-								
-								var layer_name = item.get('name');
-								var is_basemap_layer=item.get('baselayer');
-								
-//	 							if(this_viewer.map.ol_map_layers.indexOf(layer_name) == -1) {
-								if(item.getSource() instanceof ol.source.TileWMS || item.getSource() instanceof ol.source.ImageWMS) {
-									
-									var ol_layer_source=this_viewer.map.getMapLayerSourceByName(layer_name);
-									
-									if (typeof ol_layer_source.getParams().INFO_FORMAT != 'undefined') {
-										var info_format=ol_layer_source.getParams().INFO_FORMAT;
-									} else {
-										// the basemap layers are queried only if INFO_FORMAT is set
-                                        // all the other layers are queried always (for backward compatibility)
-										if (!is_basemap_layer) {
-											var info_format="text/javascript";
-										} else {
-											var info_format=null;
-										}
-									}
-									
-									if(pointerType=='mouse') {
-										var url = ol_layer_source.getFeatureInfoUrl(
-											event.coordinate, this_viewer.map.getMapView().getResolution(), this_viewer.map.mapProjection,
-											{'INFO_FORMAT': info_format}
-										);
-									} else {
-										var url = ol_layer_source.getFeatureInfoUrl(
-											event.coordinate, this_viewer.map.getMapView().getResolution(), this_viewer.map.mapProjection,
-											{'INFO_FORMAT': info_format, 'buffer': this_viewer.touchBuffer}
-										);
-									}
-									
-									// internal WMS
-									// OVD to be checked (no example available)
-									// -----------------------------------------
-									if(ol_layer_url==wms_url_internal) {
-										
-										var url_argument=url.split("?");
-										
-										$.ajax({
-											url: OpenViewer_proxy,
-											method: "POST",
-											dataType: "json",
-											async: false,
-											data: {'service_type': 'featureinfo', 'service_url': ol_layer_url, 'action': 'GetFeatureInfo', 'request': url_argument[1]},
-											success: function(ret) {
-												response = ret.data;
-												
-												// if the answer is not null
-												if(response != null) {
-													if(response.features.length > 0) {
-console.log('IDENTIFY INTERNAL WMS',response);
-														this_viewer.openInfoWMS(response);
-console.log('IDENTIFY INTERNAL WMS ENDED');
-														throw BreakException;
-													}
-												}
-												
-												return;
-											},
-											error: function() {
-ov_utils.ovLog('Error while retrieving feature info','INTERNAL WMS GetFeatureInfo','error'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
-													return;
-											}
-										});
-									
-									} else {
-										
-//console.log('NO INTERNAL WMS');
-//console.log('LAYER---------------------', item);
-//console.log('INFO----------------------', info_format);
-//console.log('URL-----------------------', url);
-										
-										switch (info_format) {
-											case "text/javascript":
-												
-												$.ajax({
-													url: url,
-													dataType: 'jsonp',
-													jsonpCallback: 'parseResponse'
-												}).then(function(response) { 
-													if(response != null) {
-														if (response.features.length > 0) {
-															if (typeof response.features[0].properties.GRAY_INDEX == "undefined" || response.features[0].properties.GRAY_INDEX != 0) {
-console.log('IDENTIFY GENERIC WMS',response);
-																this_viewer.openInfoWMS(response);
-console.log('IDENTIFY GENERIC WMS ENDED');
-																//throw BreakException;
-															}
-														}
-													}
-												});
-												
-											break;
-											
-											case "text/html":
-												
-												var data={'service_type': 'featureinfoHtml', 'service_url': url, 'action': 'GetFeatureInfo', 'request': null};
-												this_viewer.loadInfoPage('tabQueryResult',OpenViewer_proxy,null, data,false);
-												
-											break;
-											
-											case null:
-// console.log("info_format null! we do nothing", info_format);
-											break;
-											
-											default:
-console.log("info_format not expected!", info_format);
-											break;
-											
-										}
-									}
-								}
-							}
-						},this);
-					}catch (e) {
-ov_utils.ovLog('Error while looking for the feature info','TRY EXCEPTION','error'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
-						if (e === BreakException) return;
-						
-					}
-*/					
-					
-/* SECTION "HYPERLINKED"					
-					// retrive information if the key CTRL is pressed
-					if(stato[ol_layer_name].list_layers_hyperlinked!='') {
-						switch(ol_layer_name) {
-							case "wms":
-								
-								var array_layers = stato[ol_layer_name].list_layers_hyperlinked.split(",");
-								var list_name_hyperlinked='';
-								for(var j=0; j < array_layers.length; j++){
-									var name_layer = stato[ol_layer_name].layers_info[array_layers[j]].name; 
-									list_name_hyperlinked = name_layer + "," + list_name_hyperlinked;
-									
-								}
-								var name_length = parseInt(list_name_hyperlinked.length)-1;
-								var list_name_trunk = list_name_hyperlinked.substring(0,name_length);
-									if(pointerType=='mouse') {
-											var url = ol_layer_source.getFeatureInfoUrl(
-													event.coordinate, this.map.getMapView().getResolution(), this.map.mapProjection,
-													{'INFO_FORMAT': 'text/javascript','QUERY_LAYERS':list_name_trunk, 'format_options': 'callback:parseResponse'}
-											);
-									} else {
-											var url = ol_layer_source.getFeatureInfoUrl(
-													event.coordinate, this.map.getMapView().getResolution(), this.map.mapProjection,
-													{'INFO_FORMAT': 'text/javascript','QUERY_LAYERS': stato[ol_layer_name].list_layers_hyperlinked, 'buffer': this.touchBuffer, 'format_options': 'callback:parseResponse'}
-											);
-									}
-									$.ajax({
-											url: url,
-											dataType: 'jsonp',
-											jsonpCallback: 'parseResponse'
-									}).then(function(response) { 
-console.log('openInfo 300',response);
-										this_viewer.openInfo(response);
-console.log('openInfo 300 FINITO');
-									});
-							break;
-
-							case "wms_geoserver":
-								if(pointerType=='mouse') {
-									var url = ol_layer_source.getFeatureInfoUrl(
-										event.coordinate, this.map.getMapView().getResolution(), this.map.mapProjection,
-										{'INFO_FORMAT': 'text/javascript','QUERY_LAYERS': stato[ol_layer_name].list_layers_hyperlinked, 'format_options': 'callback:parseResponse'}
-									);
-								} else {
-									var url = ol_layer_source.getFeatureInfoUrl(
-										event.coordinate, this.map.getMapView().getResolution(), this.map.mapProjection,
-										{'INFO_FORMAT': 'text/javascript','QUERY_LAYERS': stato[ol_layer_name].list_layers_hyperlinked, 'buffer': this.touchBuffer, 'format_options': 'callback:parseResponse'}
-									);
-								}
-								
-								$.ajax({
-									url: url,
-									dataType: 'jsonp',
-									jsonpCallback: 'parseResponse'
-								}).then(function(response) { 
-console.log('openInfo 400',response);
-									this_viewer.openInfo(response); 
-console.log('openInfo 300 FINITO');
-								});
-							break;
-							
-							case "mapguide":
-								
-								var mapguide_coordinate = ol.proj.transform(event.coordinate, this.map.mapProjection,this.map.dataProjection);
-								
-								var view = this_viewer.map.getMapView();
-								var resolution = view.getResolution();
-								
-								if(pointerType=='mouse') {
-									var bufferPx=5;
-								} else {
-									var bufferPx=this.touchBuffer;
-								}
-
-								var buffer=resolution*bufferPx;
-
-								var x1=mapguide_coordinate[0] - buffer;
-								var x2=mapguide_coordinate[0] + buffer;
-								var y1=mapguide_coordinate[1] - buffer;
-								var y2=mapguide_coordinate[1] + buffer;
-								
-								var geom="POLYGON(("+x1+" "+y2+","+x2+" "+y2+","+x2+" "+y1+","+x1+" "+y1+","+x1+" "+y2+"))";
-								
-								var a_layers_hyperlinked=stato[ol_layer_name].list_layers_hyperlinked.split(",");
-								
-
-								if (a_layers_hyperlinked.length > 0) {
-									var a_layernames=new Array();
-
-									for(var i=0;i<a_layers_hyperlinked.length; i++) {
-										a_layernames.push(stato[ol_layer_name].layers_info[a_layers_hyperlinked[i]].name);
-									}
-
-									var layernames=a_layernames.join();
-
-
-									
-									data2send={
-										action:"GET_TOOLTIP_HYPERLINK",
-										mapName:stato[ol_layer_name].mg_session_info.mapName,
-										mapSession:stato[ol_layer_name].mg_session_info.mapSession,
-										layers:layernames,
-										geometry:geom,
-										maxfeatures:"1"
-									};
-
-									$.ajax({
-										url: stato[ol_layer_name].api_url,
-										method: 'POST',
-										dataType: 'json',
-										data: data2send,
-										error: function(a, b, c) {
-console.log("GET_TOOLTIP_HYPERLINK() - ERROR");
-										},
-										success: function(response) {
-
-											if(response.status=="ok") {
-												if(response.data.hyperlink!='') {
-													
-													if(response.data.hyperlink.match(/getCoords/g)){
-														var data='&x='+event.coordinate[0]+'&y='+event.coordinate[1];
-														response.data.hyperlink +=data;
-														
-													}
-
-													this_viewer.loadInfoPage('tabQueryResult',response.data.hyperlink,true);
-
-													// if the info panel is hidden, it is toggled on
-													this_viewer.infoPanelContainer.show(500);
-												}
-											}
-
-											// we try to select in any case
-											var a_layers_selectable=stato[ol_layer_name].list_layers_selectable.split(",");
-									
-											if (a_layers_selectable.length > 0) {
-												var a_layernames=new Array();
-
-												for(var i=0;i<a_layers_selectable.length; i++) {
-
-													// if the layer is not visible at the current scale, the selection does not happen
-													if(this_viewer.getMapScale() >= stato[ol_layer_name].layers_info[a_layers_selectable[i]].min_scale && this_viewer.getMapScale() <= stato[ol_layer_name].layers_info[a_layers_selectable[i]].max_scale) {
-														a_layernames.push(stato[ol_layer_name].layers_info[a_layers_selectable[i]].name);
-													}
-												}
-												
-												if(a_layernames.length > 0) {
-													var layernames=a_layernames.join();
-													
-													data2send={
-														action:"GET_FEATURE_INFO",
-														mapName:stato[ol_layer_name].mg_session_info.mapName,
-														mapSession:stato[ol_layer_name].mg_session_info.mapSession,
-														layers:layernames,
-														geometry:geom,
-														maxfeatures:"1",
-														layers_extra_properties:ov_layers_selection_extra_fields
-													};
-
-													$.ajax({
-														url: stato[ol_layer_name].api_url,
-														method: 'POST',
-														dataType: 'json',
-														data: data2send,
-														error: function(a, b, c) {
-console.log("GET_FEATURE_INFO() - ERROR");
-														},
-														success: function(response) {
-
-															if(response.status=="ok") {
-// console.log(response.data);
-																if(!shiftKeyPressed) {
-																	this_viewer.mapClearSelection();
-																	this_viewer.mapSetSelection(response.data);
-																} else {
-																	this_viewer.mapSetSelection(response.data);
-																}
-															
-															}
-														}
-													});
-												
-												}
-											}
-										}
-									});
-								}
-							break;
-						}
-					}
-*/ 					
 				}
 			} // end the loop over the selectable layers
 			
@@ -2003,7 +1336,6 @@ console.log("GET_FEATURE_INFO() - ERROR");
  * ---------------------------------------------------------------
  * - "right" tabs (query result, search, cusxtom, app info)
  * - "VistaSu" panel
- * - help/guided tour
  */
 
 /** Load info/page into the "QueryResult" tab (used by LibViewer.js) */
@@ -2025,8 +1357,7 @@ openViewer.prototype.loadInfoPage = function(tabName,url,spinner,data,newHistory
 			if(newHistoryState) {
 				history.pushState({"tabName": tabName,"url": url,"spinner":spinner,"data":data}, "titolo", "");
 			} else {
-// console.log("replaceState: "+url);
-// history.replaceState({"tabName": tabName,"url": url,"spinner":spinner,"data":data}, "titolo", "");
+                // nothing to do
 			}
 			
 			tab = this.infoPanelQuery;
@@ -2067,6 +1398,11 @@ openViewer.prototype.loadVistaSu = function(url) {
 	if (this.vistasuPanel)
 		$(this.vistasuPanel).load(url);
 };
+
+
+/** INTERFACE - SERVICE PROCEDURES TO HANDLE THE HELP/GUIDED TOUR
+ * ---------------------------------------------------------------
+ */
 
 /** Initialization of the tour components - HELP/ GUIDED TOUR (developed with Bootstrap Tour - http://bootstraptour.com/ ) */
 openViewer.prototype.setTourElement = function(){
@@ -2174,20 +1510,15 @@ openViewer.prototype.legendBuildLayerTree = function() {
 	// retrieve the list of "main layers" and "WMS on-the-fly layers" from OpenLayers
     // with the layers drawn on top at the beginning of the array (use unshift)
 	var ol_layers=this.map.getMapLayers();
-// console.log('ol_layers',ol_layers);
 	
 	var sortedLayersNames = [];
 	ol_layers.forEach(function(element,index,ar) {
 		var layerName = element.get('name');
 		var layerStato = stato[layerName];
 		if(typeof layerStato != 'undefined') {
-// console.log('element.get("name")',layerName);
-// console.log('Is not "baselayer" ?',!element.get('baselayer'));
-// console.log(layerName,'is handled in "stato" ?',typeof layerStato);
 			sortedLayersNames.unshift(layerName);
 		}
 	},this);
-// console.log('sortedLayersNames',sortedLayersNames)
 	
 	// for each "main layer" or "WMS on-the-fly layer" (no basemap)
 	var a_ol_layers=Object.keys(stato);
@@ -2352,8 +1683,6 @@ openViewer.prototype.legendBuildClientSideTree = function(tree, parent, parentNa
 			} else {
 				expandClass = 'plus';
 			}
-			// OVD - eliminated because it does not work
-			// htmlExpandCollapse = '<a id="expand_' + groupName + '" class="' + expandClass + '" href="javascript:;"></a>';
 			
 			if(node.tObject.visible == true) {
 				checked = 'checked=true';
@@ -2402,22 +1731,6 @@ openViewer.prototype.legendBuildClientSideTree = function(tree, parent, parentNa
 						} else {
 							style="style=\"display:none;\"";
 						}
-						
-/* OVD ORIGINAL VERSION
-					displayStyle = 'block';
-					
-					style = 'style="display:' + displayStyle +';"';
-					htmlLegenda += '<li ' + style + '>' + htmlExpandCollapse + '<input id="' + groupName + '" type="checkbox" ' + checked + ' class="legenda_group_checkbox" /><label for="' + groupName + '"><img src="/include/img/openViewer/legend/lc_group.gif" alt="icona del gruppo" />' + legendLabel + '</label></li>';
-					
-					// create the div containing the layers of the group
-					if (node.children != null) {
-						// the layer is hidden if the current scale is outside its scale range
-						if(node.tObject.expanded) {
-							style="style=\"display:block;\"";
-						} else {
-							style="style=\"display:none;\"";
-						}
-*/
 						
 						htmlLegenda+="<ul class='childrenof' id='childrenof_"+groupName+"' "+style+">";
 						
@@ -2594,20 +1907,12 @@ openViewer.prototype.legendBuildClientSideTree = function(tree, parent, parentNa
 					
 			switch (stato[ol_layer].tipo) {
 				case "wms":
-// 					var layerData = this.getWMSlegendViaProxy(url, scala, image_legend_layer,stato[ol_layer].tipo);
-// 					html_stile='';
-// 					for (var style_name in layerData.styles) {
-// 						html_stile += "<br/><img id='stile_"+layerName+"' "+stile_immagine+" src='"+layerData.styles[style_name].legend_url_href+"' style='width: \'"+ layerData.styles[style_name].legend_url_width + "\'px; height: \'" + layerData.styles[style_name].legend_url_height + "\' px;/>";
-// 					}
-
-// 					htmlLegenda+="<li "+style+">"+htmlExpandCollapse+"<input id='"+layerName+"' type='checkbox' "+checked+" class='legenda_layer_checkbox' /><label for='"+layerName+"'>"+legend_label+"</label>"+html_stile+"</li>";
 					htmlLegenda+="<li "+style+"><input id='"+layerName+"' type='checkbox' "+checked+" class='legenda_layer_checkbox' /><label for='"+layerName+"'>"+legend_label+"</label>"+html_stile+"</li>";
 				break;
 				case "wms_geoserver":
 					if(that.ProxySet == true){
 						var returned_img = ov_wms_plugin.getWMSlegendViaProxy(url, scala, image_legend_layer,stato[ol_layer].tipo);
 						html_stile="<br/><img id='stile_"+layerName+"' "+stile_immagine+" src='data:image/png;base64," + returned_img + "' title='' />";
-						//htmlLegenda+="<li "+style+">"+htmlExpandCollapse+"<input id='"+layerName+"' type='checkbox' "+checked+" class='legenda_layer_checkbox' /><label for='"+layerName+"'><img class='legend-small' src='data:image/png;base64," + returned_img + "' title='' />"+legend_label+"</label>"+html_stile+"</li>";
 						htmlLegenda+="<li "+style+">"+htmlExpandCollapse+"<input id='"+layerName+"' type='checkbox' "+checked+" class='legenda_layer_checkbox' /><label for='"+layerName+"'>"+legend_label+"</label>"+html_stile+"</li>";
 					}
 					else{
@@ -2644,53 +1949,13 @@ openViewer.prototype.legendBuildClientSideTree = function(tree, parent, parentNa
 						htmlLegenda+="</div>";
 						htmlLegenda+="</li>";
                     
-//						html_stile="<br/><img id='stile_"+layerName+"' "+stile_immagine+" src='"+url+"?REQUEST=GetLegendGraphic&VERSION=1.3.0&FORMAT=image/png&LEGEND_OPTIONS=fontName:Serif;fontAntiAliasing:true;fontSize:9;dpi:100&WIDTH=20&HEIGHT=20&SCALE="+scala+"&LAYER="+image_legend_layer+"' title='' />";
-//						htmlLegenda+="<li "+style+">"+htmlExpandCollapse+"<input id='"+layerName+"' type='checkbox' "+checked+" class='legenda_layer_checkbox' /><label for='"+layerName+"'><img class='legend-small' src='"+url+"?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=20&HEIGHT=20&SCALE="+scala+"&LAYER="+image_legend_layer+"' title='' />"+legend_label+"</label>"+html_stile+"</li>";
 					}
 				break;
 
-				case "mapguide":
-					layerDefinition=rtLayer.layerDefinition;
-
-					// derive the current range related to the current scale
-					currentRange=this.getCurrentRange(rtLayer.ranges);
-
-					// if the layer must be hidden, we do nothing
-					if (rtLayer.display_in_legend!==false) {
-
-						//Il layer non si deve vedere a questa scala, per cui nella legenda non va mostrato
-						if(currentRange != null) {
-
-							// on the current range, we check if there are multiple thematizations
-							if (currentRange.rules.length > 1) {
-								html_stile="";
-								for(k=0;k < currentRange.rules.length; k++) {
-									themecategory=k;
-									geomtype=currentRange.rules[k].type_num;
-									label=currentRange.rules[k].label;
-
-									html_stile=html_stile+"<img class='stile_"+layerName+"' id='stile_"+layerName+"_"+k+"' src='"+url+"&OPERATION=GETLEGENDIMAGE&SESSION="+stato[ol_layer].mg_session_info.mapSession+"&VERSION=1.0.0&SCALE="+scala+"&LAYERDEFINITION="+layerDefinition+"&THEMECATEGORY="+themecategory+"&TYPE="+geomtype+"&CLIENTAGENT=LdP%20Viewer' alt='icona tematizzazione del layer' title='' /> "+label+"<br/>";
-								}
-
-								html_stile="<div id='stile_"+layerName+"' "+stile_immagine+">"+html_stile+"</div>";
-
-								htmlLegenda+="<li "+style+">"+htmlExpandCollapse+"<input id='"+layerName+"' type='checkbox' "+checked+" class='legenda_layer_checkbox' /><label for='"+layerName+"'><img class='legend-small' src='/include/img/openViewer/legend/lc_theme.gif' alt='icona multi regole' title='' />"+legend_label+"</label>"+html_stile+"</li>";
-
-							} else {
-								htmlLegenda+="<li "+style+"><input id='"+layerName+"' type='checkbox' "+checked+" class='legenda_layer_checkbox' /><label for='"+layerName+"'><img class='legend-small' src='"+url+"&OPERATION=GETLEGENDIMAGE&SESSION="+stato[ol_layer].mg_session_info.mapSession+"&VERSION=1.0.0&SCALE="+scala+"&LAYERDEFINITION="+layerDefinition+"&THEMECATEGORY=-1&TYPE=-1&CLIENTAGENT=LdP%20Viewer' alt='icona tematizzazione del layer' title='' />"+legend_label+"</label></li>";
-							}
-
-						} else {
-							// if the layer shoud be hide, it is not added in the HTML
-							//htmlLegenda+="<li "+style+">"+htmlExpandCollapse+"<input id='"+layerName+"' type='checkbox' "+checked+" class='legenda_layer_checkbox' /><label for='"+layerName+"'><img class='legend-small' src='"+url+"&OPERATION=GETLEGENDIMAGE&SESSION="+stato[ol_layer].mg_session_info.mapSession+"&VERSION=1.0.0&SCALE="+scala+"&LAYERDEFINITION="+layerDefinition+"&THEMECATEGORY=-1&TYPE=-1&CLIENTAGENT=LdP%20Viewer' title='' />"+legend_label+"</label></li>";
-						}
-					} // if (rtLayer.display_in_legend!==false)
-				break;
 			} // switch (stato[ol_layer].tipo)
 		} // else if(node.isGroup)
 	}  
 
-// console.log("htmlLegenda", htmlLegenda);
 	return htmlLegenda;
 }
 /** Refresh the layers legend
@@ -2732,99 +1997,7 @@ ov_utils.ovLog('Start refreshLegend ...'); // supported types: <empty> or "conso
 			html_layers_list+="<li><input type='radio' class='legend_basemap_item' name='legend_basemap_item' id='"+element.get('name')+"' "+str_checked+" ><label for='"+element.get('name')+"'>&nbsp;"+element.get('name')+"</label></li>";
 		}
 	},this);
-
-/*  // OVD: version modified to handle separately the WMS on-the-fly layers
-    //      this version has been oveerride by a second version "integrated" in
-    //      legendBuildLayerTree and legendBuildClientSideTree
-
-	// reverse the array (to have a legend with on top the "last" drawn layers)
-	tmpWmsUserLayers.reverse();
-    // add user WMS layers to the legend
-	for (i = 0; i < tmpWmsUserLayers.length; i++) {
-		element = tmpWmsUserLayers[i];
-			
-			// check the visibility of the layer
-			if(element.get('visible')) {
-				str_checked="checked=true";
-			} else {
-				str_checked="";
-			}
-			
-			// retrieve the scale limits and the CRS of the layer
-			var scaleMax = this.map.getScaleFromResolution(element.getMaxResolution()+this.correctionOffsetScaleMax,true);
-			var scaleMin = this.map.getScaleFromResolution(element.getMinResolution()+this.correctionOffsetScaleMin,true);
-			var layerCrs = element.getSource().getProjection().getCode();
-			if((scaleMin>0||scaleMax>0)&&scaleMax>scaleMin)
-				var labelTip = strings_interface.sentence_scalevisibility+scaleMin+'-'+scaleMax+' ('+strings_interface.sentence_datasource+' '+layerCrs+')';
-			else
-				var labelTip = '('+strings_interface.sentence_datasource+' '+layerCrs+')';
-			
-			// retrieve the image legend and set its size
-			var img_url = element.get('legendUrl');
-			var hash = Math.floor(Math.random() * 1000000);
-			var img_source_html = "";
-			if(typeof img_url != 'undefined' && img_url != '') {
-				img_source_html = " src=\""+img_url.trim()+"\" ";
-                hash = ov_utils.hashCode(img_url);
-			}
-			var style_leg_width = element.get('legendWidth');
-			var img_width_html = " style=\"width: "+this.leftPanelMinWidth * 0.9+"px\" ";
-			if(typeof style_leg_width != 'undefined' && style_leg_width != '' && style_leg_width > 0) {
-				img_width_html = " style=\"width: "+Math.min(this.leftPanelMinWidth * 0.9,style_leg_width)+"px\" ";
-			}
-			
-			// set the LayerID
-			var layerID = 'leg_item_checkbox_'+element.get('name');
-			// the attribute ID of the tag INPUT must equal the name of the layer
-			
-			html_layerswms_list+='<li>';
-			
-			// add the checkbox and the name of the layer
-			// ------------------------------------------
-			html_layerswms_list+='<div id="ov_legend_item_with_tools" class="ov_legend_item_with_tools">';
-			html_layerswms_list+="<input type='checkbox' class='legend_item' name='legend_item' id='"+element.get('name')+"' "+str_checked+" >";
-			html_layerswms_list+="<label for='"+element.get('name')+"' title='"+labelTip+"'>&nbsp;"+element.get('name')+"</label>";
-			html_layerswms_list+='</div>';
-			
-/* OVD ELIMINARE
-			//html_layerswms_list+="<button id='ov_button_style' class='ov_legend_item_tool_container showstyle' onclick='open_viewer.showStyle(\""+element.get('name').trim()+"\",-0.1)' title='Aggiungi WMS'>"
-			if(typeof img_url != 'undefined' && img_url != '') {
-				var hash = ov_utils.hashCode(img_url);
-				var img_source_html = " src='"+img_url.trim().replace('/','//')+"' ";
-console.log('OVD Legend URL:',img_url,img_source_html);  
-				html_layerswms_list+="<button id='ov_button_style' class='ov_legend_item_tool_container showstyle' onclick='open_viewer.openCloseDiv(\"img_"+ hash + "_" + i +"\")' title='Aggiungi WMS'>";
-				// write below the div with the image, as a new row
-				//html_layerswms_list+="<br><img id='img_" + hash + "_" + i +img_source_html+" class='show' style='width: "+ style_leg_width + "px; height: " + style_leg_height + "px;'/>"
-			}
-            
-//				legend_html = "<a href='javascript:;' onclick='open_viewer.openCloseDiv(\"img_"+ hash + "_" + i +"\")' title='"+strings_interface.wms_showhidestyle+"'><img id='img_" + hash + "_" + i +img_source_html+" class='hide' style='width: "+ style_leg_width + "px; height: " + style_leg_height + "px;'/><span class='fa fa-eye'></span>";
-				//legend_html += " "+strings_interface.wms_showhidestyle.toLowerCase();
-//				legend_html += "</a>";
-* /            
-			
-			// add the button to open/close the legend
-			// ---------------------------------------
-			if(typeof img_url != 'undefined' && img_url != '') {
-				html_layerswms_list+="<button id='ov_button_style' class='ov_legend_item_tool_container showstyle' onclick='open_viewer.openCloseDiv(\"img_"+ hash + "_" + i +"\")' title='"+strings_interface.sentence_opencloselegend+"'>";
-			}
-			
-			// add the buttons to change the opacity of the layer
-			// --------------------------------------------------
-			html_layerswms_list+="<button id='ov_button_opacity' class='ov_legend_item_tool_container setopacityplus' onclick='open_viewer.map.setLayerOpacity(\""+element.get('name').trim()+"\",0.1)' title='"+strings_interface.sentence_reducetransparency+"'>"
-			html_layerswms_list+="<button id='ov_button_opacity' class='ov_legend_item_tool_container setopacityminus' onclick='open_viewer.map.setLayerOpacity(\""+element.get('name').trim()+"\",-0.1)' title='"+strings_interface.sentence_increasetransparency+"'>"
-			
-			html_layerswms_list+="</li>"
-			
-			// add the image of the legend (out of <li> to avoid problems of visualization
-			// ---------------------------------------------------------------------------
-            if(typeof img_url != 'undefined' && img_url != '') {
-				html_layerswms_list+="<a href=\"" + img_url + "\" target=\"_blank\">";
-				html_layerswms_list+="<img id=\"img_" + hash + "_" + i + "\" class=\"hide\"" + img_source_html + img_width_html + "/>"
-				html_layerswms_list+="</a>";
-			}
-	};
-*/
-    //this.legendPanelWmsUserLayers.html("<ul class='layerslegendwms'>"+html_layerswms_list+"</ul>");
+	    
 	this.legendPanelBasemapLayers.html("<ul class='layerslegend'>"+html_layers_list+"</ul>");
 ov_utils.ovLog(ol_layers,'List of refreshed layers'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
 	return false;
@@ -2874,7 +2047,7 @@ openViewer.prototype.showHideLayer = function(layer_name, flagShow) {
  *  - call "map.refreshLayerVisibility" to really update the visibility of layers in the displayed map
  */
 openViewer.prototype.showHideGroupLayers = function(group_name, flagShow) {
-// console.log('OV_showHideGroupLayers',group_name, flagShow,this.getStato());
+	    
 	// retrieve the OL layer
 	var ol_layer=this.getMainLayerNameBySubGroupName(group_name);
 	if(ol_layer==false) {
@@ -2930,14 +2103,6 @@ openViewer.prototype.userWmsLayerViewToggle = function(name, layer_name) {
 	else
 		this.map.layerViewToggle(layer_name, false);
 }
-/** OVD DELETED - Refresh the status of the "main" layers" (MapGuide, default WMS) */
-/*
-openViewer.prototype.mapRefreshStatus = function() {
-console.log("refreshStatus");
-	this.map.refreshStatus();
-console.log('STATO UPDATED',this.getStato());    
-};
-*/
 
 
 /** INTERFACE - OTHER PROCEDURES
@@ -2960,7 +2125,7 @@ openViewer.prototype.footerUpdateText = function() {
  */
 
 openViewer.prototype.initialMapView = function() {          // refresh the view to the initial settings (center and scale)
-// if(this.showConsoleMsg) console.log("initialMapView");
+// ov_utils.ovLog('Set the initial map view...'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
 	this.map.getMapView().setCenter(this.map.initialView.center);
 	this.map.getMapView().setZoom(this.map.initialView.zoom);
 };
@@ -3111,14 +2276,6 @@ openViewer.prototype.addFeaturesToSelection = function(response, infoFormat, lay
 ov_utils.ovLog('****************************************');
 ov_utils.ovLog('Layer name: '+layer_name+'\ntype of data to be processed: '+responseType, 'ADD FEATURE TO SELECTION');
 ov_utils.ovLog('****************************************');
-// console.log(layer_name, 
-//            '\nnew selection:', flag_new_selection, 
-//            '\nshow attributes:', flag_show_attributes, 
-//            '\nshow only last one:', flag_show_attribute_of_last_selected_only,
-//            '\nresponse:', response,
-//            '\nurl:', response.query_url,
-//            '\ntype of data to be processed:', responseType
-//           );
 	
 	switch (responseType) {
 		case 'text/plain':
@@ -3148,21 +2305,15 @@ ov_utils.ovLog(response.query_url,'url','consolelog'); // supported types: <empt
 		        
 		default: // text/javascript
 			var geojsonFormat = new ol.format.GeoJSON();
-// console.log('layer_name',layer_name);
 			
 			// get the selected features ("response" is a geoJson object)
 			features=geojsonFormat.readFeatures(response,{dataProjection: that.map.dataProjection,featureProjection: that.map.mapProjection});
-// console.log('features length', features.length);
-// console.log('features', features);
 			
 			// retrieve the layer where "copying" the selected features (to be highlighted)
 			var selectOverlay=that.map.getMapLayerByName('selection');
 			
 			// optionally clear the previous selection
 			if(flag_new_selection) selectOverlay.getSource().clear();
-			
-// console.log('LAYER SELECTION NUMBER',selectOverlay.getSource().getFeatures().length);
-// console.log('LAYER SELECTION',selectOverlay.getSource().getFeatures());
 			
 			// add the features selected to the ones already selected
 			if(features.length > 0) {
@@ -3200,21 +2351,16 @@ openViewer.prototype.showFeaturesAttributes = function(features, layer_name, lay
 	}
 	
 	var typeFeatures = (typeof features);
-// console.log('typeof features',typeFeatures);
-	
-// console.log('layer_name', layer_name, '\nlayer_type', layer_type);
 	
 	// fill the info results page with the information contained in the parameter "features"
 	var html='';
 	switch(typeFeatures) {
 		case 'string':
-// console.log('Rows number:', (features.match(/\r\n|\r|\n/g)).length);
 			if(features!=undefined&&features!='') {
 				
 				var isHTML = false;
 				
 				// parse the string
-// console.log('features',features);
 				var chkmatch = features.match(/\r\n|\r|\n/g);
 				if(chkmatch!=null&&chkmatch!=undefined&&chkmatch.length > 0) {				// the string already contains cr or lf
 					// nothing to do
@@ -3258,17 +2404,12 @@ openViewer.prototype.showFeaturesAttributes = function(features, layer_name, lay
 					var layer_name = ol_ID.split('.')[0]; // here get the layer name from the feature iD, without taking into account the parameter passed to the function
 					layer_name = that.getSubLayerStatoByFeature(layer_name).legend_label;
 					var feature_ID = ol_ID.substring(layer_name.length+1);
-// console.log('features[i]',features[i]);                
-// console.log('feature_type',feature_type);
-// console.log('layer_name',layer_name);
-// console.log('feature_ID',feature_ID);
 					
-					//html+='<p class="page_container"><span class="page_container"><u>'+feature_type+' ('+feature_ID+')</span></u></p>'; // strings_interface.word_feature
 					html+='<br><h1 class="page_container">'+feature_type+' ('+feature_ID+') '+strings_interface.word_layer+' '+layer_name+'</h1>'; // strings_interface.word_feature
 					
 					// retrieve the feature attributes
 					properties=features[i].getProperties();
-// console.log(properties);                
+					
 					// format the attributes
 					html+=ov_utils.createElementsFromJSON(properties);
 				}
@@ -3287,175 +2428,6 @@ openViewer.prototype.showFeaturesAttributes = function(features, layer_name, lay
 			if (that.titleToggleInfo.hasClass("active")) {that.toggleInfo(0);} // OVD strange behviour
 		}, that.timeout_RefreshFeaturesAttributesInfo);
 	}
-
-
-// OVD remove commented lines before deploying
-/*
-return;
-
-console.log(response);
-	var that = open_viewer;
-	if (typeof ov_WMSGetFeatureInfoCustomPage !== "undefined") {
-		this.loadInfoPage('tabQueryResult',ov_WMSGetFeatureInfoCustomPage, false, response);
-	} else {
-		this.loadInfoPage('tabQueryResult',this.infoPanel); // this.loadInfoPage('tabQueryResult','infoWMSGetFeatureInfo.php');
-		//var json = this.map.gmlToJson(response);
-		var features = response.features;
-		if(features.length > 0) {
-			var html='<p>'+strings_interface.sentence_foundfeatures+' : '+features.length+'</p>';
-			for(var i=0;i<features.length;i++) {
-//console.log(features[i].geometry.type);
-//console.log(features[i].properties);
-				html = html + '<p>'+features[i].geometry.type+' ('+features[i].id+')</p>'; // strings_interface.word_feature
-			
-				// retrieve the feature attributes
-				properties=features[i].properties;
-				// format the attributes
-				var html = html + ov_utils.createElementsFromJSON(properties);
-			}
-			
-			setTimeout(function(){$("#ov_info_wms_container").html(html);}, 500);
-			if (that.titleToggleInfo.hasClass("active")) {that.toggleInfo(0);} // OVD strange behviour
-			
-		}
-	}
-
-
-
-
-	return;
-	
-	    
-					// if the layer is an external WMS layer
-					var BreakException = {};
-					var map_ol_layer_names=this_viewer.map.getMapLayers();
-
-					try{
-						map_ol_layer_names.forEach(function(item,index) {
-							if(item.getVisible()) {
-								
-								var layer_name = item.get('name');
-								var is_basemap_layer=item.get('baselayer');
-								
-//	 							if(this_viewer.map.ol_map_layers.indexOf(layer_name) == -1) {
-								if(item.getSource() instanceof ol.source.TileWMS || item.getSource() instanceof ol.source.ImageWMS) {
-									
-									var ol_layer_source=this_viewer.map.getMapLayerSourceByName(layer_name);
-									
-									if (typeof ol_layer_source.getParams().INFO_FORMAT != 'undefined') {
-										var info_format=ol_layer_source.getParams().INFO_FORMAT;
-									} else {
-										// the basemap layers are queried only if INFO_FORMAT is set
-                                        // all the other layers are queried always (for backward compatibility)
-										if (!is_basemap_layer) {
-											var info_format="text/javascript";
-										} else {
-											var info_format=null;
-										}
-									}
-									
-									if(pointerType=='mouse') {
-										var url = ol_layer_source.getFeatureInfoUrl(
-											event.coordinate, this_viewer.map.getMapView().getResolution(), this_viewer.map.mapProjection,
-											{'INFO_FORMAT': info_format}
-										);
-									} else {
-										var url = ol_layer_source.getFeatureInfoUrl(
-											event.coordinate, this_viewer.map.getMapView().getResolution(), this_viewer.map.mapProjection,
-											{'INFO_FORMAT': info_format, 'buffer': this_viewer.touchBuffer}
-										);
-									}
-									
-									// internal WMS
-									// OVD to be checked (no example available)
-									// -----------------------------------------
-									if(ol_layer_url==wms_url_internal) {
-										
-										var url_argument=url.split("?");
-										
-										$.ajax({
-											url: OpenViewer_proxy,
-											method: "POST",
-											dataType: "json",
-											async: false,
-											data: {'service_type': 'featureinfo', 'service_url': ol_layer_url, 'action': 'GetFeatureInfo', 'request': url_argument[1]},
-											success: function(ret) {
-												response = ret.data;
-												
-												// if the answer is not null
-												if(response != null) {
-													if(response.features.length > 0) {
-console.log('IDENTIFY INTERNAL WMS',response);
-														this_viewer.openInfoWMS(response);
-console.log('IDENTIFY INTERNAL WMS ENDED');
-														throw BreakException;
-													}
-												}
-												
-												return;
-											},
-											error: function() {
-ov_utils.ovLog('Error while retrieving feature info','INTERNAL WMS GetFeatureInfo','error'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
-													return;
-											}
-										});
-									
-									} else {
-										
-//console.log('NO INTERNAL WMS');
-//console.log('LAYER---------------------', item);
-//console.log('INFO----------------------', info_format);
-//console.log('URL-----------------------', url);
-										
-										switch (info_format) {
-											case "text/javascript":
-												
-												$.ajax({
-													url: url,
-													dataType: 'jsonp',
-													jsonpCallback: 'parseResponse'
-												}).then(function(response) { 
-													if(response != null) {
-														if (response.features.length > 0) {
-															if (typeof response.features[0].properties.GRAY_INDEX == "undefined" || response.features[0].properties.GRAY_INDEX != 0) {
-console.log('IDENTIFY GENERIC WMS',response);
-																this_viewer.openInfoWMS(response);
-console.log('IDENTIFY GENERIC WMS ENDED');
-																//throw BreakException;
-															}
-														}
-													}
-												});
-												
-											break;
-											
-											case "text/html":
-												
-												var data={'service_type': 'featureinfoHtml', 'service_url': url, 'action': 'GetFeatureInfo', 'request': null};
-												this_viewer.loadInfoPage('tabQueryResult',OpenViewer_proxy,null, data,false);
-												
-											break;
-											
-											case null:
-// 												console.log("info_format null! we do nothing", info_format);
-											break;
-											
-											default:
-												console.log("info_format not expected!", info_format);
-											break;
-											
-										}
-									}
-								}
-							}
-						},this);
-					}catch (e) {
-ov_utils.ovLog('Error while looking for the feature info','TRY EXCEPTION','error'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
-						if (e === BreakException) return;
-						
-					}
-					
-*/					
 }
 /** Format and display the feature attributes information (callback after CTRL+click or after holding tap) */
 openViewer.prototype.openInfo = function(response) {
@@ -3472,14 +2444,13 @@ ov_utils.ovLog('Start...','OpenInfo'); // supported types: <empty> or "consolelo
 
 		// retrieve the layer name
 		fid=feature.getId();
-		// console.log(fid);
+
 		a_fid=fid.split(".");
 		var nome_feature=a_fid[0];
 		var id_feature=a_fid[1];
 
 		var layer_name=this.getSubLayerStatoByFeature(nome_feature);
 		var ol_layer=this.getMainLayerNameBySubLayerName(layer_name);
-// console.log('Layer', ol_layer);
 		
 		// retrieve the feature attributes
 		properties=feature.getProperties();
@@ -3490,41 +2461,12 @@ ov_utils.ovLog('Start...','OpenInfo'); // supported types: <empty> or "consolelo
 				properties.id=id_feature;
 		}
 
-// console.log('Properties',properties);
-/*            
-		// The name of the WMS layer could be different from the name of the feature source (table)
-		// Then we must retrieve the name of the layer of the feature
-		// Special case: if multiple layers refer to the same table in the DB, we get only the first found
+		this.loadInfoPage('tabQueryResult','infoWMSGetFeatureInfo.php');
+		var html = ov_utils.createElementsFromJSON(properties);
 
-		var a_layers_hyperlinked=stato[ol_layer].list_layers_hyperlinked.split(",");
-
-		var ind=a_layers_hyperlinked.indexOf(layer_name);
-
-		if(ind != -1) {
-			if(stato[ol_layer].layers_info[layer_name].hyperlink == 'standard'){
-				stringa_hyperlink = stato[ol_layer].layers_info[layer_name].hyperlink.replace(/%\w+%/g, function(all) {
-					return eval("properties."+all.replace(/%/g,''));
-				});
-
-				this.loadInfoPage('tabQueryResult',stringa_hyperlink);
-
-				// if the panel is hidden, it is open 
-				this.infoPanelContainer.show(500);
-				this.titleToggleInfo.addClass("active");
-				
-			}
-			else{
-*/
-				this.loadInfoPage('tabQueryResult','infoWMSGetFeatureInfo.php');
-				var html = ov_utils.createElementsFromJSON(properties);
-// console.log('Html',html)
-				setTimeout(function(){$("#ov_info_wms_container").html(html);}, 500);
-				this.titleToggleInfo.addClass("active");
+		setTimeout(function(){$("#ov_info_wms_container").html(html);}, 500);
+		this.titleToggleInfo.addClass("active");
 ov_utils.ovLog('... completed.','OpenInfo'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
-/* OVD The function has been simplified, and the content is directly derived from the feature attributes
-			}
-		}
-*/
 	}
 }
 /** Additional function to manage the "measure line" and "measure area" interactive tools */
@@ -3538,18 +2480,6 @@ openViewer.prototype.measure = function(type, callback_function){
 		this.map.measure('area',callback_function);
 	}
 }
-/* OVD CURRENTLY UNUSED: addRedlineWKT (add a WKT object to a layer)
-openViewer.prototype.addRedlineWKT = function(layer_name,wkt,clear_before) {
-// console.log("addRedLineWkt");
-	clear_before = (typeof clear_before !== 'undefined') ?  clear_before : true;
-	return this.map.addRedlineWKT(layer_name,wkt,clear_before);
-};
-*/
-/* OVD CURRENTLY UNUSED: clearRedline (clear the redline objects of a layer)
-openViewer.prototype.clearRedline = function(layer_name) {
-	return this.map.clearRedline(layer_name);
-};
-*/
 /** Clear all "service" layers or one of them, and optionally cancel the features selection */
 openViewer.prototype.clearTempLayers = function(layers_names, flag_clear_service_layers, flag_cancel_selection) {
 	if (typeof flag_clear_service_layers == 'undefined') {flag_clear_service_layers=true;}
@@ -3564,1097 +2494,6 @@ openViewer.prototype.clearTempLayers = function(layers_names, flag_clear_service
 	$("#ov_info_wms_container").html('');
 };
 
-
-/** MAIN METHODS - MAIN LAYERS INTEGRATION (MAPGUIDE, DEFAULT WMS) - CURRENTLY UNUSED
- * -------------------------------------------------------------------------------
- */
-/*
-/ * OVD CURRENTLY UNUSED: startDraw
-openViewer.prototype.startDraw = function(type,callback_function) {
-	this.toggleToolStatus("draw");
-	this.map.startDraw(type,callback_function);
-}
-* /
-/* OVD CURRENTLY UNUSED: endDraw
-openViewer.prototype.endDraw = function() {
-	this.toggleToolStatus("select");
-	//this.map.endDraw();
-}
-* /
-/* OVD CURRENTLY UNUSED: cancelDraw
-openViewer.prototype.cancelDraw = function() {
-	this.map.cancelDraw();
-}
-* /
-/* OVD CURRENTLY UNUSED: digitizePoint
-openViewer.prototype.digitizePoint = function(callback_function) {
-	this.startDraw('Point',callback_function);
-}
-* /
-/* OVD CURRENTLY UNUSED: isDigitizing
-openViewer.prototype.isDigitizing = function() {
-	var stato_interazione=this.map.getStatusInteraction();
-	if (stato_interazione=='draw') {
-		return true;
-	} else {
-		return false;
-	}
-}
-* /
-/* OVD CURRENTLY UNUSED: cancelDigitization (used for backward compatibility)
-openViewer.prototype.cancelDigitization = function() {
-	this.endDraw();
-}
-* /
-/* OVD CURRENTLY UNUSED: fit 
-openViewer.prototype.fit = function(wkt, crs, pixelPadding) {
-	this.map.fit(wkt, crs, pixelPadding);
-}
-* /
-/* OVD CURRENTLY UNUSED: mapClearSelection
-openViewer.prototype.mapClearSelection = function() {
-	var stato = this.getStato();
-	var selectOverlay=this.map.getMapLayerByName('selection');
-
-	//Si ripulisce la selezione precedente
-	selectOverlay.getSource().clear();
-	
-	//Footer
-	this.footerUpdateText();
-}
-* /
-/* OVD CURRENTLY UNUSED: mapClearSnap
-openViewer.prototype.mapClearSnap = function() {
-	var stato = this.getStato();
-	var snapOverlay=this.map.getMapLayerByName('snap');
-
-	//Si ripulisce la selezione precedente
-	snapOverlay.getSource().clear();
-}
-/* OVD CURRENTLY UNUSED: mapGetSelectedFeatures
-openViewer.prototype.mapGetSelectedFeatures = function(xml,a_layers,callback,primary_key,extra_field) {
-	var selection=this.map.getSelectedFeatures(xml,a_layers,callback,primary_key,extra_field);
-	return selection;
-}
-* /
-/* OVD CURRENTLY UNUSED: refreshSnapVector
-openViewer.prototype.refreshSnapVector = function(layers,tipo_snap,tolleranza) {	
-	var stato = this.getStato();
-
-	var this_viewer = this;
-	
-	//Ci si ricava la vista della mappa
-	var center = this.getMapCenter();
-	var width = this.getMapWidth();
-	var height = this.getMapHeight();
-	
-	
-	//Per la selezione si considera solo il primo OL layer
-	var a_ol_layers=Object.keys(stato);
-	//inizio a ciclare su tutti i layers
-	for(var i=0; i<a_ol_layers.length; i++){
-		
-		//var ol_layer=a_ol_layers[0];
-		var ol_layer=a_ol_layers[i];
-		var source=this.map.getMapLayerSourceByName(ol_layer);
-		
-		switch(ol_layer) {
-			case "wms":
-				///TODO
-			break;
-
-			case "wms_geoserver":
-				///TODO
-			break;
-			
-			case "mapguide":
-				
-				var mapguide_coordinate = ol.proj.transform([center.X , center.Y], this_viewer.map.mapProjection,this_viewer.map.dataProjection);
-
-				var x1=mapguide_coordinate[0] - (width/2);
-				var x2=mapguide_coordinate[0] + (width/2);
-				var y1=mapguide_coordinate[1] - (height/2);
-				var y2=mapguide_coordinate[1] + (height/2);
-				
-				var geom="POLYGON(("+x1+" "+y2+","+x2+" "+y2+","+x2+" "+y1+","+x1+" "+y1+","+x1+" "+y2+"))";
-
-				var a_layernames=layers.split("|");
-				
-// 				var a_layers_selectable=stato[ol_layer].list_layers_selectable.split(",");
-
-				if (a_layernames.length > 0) {
-					
-					
-					var layernames=a_layernames.join();
-
-					data2send={
-						action:"GET_FEATURES_INFO",
-						mapName:stato[ol_layer].mg_session_info.mapName,
-						mapSession:stato[ol_layer].mg_session_info.mapSession,
-						layers:layernames,
-						geometry:geom,
-						maxfeatures:"100"
-					};
-
-
-					$.ajax({
-						url: stato[ol_layer].api_url,
-						method: 'POST',
-						dataType: 'json',
-						data: data2send,
-						error: function(a, b, c) {
-// console.log("GET_FEATURES_INFO() - ERROR");
-						},
-						success: function(response) {
-
-							if(response.status=="ok") {
-// console.log(response.data);
-								this_viewer.mapClearSnap();
-								this_viewer.mapSetSnap(response.data);
-								
-							}
-						}
-					});
-					
-					
-				}
-			break;
-		}
-
-	
-//break;
-}
-
-}
-* /
-/* OVD CURRENTLY UNUSED: getMapGuideSelection
-openViewer.prototype.getMapGuideSelection = function() {
-	var selection=this.map.getMapGuideSelection();
-	
-	return selection;
-}
-* /
-
-/* OVD CURRENTLY UNUSED: setSelection_legacy (valid only for MapGuide)
-openViewer.prototype.setSelection_legacy = function(layer, ids, primary_key) {
-	var this_viewer=this;
-
-	if ( typeof primary_key == "undefined" ) {
-		var primary_key="id";
-	}
-	
-	var stato = this.getStato();
-
-	var ol_layer="mapguide";
-	
-	// valid for MapGuide
-
-	var data2send={
-		action:"SET_SELECTION",
-		mapName:stato[ol_layer].mg_session_info.mapName,
-		mapSession:stato[ol_layer].mg_session_info.mapSession,
-		layer:layer,
-		ids:ids,
-		primary_key: primary_key
-	};
-
-
-	$.ajax({
-		url: stato[ol_layer].api_url,
-		method: 'POST',
-		dataType: 'json',
-		data: data2send,
-		error: function(a, b, c) {
-// console.log("SET_SELECTION() - ERROR");
-		},
-		success: function(response) {
-
-			if(response.status=="ok") {
-// console.log(response.data);
-				this_viewer.mapClearSelection();
-				this_viewer.mapSetSelection(response.data);
-			}
-		}
-	});
-	
-}
-* /
-/* OVD CURRENTLY UNUSED: setSelection_multilayer_legacy (valid only for MapGuide)
-openViewer.prototype.setSelection_multilayer_legacy = function(selection_string) {
-	var this_viewer=this;
-	
-	var stato = this.getStato();
-
-	var ol_layer="mapguide";
-	
-	// valid for MapGuide
-	
-	var data2send={
-		action:"SET_SELECTION_MULTI",
-		mapName:stato[ol_layer].mg_session_info.mapName,
-		mapSession:stato[ol_layer].mg_session_info.mapSession,
-		selection_string:selection_string
-	};
-
-
-	$.ajax({
-		url: stato[ol_layer].api_url,
-		method: 'POST',
-		dataType: 'json',
-		data: data2send,
-		error: function(a, b, c) {
-// console.log("SET_SELECTION_MULTI() - ERROR");
-		},
-		success: function(response) {
-
-			if(response.status=="ok") {
-				this_viewer.mapClearSelection();
-				for(var i=0; i<response.data.length; i++){
-					
-						this_viewer.mapSetSelection(response.data[i]);
-				}
-				
-			}
-		}
-	});
-}
-* /
-/* OVD CURRENTLY UNUSED: mapSetSnap
-openViewer.prototype.mapSetSnap = function(response, crs) {
-	var stato = this.getStato();
-	if ( typeof crs == "undefined" ) crs = "EPSG:3003";
-
-	var wktformat = new ol.format.WKT();
-	var snapOverlay = this.map.getMapLayerByName('snap');
-	var snapOverlaySource = snapOverlay.getSource();
-	var viewProjectionCode = this.map.getMapView().getProjection().getCode();
-	
-	if(response.length > 0) {
-		for (var k = 0; k < response.length; k++) {
-			
-			var wkt=response[k].geometry;
-			var layer=response[k].layer;
-			var feature_id=response[k].feature_id;
-
-			var features=wktformat.readFeatures(wkt, { dataProjection: crs,featureProjection: viewProjectionCode } );
-			
-			if(features.length > 0) {
-				for (var i = 0; i < features.length; i++) {
-					var feature = features[i];
-					// faccio l'hash della geometria e lo uso come id della feature, per poterla poi ricercare
-					feature.setId( ov_utils.simpleHash( wktformat.writeFeature(feature) ) );
-					feature.set("layer",layer,true);
-					feature.set("feature_id",feature_id,true);
-					var featureId = feature.getId();
-// console.log("featureId",featureId, "feature", feature );
-					if ( snapOverlaySource.getFeatureById(featureId) === null ) {
-						snapOverlaySource.addFeature(feature);
-					} else {
-						// feature già presente
-// console.log('feature ' + featureId + ' già presente');
-					}
-				}
-			}
-		}
-	}
-}
-* /
-/* OVD CURRENTLY UNUSED: mapSetSelection
-openViewer.prototype.mapSetSelection = function(response, crs) {
-// console.log("mapSetSelection");
-// 
-// console.log(response);
-	
-	var wkt=response.geometry;
-	var layer=response.layer;
-	var feature_id=response.feature_id;
-	var extra_fields=response.extra_fields;
-	
-	var stato = this.getStato();
-	if ( typeof crs == "undefined" ) crs = "EPSG:3003";
-	
-	var wktformat = new ol.format.WKT();
-	
-	var selectOverlay = this.map.getMapLayerByName('selection');
-	var selectOverlaySource = selectOverlay.getSource();
-	var viewProjectionCode = this.map.getMapView().getProjection().getCode();
-	
-	if (wkt != null) {
-		var features=wktformat.readFeatures(wkt, { dataProjection: crs,featureProjection: viewProjectionCode } );
-	 
-		if(features.length > 0) {
-			for (var i = 0; i < features.length; i++) {
-				var feature = features[i];
-				// faccio l'hash della geometria e lo uso come id della feature, per poterla poi ricercare
-				feature.setId( ov_utils.simpleHash( wktformat.writeFeature(feature) ) );
-				feature.set("layer",layer,true);
-				feature.set("feature_id",feature_id,true);
-				feature.set("extra_fields",extra_fields,true);
-				var featureId = feature.getId();
-// console.log("featureId",featureId, "feature", feature );
-				if ( selectOverlaySource.getFeatureById(featureId) === null ) {
-					selectOverlaySource.addFeature(feature);
-				} else {
-					// feature già presente
-// console.log('feature ' + featureId + ' già presente');
-				}
-			}
-		}
-	
-	}
-	
-	//Footer
-	this.footerUpdateText();
-}
-* /
-
-/* OVD CURRENTLY UNUSED: mapRefresh
-openViewer.prototype.mapRefresh = function() {
-	var centro = ol.proj.transform([this.getMapCenter().X , this.getMapCenter().Y], this.map.mapProjection,this.map.dataProjection);
-	this.zoomToView(centro[0]-1,centro[1], this.getMapScale());
-}
-* /
-
-/* OVD CURRENTLY UNUSED: addPolygonsInLayer_legacy (valid only for MapGuide)
-openViewer.prototype.addPolygonsInLayer_legacy = function(wkt,layer_name,doRefresh, onSuccess, onFail) {
-	///Nella vecchia chiamata wkt contiene una lista di wkt separata da |, si deve ciclare e aggiungere una wkt alla volta...
-	var a_wkt=wkt.split("|");
-	if (empty(layer_name)){
-		layer_name='redline';
-	}
-	for (var i=0;i < a_wkt.length;i++) {
-		if (i==0) {
-			this.addRedlineWKT(layer_name,a_wkt[i]);
-		} else {
-			this.addRedlineWKT(layer_name,a_wkt[i],false);
-		}
-	}
-	
-	if (typeof onSuccess !== 'undefined') {
-		eval(onSuccess);
-	}
-}
-* /
-/* OVD CURRENTLY UNUSED: addPointsInLayer_legacy (valid only for MapGuide)
-openViewer.prototype.addPointsInLayer_legacy = function(wkt,layer_name,doRefresh, onSuccess, onFail, emptyLayerBefore) {
-	///Nella vecchia chiamata wkt contiene una lista di wkt separata da |, si deve ciclare e aggiungere una wkt alla volta...
-	var a_wkt=wkt.split("|");
-	if (empty(layer_name)){
-		layer_name='redline';
-	}
-	
-	if (typeof emptyLayerBefore === 'undefined') {
-		emptyLayerBefore=true;
-	}
-	
-	for (var i=0;i < a_wkt.length;i++) {
-		if (i==0) {
-			this.addRedlineWKT(layer_name,a_wkt[i],emptyLayerBefore);
-		} else {
-			this.addRedlineWKT(layer_name,a_wkt[i],false);
-		}
-	}
-	
-	if (typeof onSuccess !== 'undefined') {
-		eval(onSuccess);
-	}
-}
-* /
-/* OVD CURRENTLY UNUSED: putLabelInLayer_legacy (valid only for MapGuide)
-openViewer.prototype.putLabelInLayer_legacy = function(layer_name,wkt,labelText,size, angle, sizex, doRefresh,onSuccess) {
-	var clear=1;
-	this.map.addLabelInLayer(layer_name,wkt,labelText,size, angle,clear);
-}
-* /
-/* OVD CURRENTLY UNUSED: putLabelsInLayer_legacy (valid only for MapGuide)
-openViewer.prototype.putLabelsInLayer_legacy = function(layer_name,params,sizex,doRefresh,onSuccess) {
-	
-// il primo si fa putlabelinlayer per gli altri si fa addLabelInLayer
-	for (var i=0; i<params.length; i++)
-		{
-			this.map.addLabelInLayer(layer_name,params[i].wkt,params[i].text,params[i].size, params[i].angle,params[i].clear);
-		}
-}
-* /
-/* OVD CURRENTLY UNUSED: creaPointLayer_legacy (valid only for MapGuide)
-openViewer.prototype.creaPointLayer_legacy = function(nome, colore, spessore, angolo, height, group, groupLabel, onSuccess, onFail) {
-	//controllo parametri. Se vuoti passo valori di default
-	if ( empty(colore) ) { colore = "c519ff"; }
-	if ( empty(spessore) ) { spessore = 4; }
-	if ( empty(nome) ) { nome = "tmp_punti"; }
-	this.map.createTempLayer(nome,colore,'',spessore);
-}
-* /
-/* OVD CURRENTLY UNUSED: creaLineLayer_legacy (valid only for MapGuide)
-openViewer.prototype.creaLineLayer_legacy = function(nome, colore, spessore, group, groupLabel, onSuccess, onFail) {
-	//controllo parametri. Se vuoti passo valori di default
-	if ( empty(nome) ) { nome = "tmp_linee"; }
-	if ( empty(colore) ) { colore = "c519ff"; }
-	if ( empty(spessore) ) { spessore = 4; }
-	this.map.createTempLayer(nome,colore,'',spessore);
-}
-* /
-/* OVD CURRENTLY UNUSED: creaPolygonLayer_legacy (valid only for MapGuide)
-openViewer.prototype.creaPolygonLayer_legacy = function(nome, colore, spessore_bordo, colore_bordo, group, groupLabel, onSuccess, onFail, setVisible) {
-	//controllo parametri. Se vuoti passo valori di default
-	if ( empty(nome) ) { nome = "tmp_poligoni"; }
-	if ( empty(colore) ) { colore = "c519ff"; }
-	if ( empty(colore_bordo) ) { colore_bordo = "bf00ff"; }
-	if ( empty(spessore_bordo) ) { spessore_bordo = 4; }
-	this.map.createTempLayer(nome,colore,colore_bordo,spessore_bordo);
-}
-* /
-/* OVD CURRENTLY UNUSED: creaGeneralLayers_legacy (valid only for MapGuide)
-openViewer.prototype.creaGeneralLayers_legacy = function(nomi, tipologie, colori, spessori_bordo, colori_bordo, nomiGruppi, onSuccess) {
-
-	//controllo parametri. Se vuoti passo valori di default
-	if ( empty(nomi) ) { nomi = "tmp_layer"; }
-	if ( empty(colori) ) { colori = "c519ff"; }
-	if ( empty(colori_bordo) ) { colori_bordo = "bf00ff"; }
-	if ( empty(spessori_bordo) ) { spessori_bordo = 4; }
-	
-	var a_layers=nomi.split(',');
-	var a_colori=colori.split(',');
-	var a_spessori_bordo=spessori_bordo.toString().split(',');
-
-	var a_colori_bordo=colori_bordo.split(',');
-
-	for(i=0;i<a_layers.length;i++){
-		
-		if ( empty(a_colori[i]) ) { a_colori[i] = "c519ff"; }
-		if ( empty(a_colori_bordo[i]) ) { a_colori_bordo[i] = "bf00ff"; }
-		if ( empty(a_spessori_bordo[i]) ) { a_spessori_bordo[i] = 4; }
-
-		//nel vecchio visualizzatore si passa il colore e la trasparanza (primi due caratteri) in un'unica stringa, mentro adesso il colore e l'opacità devono essere divisi quindi si splitta la stringa del colore per ogni layer temporaneo. Si considera anche il caso in cui sia stato passato solo il colore e non la trasparenza. Per la trasparenza si deve convertire il vaore da esadecimale a decimale.
-		if (a_colori[i].length=='8'){
-			var fill_opacity=ov_utils.hex2dec(a_colori[i].substr(0,2));
-			var fill_color = '#'+a_colori[i].substr(2,6);
-		}else{
-			var fill_opacity=1;
-			var fill_color='#'+a_colori[i];
-		}
-		
-		if (a_colori_bordo[i].length=='8'){
-			var stroke_opacity=ov_utils.hex2dec(a_colori_bordo[i].substr(0,2));
-			var stroke_color = '#'+a_colori_bordo[i].substr(2,6);
-		}else{
-			var stroke_opacity=1;
-			var stroke_color='#'+a_colori_bordo[i];
-		}
-
-		//Per definire la trasparenza il colore va passato come un array rgba, dove l'elemento di posizione 3 rappresenta la trasparenza.
-		var fill_color_array= ol.color.asArray(fill_color);
-		fill_color_array[3]=fill_opacity;
-		
-		var stroke_color_array= ol.color.asArray(stroke_color);
-		stroke_color_array[3]=stroke_opacity;
-		//lo spessore del bordo si cabla qui invece che in openViewerMap.js, sostituendo una modifica del 2020-03-02. Questo permette di usare al funzione createTempLayer per creare layer temporanei con spessori diversi da 2, senza passare da creaGeneralLayers_legacy
-		a_spessori_bordo[i]=2;
-		this.map.createTempLayer(a_layers[i],fill_color_array,stroke_color_array,a_spessori_bordo[i]);
-	}
-}
-* /
-/* OVD CURRENTLY UNUSED: creaLabelLayer_legacy (valid only for MapGuide)
-openViewer.prototype.creaLabelLayer_legacy = function(layer_name,colore,spessore,doRefresh,onSuccess) {
-	this.map.createTempLayer(layer_name,colore,colore,spessore);
-}
-* /
-/* OVD CURRENTLY UNUSED: addLinesInLayer_legacy (valid only for MapGuide)
-openViewer.prototype.addLinesInLayer_legacy = function(wkt,layer_name,doRefresh, onSuccess, onFail) {
-	///Nella vecchia chiamata wkt contiene una lista di wkt separata da |, si deve ciclare e aggiungere una wkt alla volta...
-
-	var a_wkt=wkt.split("|");
-	if (empty(layer_name)){
-
-		layer_name='redline';
-	}
-	
-	for (var i=0;i < a_wkt.length;i++) {
-		if (i==0) {
-			this.addRedlineWKT(layer_name,a_wkt[i]);
-		} else {
-			this.addRedlineWKT(layer_name,a_wkt[i],false);
-		}
-	}
-	
-	if (typeof onSuccess !== 'undefined') {
-		eval(onSuccess);
-	}
-}
-* /
-/* OVD CURRENTLY UNUSED: emptyLayers_legacy (valid only for MapGuide)
-openViewer.prototype.emptyLayers_legacy = function(layers_names,mapRefresh) {
-	var lista_layer=layers_names.split("|");
-	
-	for (var i=0;i < lista_layer.length;i++) {
-		this.clearTempLayers(lista_layer[i]);
-	}
-	if(mapRefresh===true){
-		setTimeout($.proxy(function () {this.mapRefresh();},this),500);
-
-	}
-}
-*/
-
-
-/** SPECIAL FUNCTIONALITIES - MAP PRINT FUNCTIONALITY
- * ---------------------------------------------------------------
- */
-
-/** Initialize and open the "print dialog" */
-openViewer.prototype.loadPrintMap = function(url) {
-	// handle the print dialog
-	var div_print_dialog=$(this.printMapDiv);
-
-	var dlg=$(this.printMapDiv).dialog({
-		title: strings_interface.sentence_openprintdialog,
-		resizable: true,
-		autoOpen:false,
-		modal: true,
-		hide: 'fade',
-		width:550,
-		height:600
-// 		,close: function () {
-// console.log("dialog close");
-// 			$(div_print_dialog).dialog("close");
-// 		}
-	});
-
-	dlg.load(url, function(){
-		dlg.dialog('open');
-	}); 
-};
-/* OVD CURRENTLY UNUSED: getPrintablePage - COME RIATTIVARLA ?
- */
-openViewer.prototype.getPrintablePageNEW = function(label,format,adatta_scala) { // NEW - NOT WORKING
-// console.log(label,format,adatta_scala);
-	var ol_map=this.map.map;
-	
-	var dims = {	//mm
-		a0: [1189, 841],
-		a1: [841, 594],
-		a2: [594, 420],
-		a3: [420, 297],
-		a4: [297, 210],
-		a5: [210, 148]
-	};
-
-// 	var loading = 0;
-// 	var loaded = 0;
-
-// 	document.body.style.cursor = 'progress';
-
-// console.log(format);
-	
-	//Cambiare i dpi se si vogliono stampe con più qualità!!!Controindicazioni: dimensione del pdf generato più grande, le etichette dei testi vengono più piccole per cui
-	// non è garantito che la mappa stampata sia uguale a quella che si vede a schermo 
-	var dpi = 150; //dpi
-	
-	var dim = dims[format];
-		
-	var current_center=this.getMapCenter();
-	var current_scale=this.getMapScale(true);
-console.log("current_center",current_center,"current_scale",current_scale);
-	
-	//Dimensione in pixel dell'immagine
-	var width = Math.round(dim[0] * dpi / 25.4);
-	var height = Math.round(dim[1] * dpi / 25.4);
-
-	switch (adatta_scala) {
-		
-		case "adatta":
-			var size = ol_map.getSize();
-			var extent = ol_map.getView().calculateExtent(size);
-		break;
-		
-		case "scala":
-			//Dimensione in metri su mappa
-			var width_reale_m = Math.round(dim[0]*current_scale/1000); 
-			var height_reale_m = Math.round(dim[1]*current_scale/1000);
-			
-			var extent = [parseFloat(current_center.X-(width_reale_m/2)),parseFloat(current_center.Y-(height_reale_m/2)),parseFloat(current_center.X+(width_reale_m/2)),parseFloat(current_center.Y+(height_reale_m/2))];
-		break;
-	}
-console.log('image size: '+width+' x '+height);
-console.log('map size: ',size);
-console.log('map extent',extent);
-	
-// console.log("dim",dim);
-// console.log("width",width);
-// console.log("height",height);
-// 
-// console.log("width_reale_m",width_reale_m);
-// console.log("height_reale_m",height_reale_m);
-// 
-// console.log("size",size);
-// console.log("extent",extent);
-
-	var stato = this.getStato();
-
-	var a_ol_layers=Object.keys(stato);
-
-	//TODO Si prende il primo layer. Se ci sono wms esterni andranno presi tutti(?)
-	var ol_layer=a_ol_layers[0];
-	var source=this.map.getMapLayerSourceByName(ol_layer);
-console.log('source',source);
-	var that=this;
-	
-    // to be corrected correct from here
-ol_map.once('rendercomplete', function() {
-    var convertMeToImg = ol_map.getViewport().querySelector('.ol-layers');
-console.log('convertMeToImg',convertMeToImg);
-
-
-    var element = $("#widget"); // global variable
-    var getCanvas; // global variable
-    
-    html2canvas(convertMeToImg, {
-             onrendered: function (canvas) {
-                    $("#copyDiv").append(canvas);
-                    getCanvas = canvas;
-                 }
-      });
-console.log('getCanvas',getCanvas);
-    
-    domtoimage.toJpeg(ol_map.getViewport().querySelector('.ol-layers')).then(function(dataUrl) {
-      const pdf = new jsPDF('landscape', undefined, format);
-      pdf.addImage(dataUrl, 'JPEG', 0, 0, dim[0], dim[1]);
-      pdf.save('map.pdf');
-      // Reset original map size
-      ol_map.setSize(size);
-      ol_map.getView().fit(extent, {size});
-      exportButton.disabled = false;
-      document.body.style.cursor = 'auto';
-    });
-  });
-
-	ol_map.setSize([width, height]);
-	//var size = @type {ol.Size} ;
-	var size = (ol_map.getSize());
-	ol_map.getView().fit(extent,{size: size, constrainResolution: false});
-	ol_map.renderSync();
-}
-
-openViewer.prototype.getPrintablePageNEW2 = function(label,format,adatta_scala) {  // NEW - NOT WORKING
-// console.log(label,format,adatta_scala);
-	var ol_map=this.map.map;
-	
-//var scaleLine = new ScaleLine({bar: true, text: true, minWidth: 125});
-//ol_map.addControl(scaleLine);
-
-	var dims = {	//mm
-		a0: [1189, 841],
-		a1: [841, 594],
-		a2: [594, 420],
-		a3: [420, 297],
-		a4: [297, 210],
-		a5: [210, 148]
-	};
-
-
-// export options for html-to-image.
-// See: https://github.com/bubkoo/html-to-image#options
-var exportOptions = {
-  filter: function (element) {
-    var className = element.className || '';
-    return (
-      className.indexOf('ol-control') === -1 ||
-      className.indexOf('ol-scale') > -1 ||
-      (className.indexOf('ol-attribution') > -1 &&
-        className.indexOf('ol-uncollapsible'))
-    );
-  },
-};    
-    
-// 	var loading = 0;
-// 	var loaded = 0;
-
-// 	document.body.style.cursor = 'progress';
-
-// console.log(format);
-	
-	//Cambiare i dpi se si vogliono stampe con più qualità!!!Controindicazioni: dimensione del pdf generato più grande, le etichette dei testi vengono più piccole per cui
-	// non è garantito che la mappa stampata sia uguale a quella che si vede a schermo 
-	var dpi = 150; //dpi
-	
-	var dim = dims[format];
-		
-	var current_center=this.getMapCenter();
-	var current_scale=this.getMapScale(true);
-console.log("current_center",current_center,"current_scale",current_scale);
-	
-	//Dimensione in pixel dell'immagine
-	var width = Math.round(dim[0] * dpi / 25.4);
-	var height = Math.round(dim[1] * dpi / 25.4);
-
-	switch (adatta_scala) {
-		
-		case "adatta":
-			var size = ol_map.getSize();
-			var extent = ol_map.getView().calculateExtent(size);
-		break;
-		
-		case "scala":
-			//Dimensione in metri su mappa
-			var width_reale_m = Math.round(dim[0]*current_scale/1000); 
-			var height_reale_m = Math.round(dim[1]*current_scale/1000);
-			
-			var extent = [parseFloat(current_center.X-(width_reale_m/2)),parseFloat(current_center.Y-(height_reale_m/2)),parseFloat(current_center.X+(width_reale_m/2)),parseFloat(current_center.Y+(height_reale_m/2))];
-		break;
-	}
-console.log('image size: '+width+' x '+height);
-console.log('map size: ',size);
-console.log('map extent',extent);
-	
-// console.log("dim",dim);
-// console.log("width",width);
-// console.log("height",height);
-// 
-// console.log("width_reale_m",width_reale_m);
-// console.log("height_reale_m",height_reale_m);
-// 
-// console.log("size",size);
-// console.log("extent",extent);
-
-	var stato = this.getStato();
-
-	var a_ol_layers=Object.keys(stato);
-
-	//TODO Si prende il primo layer. Se ci sono wms esterni andranno presi tutti(?)
-	var ol_layer=a_ol_layers[0];
-	var source=this.map.getMapLayerSourceByName(ol_layer);
-
-	var that=this;
-    // to be corrected correct from here
-
-
-	var imageLoadStart = function() {
-		
-// 		++loading;
-	};
-
-	var imageLoadEnd = function() {
-
-// 		++loaded;
-// 		if (loading === loaded) {
-
-			var canvas = this;
-console.log("canvas",canvas)
-			window.setTimeout(function() {
-//				loading = 0;
-// 				loaded = 0;
-				
-				///TODO sarebbe migliore la qualità, ma troppo pesante il file generato
-// 				//PNG
-// 				var data = canvas.toDataURL('image/png');
-// 				var pdf = new jsPDF('landscape', 'mm', format,true);
-// 				pdf.addImage(data, 'PNG', 0, 0, dim[0], dim[1],'','FAST');
-				
-				//workaround per aggirare il problema di stampa con sfondi con trasparenza:  con il jpeg lo sfondo in trasparenza viene nero (es. catasto senza limiti amministrativi), quindi si crea un altro canvas con sfondo bianco su cui poi copiare l'immagine jpeg creata con la funzione toDataURL.
-
-				var destinationCanvas = document.createElement("canvas");
-				destinationCanvas.width = canvas.width;
-				destinationCanvas.height = canvas.height;
-console.log("destinationCanvas",destinationCanvas)
-				var destCtx = destinationCanvas.getContext('2d');
-console.log("destCtx",destCtx)
-
-				//create a rectangle with the desired color
-				destCtx.fillStyle = "#FFFFFF";
-				destCtx.fillRect(0,0,canvas.width,canvas.height);
-
-				//draw the original canvas onto the destination canvas
-				destCtx.drawImage(canvas, 0, 0);
-				
-				
-				//JPEG
-				var data = destinationCanvas.toDataURL('image/jpeg');
-				var pdf = new jsPDF('landscape', 'mm', format);
-				
-				pdf.addImage(data, 'JPEG', 0, 0, dim[0], dim[1]);
-				
-				//pdf.setTextColor(100,100,100);
-			
-				//Si disegna il rettangolo che contiene titolo e scala
-				pdf.setFillColor(255,255,255);
-				pdf.rect(0, 0, dim[0], 7, 'F');
-				
-				//Si setta la dimensione del testo
-				pdf.setFontSize(14);
-				
-				//Titolo (se compilato)
-				if (label!="") {
-					pdf.text(label,2,5);
-				}
-				
-				if (adatta_scala=="scala") {
-				
-					//Scala
-					//Si calcola la larghezza del testo della scala per posizionarlo correttamente
-					var strWidth = pdf.getStringUnitWidth("Scala 1:"+current_scale) * pdf.internal.getFontSize() /(72/25.6);
-					pdf.text("Scala 1:"+current_scale,dim[0]-strWidth-2,5);
-					
-				}
-				
-				//Si salva il pdf
-				pdf.save('map.pdf');
-				
-				source.un('imageloadstart', imageLoadStart);
-				source.un('imageloadend', imageLoadEnd, canvas);
-				source.un('imageloaderror', imageLoadEnd, canvas);
-
-                
-                
-// 				ol_map.setSize(size);
-// 				ol_map.getView().fit(extent);
-				
-				ol_map.updateSize();
-				
-				that.setMapCenter(current_center);
-				that.setMapScale(current_scale);
-				
-				ol_map.renderSync();
-
-				document.body.style.cursor = 'auto';
-			}, 200);
-// 		}
-	};
-/* ORIGINAL
-	ol_map.once('postcompose', function(event) {
-console.log('event', event);
-		source.on('imageloadstart', imageLoadStart);  
-		source.on('imageloadend', imageLoadEnd, event.context.canvas);
-		source.on('imageloaderror', imageLoadEnd, event.context.canvas);
-	});
-	
-	ol_map.setSize([width, height]);
-	//var size = @type {ol.Size} ;
-	var size = (ol_map.getSize());
-	ol_map.getView().fit(extent,{size: size, constrainResolution: false});
-	ol_map.renderSync();
-*/
-    
-    
-    ol_map.once('rendercomplete', function () {
-      exportOptions.width = width;
-      exportOptions.height = height;
-      domtoimage
-        .toJpeg(ol_map.getViewport(), exportOptions)
-        .then(function (dataUrl) {
-          var pdf = new jsPDF('landscape', undefined, format);
-          pdf.addImage(dataUrl, 'JPEG', 0, 0, dim[0], dim[1]);
-          pdf.save('map.pdf');
-          // Reset original map size
-          //scaleLine.setDpi();
-          ol_map.getTargetElement().style.width = '';
-          ol_map.getTargetElement().style.height = '';
-          ol_map.updateSize();
-          //ol_map.getView().setResolution(viewResolution);
-          exportButton.disabled = false;
-          document.body.style.cursor = 'auto';
-        });
-    });
-
-    // Set print size
-    //scaleLine.setDpi(resolution);
-    ol_map.getTargetElement().style.width = width + 'px';
-    ol_map.getTargetElement().style.height = height + 'px';
-    ol_map.updateSize();
-    //ol_map.getView().setResolution(scaleResolution);
-    
-    
-    
-    
-}
-
-openViewer.prototype.getPrintablePage = function(label,format,adatta_scala) { // NOT WORKING
-// console.log(label,format,adatta_scala);
-	var ol_map=this.map.map;
-	
-	var dims = {	//mm
-		a0: [1189, 841],
-		a1: [841, 594],
-		a2: [594, 420],
-		a3: [420, 297],
-		a4: [297, 210],
-		a5: [210, 148]
-	};
-
-// 	var loading = 0;
-// 	var loaded = 0;
-
-// 	document.body.style.cursor = 'progress';
-
-// console.log(format);
-	
-	//Cambiare i dpi se si vogliono stampe con più qualità!!!Controindicazioni: dimensione del pdf generato più grande, le etichette dei testi vengono più piccole per cui
-	// non è garantito che la mappa stampata sia uguale a quella che si vede a schermo 
-	var dpi = 150; //dpi
-	
-	var dim = dims[format];
-		
-	var current_center=this.getMapCenter();
-	var current_scale=this.getMapScale(true);
-console.log("current_center",current_center,"current_scale",current_scale);
-	
-	//Dimensione in pixel dell'immagine
-	var width = Math.round(dim[0] * dpi / 25.4);
-	var height = Math.round(dim[1] * dpi / 25.4);
-
-	switch (adatta_scala) {
-		
-		case "adatta":
-			var size = ol_map.getSize();
-			var extent = ol_map.getView().calculateExtent(size);
-		break;
-		
-		case "scala":
-			//Dimensione in metri su mappa
-			var width_reale_m = Math.round(dim[0]*current_scale/1000); 
-			var height_reale_m = Math.round(dim[1]*current_scale/1000);
-			
-			var extent = [parseFloat(current_center.X-(width_reale_m/2)),parseFloat(current_center.Y-(height_reale_m/2)),parseFloat(current_center.X+(width_reale_m/2)),parseFloat(current_center.Y+(height_reale_m/2))];
-		break;
-	}
-console.log('image size: '+width+' x '+height);
-console.log('map size: ',size);
-console.log('map extent',extent);
-	
-// console.log("dim",dim);
-// console.log("width",width);
-// console.log("height",height);
-// 
-// console.log("width_reale_m",width_reale_m);
-// console.log("height_reale_m",height_reale_m);
-// 
-// console.log("size",size);
-// console.log("extent",extent);
-
-	var stato = this.getStato();
-
-	var a_ol_layers=Object.keys(stato);
-
-	//TODO Si prende il primo layer. Se ci sono wms esterni andranno presi tutti(?)
-	var ol_layer=a_ol_layers[0];
-	var source=this.map.getMapLayerSourceByName(ol_layer);
-
-	var that=this;
-    // to be corrected correct from here
-
-
-	var imageLoadStart = function() {
-		
-// 		++loading;
-	};
-
-	var imageLoadEnd = function() {
-
-// 		++loaded;
-// 		if (loading === loaded) {
-
-			var canvas = this;
-console.log("canvas",canvas)
-			window.setTimeout(function() {
-//				loading = 0;
-// 				loaded = 0;
-				
-				///TODO sarebbe migliore la qualità, ma troppo pesante il file generato
-// 				//PNG
-// 				var data = canvas.toDataURL('image/png');
-// 				var pdf = new jsPDF('landscape', 'mm', format,true);
-// 				pdf.addImage(data, 'PNG', 0, 0, dim[0], dim[1],'','FAST');
-				
-				//workaround per aggirare il problema di stampa con sfondi con trasparenza:  con il jpeg lo sfondo in trasparenza viene nero (es. catasto senza limiti amministrativi), quindi si crea un altro canvas con sfondo bianco su cui poi copiare l'immagine jpeg creata con la funzione toDataURL.
-
-				var destinationCanvas = document.createElement("canvas");
-				destinationCanvas.width = canvas.width;
-				destinationCanvas.height = canvas.height;
-console.log("destinationCanvas",destinationCanvas)
-				var destCtx = destinationCanvas.getContext('2d');
-console.log("destCtx",destCtx)
-
-				//create a rectangle with the desired color
-				destCtx.fillStyle = "#FFFFFF";
-				destCtx.fillRect(0,0,canvas.width,canvas.height);
-
-				//draw the original canvas onto the destination canvas
-				destCtx.drawImage(canvas, 0, 0);
-				
-				
-				//JPEG
-				var data = destinationCanvas.toDataURL('image/jpeg');
-				var pdf = new jsPDF('landscape', 'mm', format);
-				
-				pdf.addImage(data, 'JPEG', 0, 0, dim[0], dim[1]);
-				
-				//pdf.setTextColor(100,100,100);
-			
-				//Si disegna il rettangolo che contiene titolo e scala
-				pdf.setFillColor(255,255,255);
-				pdf.rect(0, 0, dim[0], 7, 'F');
-				
-				//Si setta la dimensione del testo
-				pdf.setFontSize(14);
-				
-				//Titolo (se compilato)
-				if (label!="") {
-					pdf.text(label,2,5);
-				}
-				
-				if (adatta_scala=="scala") {
-				
-					//Scala
-					//Si calcola la larghezza del testo della scala per posizionarlo correttamente
-					var strWidth = pdf.getStringUnitWidth("Scala 1:"+current_scale) * pdf.internal.getFontSize() /(72/25.6);
-					pdf.text("Scala 1:"+current_scale,dim[0]-strWidth-2,5);
-					
-				}
-				
-				//Si salva il pdf
-				pdf.save('map.pdf');
-				
-				source.un('imageloadstart', imageLoadStart);
-				source.un('imageloadend', imageLoadEnd, canvas);
-				source.un('imageloaderror', imageLoadEnd, canvas);
-
-                
-                
-// 				ol_map.setSize(size);
-// 				ol_map.getView().fit(extent);
-				
-				ol_map.updateSize();
-				
-				that.setMapCenter(current_center);
-				that.setMapScale(current_scale);
-				
-				ol_map.renderSync();
-
-				document.body.style.cursor = 'auto';
-			}, 200);
-// 		}
-	};
-	ol_map.once('postcompose', function(event) {
-console.log('event', event);
-		source.on('imageloadstart', imageLoadStart);  
-		source.on('imageloadend', imageLoadEnd, event.context.canvas);
-		source.on('imageloaderror', imageLoadEnd, event.context.canvas);
-	});
-	ol_map.setSize([width, height]);
-	//var size = @type {ol.Size} ;
-	var size = (ol_map.getSize());
-	ol_map.getView().fit(extent,{size: size, constrainResolution: false});
-	ol_map.renderSync();
-}
-
-/** SPECIAL FUNCTIONALITIES - TRACKING FUNCTIONALITY
- * ---------------------------------------------------------------
- */
-
-/** tracking/Geolocation - E' POSSIBILE ATTIVARLO ??? */
-openViewer.prototype.trackingPosition = function(){
-ov_utils.ovLog('Set tracking...'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
-	this.map.mapSetTracking(true);
-}
 
 /** OTHER PROCEDURES
  * ---------------------------------------------------------------
@@ -4693,18 +2532,6 @@ openViewer.prototype.openCloseDiv = function(div){
 	}
 }
 
-/* OVD ELIMINARE - AL MOMENTO NON E' USATO, MA POTREBBE ESSERE UTILE SE SI RIPRISTINANO I WMS INTERNAL
-openViewer.prototype.overlayWmsInternal = function() {
-	var wms_url_internal = this.internalWmsURL;
-	ov_wms_plugin.WMSuserScanUrlViaProxy(wms_url_internal); // this.WMSuserScanUrlViaProxy(wms_url_internal);
-}
-*/
-/* OVD ELIMINARE - UNUSED
-openViewer.prototype.addLayer = function(layer){
-	this.map.addingLayer(layer);
-}
-*/
-
 
 
 
@@ -4731,25 +2558,3 @@ ovLegendTreeItem.prototype.Attach = function(child) { // Add a child to a TreeIt
 };
 
 
-/* OVD BUTTARE
-async function returnTrue() {
-  
-  console.log('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX');
-  console.log(new Date());
-  // create a new promise inside of the async function
-  let promise = new Promise((resolve, reject) => {
-    setTimeout(() => resolve(true), 5000) // resolve
-  });
-  
-  // wait for the promise to resolve
-  let result = await promise;
-   
-  // console log the result (true)
-  console.log('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX');
-  console.log(new Date());
-  console.log(result);
-}
-
-// call the function
-returnTrue();
-*/

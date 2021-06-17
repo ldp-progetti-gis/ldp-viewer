@@ -77,7 +77,6 @@
 		<script type="text/javascript" src="{$GLOBALS['URLBaseInclude']}/openViewer/openViewerMap.js?{$t}" defer></script>
 		<script type="text/javascript" src="{$GLOBALS['URLBaseInclude']}/openViewer/openViewer.js?{$t}" defer></script>
 		
-		{*{include file="{$GLOBALS['PATHBaseInclude']}/tpl/LdpJsLogger/LdpJsLogger.tpl" GLOBALS=$GLOBALS}*}
 		{block head_js}{/block}
 		
 		<link rel="stylesheet" type="text/css" href="{$GLOBALS['URLBaseInclude']}/css/jqueryui/jquery-ui-1.12.1.css" media="screen" />

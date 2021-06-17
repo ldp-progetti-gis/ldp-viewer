@@ -47,49 +47,13 @@
 				</li>
 			{/foreach}</ul>
 		{/if}
-{* OVD ELIMINARE ??? (NECESSARIO DECIDERE SE CONSERVARE O MENO I WMS INTERNAL
-		{if isset($GLOBALS['geoserver']['url_workspace']) && {$GLOBALS['package']} != 'archivio_cartografico' && {$GLOBALS['package']} != 'archivio_cartografico_pub' }
-			<br/>
-			<p>Oppure, visualizza i layer resi disponibili dall'Amministrazione. &nbsp;<button title='Apri l&apos;URL inserito e ottieni la lista dei layer' onclick='open_viewer.overlayWmsInternal()' value='Layer del Portale'>Mostra layer pubblicati da {$GLOBALS[$GLOBALS.package].app_title_short}</button></p>
-		{/if}
-*}
 	</div>
 	</td>
-{* OVD ELIMINARE ???
-	<td>
-	<div id="wms-example" class="panel panel-default">
-		<div class="panel-heading">
-			<h3 class="panel-title">Esempio: utilizzare <em>PAI - Pericolosità idrogeologica</em> di Geoportale nazionale</h3>
-		</div>
-		<div class="panel-body">
-			<ul>
-				<li>apri il <a href="http://www.pcn.minambiente.it/mattm/servizio-wms/" title="Apri il Catalogo WMS del Geoportale nazionale" target="_blank" rel="noopener">Catalogo WMS di Geoportale nazionale</a>;</li> 
-				<li>cerca la voce </em>PAI - Pericolosità idrogeologica</em> e copia l'URL corrispondente <code>http://wms.pcn.minambiente.it/ogc?map=/ms_ogc/WMS_v1.3/Vettoriali/PAI_pericolosita.map</code>;</li>
-				<li>inserisci la stringa copiata in questa finestra, nel campo <i><b>"inserisci URL del WMS"</b></i>;</li> 
-				<li>clicca su <i><b>"Mostra layer disponibili"</b></i>.</li>
-				<li>scegli uno dei livelli cartografici disponibili e clicca su <i><span class="fa fa-plus-circle"></span> aggiungi</i> per visualizzare lo strato sulla mappa: esso apparirà all'interno della Legenda.</li>
-			</ul>
-		</div>
-	</div>
-	
-	</td
-*}
 	</tr></table>
 	
 	<div id="ov_overlay_wms_messages"></div>
 	
 	<input id='ov_overlay_wms_selector_url' value='' placeholder='{$GLOBALS['strings']['interface']['wms_inserturlwmsserver']}' type='url'/>&nbsp;<button id='ov_overlay_wms_selector_button' title='{$GLOBALS['strings']['interface']['wms_clicktogetlistwmslayers']}' onclick='ov_wms_plugin.WMSuserLaunchScanUrl()' value='{$GLOBALS['strings']['interface']['wms_showavailablelayers']}'>{$GLOBALS['strings']['interface']['wms_showavailablelayers']}</button>
-	
-{* OVD ELIMINARE ???
-	<!-- <p>Ad esempio, per utilizzare <em>Ambiti amministrativi</em> di Regione Toscana:</p>
-	<ul>
-		<li>apri l'elenco dei <a href="http://www.regione.toscana.it/-/geoscopio-wms" title="Elenco servizi WMS di Regione Toscana">Servizi WMS di Regione Toscana</a>;</li> 
-		<li>cerca la voce </em>Ambiti amministrativi</em> e copia l'URL corrispondente <code>http://www502.regione.toscana.it/wmsraster/com.rt.wms.RTmap/wms?map=wmsambamm&map_resolution=91</code>;</li>
-		<li>inserisci la stringa copiata in questa finestra, nel campo <i><b>"inserisci URL del WMS"</b></i>;</li> 
-		<li>clicca su <i><b>"Mostra layer disponibili"</b></i>.</li>
-		<li>scegli uno dei livelli cartografici disponibili e clicca su <i><span class="fa fa-plus-circle"></span> aggiungi</i> per visualizzare lo strato sulla mappa: esso apparirà all'interno della Legenda.</li>
-	</ul> -->
-*}
 	
 	<div id="ov_wms_selector_container"></div>
 </div>
@@ -137,12 +101,6 @@
 					</div>
 					<ul id="ov_tabs_left">
 						<li><a href="#ov_legend_container" id="ov_show_hide_legend">{$GLOBALS['strings']['interface']['word_legend']}</a></li>
-						{if $GLOBALS[$GLOBALS.package].app_left_tabs_enable.ov_link_add_wms == true}
-{* OVD ELIMINARE ???       <li><a href="#ov_legend_add_wms_layer" id="ov_legend_aggiungi_wms">WMS</a></li> *}
-						{/if}
-{* OVD ELIMINARE ???
-						<li><a href="#ov_vistasu_container"id="ov_show_hide_vistasu">Vista Su</a></li>
-*}
 					</ul>
 				</div>
 				
@@ -153,19 +111,6 @@
 	 */
 *}
 				<div id="ov_legend_container" class="ov_legend_docked">
-{* OVD ELIMINARE ???
-					{if {$GLOBALS['package']} == 'archivio_cartografico' || {$GLOBALS['package']} == 'archivio_cartografico_pub' ||  $GLOBALS[$GLOBALS.package].map_options.externalWms==true}
-						<div id="ov_legendWMS_title">
-							<button id="toggle_ov_legendWMS" class="legend_toggle_container legend_open" title="{$GLOBALS['strings']['interface']['sentence_opencloselegend']}"></button>
-							{if !empty($GLOBALS[$GLOBALS['package']]['ov_label_external_wms'])}
-								{$GLOBALS[$GLOBALS['package']]['ov_label_external_wms']}
-							{else}
-								WMS {$GLOBALS[$GLOBALS.package].app_title_short}
-							{/if}
-						</div>
-						<div id="ov_legendWMS"></div>
-					{/if}
-*}
 					<div id="ov_legend_title"><button id="toggle_ov_legend" class="legend_toggle_container legend_open" title="{$GLOBALS['strings']['interface']['sentence_opencloselegend']}"></button>{$GLOBALS['strings']['interface']['word_themes']}</div>
 					<div id="ov_legend"></div>
 					
@@ -182,26 +127,6 @@
 					<div id="ov_legend_basemaplayers"></div>
 				</div>
 				
-{* OVD ELIMINARE ??? E' GIA' POSSIBILE AGGIUNGERE I WMS USER DAL BOTTONE SUL TITOLO DI SEZIONE
-				{if $GLOBALS[$GLOBALS.package].app_left_tabs_enable.ov_link_add_wms == true}
-				<div id="ov_legend_add_wms_layer">
-					
-					<div class="ov_legend_aggiungi_wms">
-						<a href="javascript:;" onclick="open_viewer.ev_wmscustom_pageadd_openclose_click()" title="{$GLOBALS['strings']['interface']['wms_pagetitle']}">{"{$GLOBALS.PATHBaseInclude}/img/openViewer/toolbar/add-wms.svg"|file_get_contents} Aggiungi WMS</a>
-					</div>
-					<p>Utilizza un servizio WMS per aggiungere strati cartografici alla mappa.</p>
-					<div id="ov_legend_wmsUser"></div>
-				</div>
-				{/if}
-*}
-
-{* OVD ELIMINARE ???
-				<div id="ov_vistasu_container" class="ov_vistasu_docked">
-					<p>Apri un&lsquo;altra mappa con la vista corrente:</p>
-					<div id="ov_vistasu"></div>
-				</div>
-*}
-			
 			</div>
 			
 			<span class="separator"></span>
@@ -213,13 +138,19 @@
 	 */
 *}
 			<div id="tools">
-				{*DIVs around the svg images are used only by the help function: they group the tools to be highlighted *}
+				{* DIVs around the svg images are used only by the help function: they group the tools to be highlighted *}
 				
 				<div id="ov_toolbar_cursor_select" onclick="open_viewer.toggleToolStatus('select')" class="ov-icon-wrap desktop tool-on-off" title="{$GLOBALS['strings']['interface']['button_defaultstatus']}">
 					{"{$GLOBALS.PATHBaseInclude}/img/openViewer/toolbar/arrow-hand.svg"|file_get_contents}
 				</div>
 				<div id="ov_toolbar_zoom_selection" onclick="open_viewer.toggleToolStatus('zoom_selection')" class="ov-icon-wrap desktop tool-on-off" title="{$GLOBALS['strings']['interface']['button_zoomrectangle']}">
 					{"{$GLOBALS.PATHBaseInclude}/img/openViewer/toolbar/zoom-selection.svg"|file_get_contents}
+				</div>
+				<div id="ov_toolbar_measure_line" onclick="open_viewer.measure('measure_line')" class="ov-icon-wrap desktop tool-on-off" title="{$GLOBALS['strings']['interface']['button_measuredistance']}">
+					{"{$GLOBALS.PATHBaseInclude}/img/openViewer/toolbar/length.svg"|file_get_contents}
+				</div>
+				<div id="ov_toolbar_measure_area" onclick="open_viewer.measure('measure_area')" class="ov-icon-wrap desktop tool-on-off" title="{$GLOBALS['strings']['interface']['button_measurearea']}">
+					{"{$GLOBALS.PATHBaseInclude}/img/openViewer/toolbar/misura-area.svg"|file_get_contents}
 				</div>
 				
 				<span class="separator"></span>
@@ -242,23 +173,10 @@
 				
 				<span class="separator"></span>
 				
-				<div id="ov_toolbar_measure">
-					<div id="ov_toolbar_measure_line" onclick="open_viewer.measure('measure_line')" class="ov-icon-wrap desktop tool-on-off" title="{$GLOBALS['strings']['interface']['button_measuredistance']}">
-						{"{$GLOBALS.PATHBaseInclude}/img/openViewer/toolbar/length.svg"|file_get_contents}
-					</div>
-					<div id="ov_toolbar_measure_area" onclick="open_viewer.measure('measure_area')" class="ov-icon-wrap desktop tool-on-off" title="{$GLOBALS['strings']['interface']['button_measurearea']}">
-						{"{$GLOBALS.PATHBaseInclude}/img/openViewer/toolbar/misura-area.svg"|file_get_contents}
-					</div>
-					<div id="ov_toolbar_eraser" onclick="open_viewer.clearTempLayers({$GLOBALS[$GLOBALS["package"]]["temporary_layers"]})" class="ov-icon-wrap desktop" title="{$GLOBALS['strings']['interface']['button_clearmap']}">
-						{"{$GLOBALS.PATHBaseInclude}/img/openViewer/toolbar/erase.svg"|file_get_contents}
-					</div>
+				<div id="ov_toolbar_eraser" onclick="open_viewer.clearTempLayers({$GLOBALS[$GLOBALS["package"]]["temporary_layers"]})" class="ov-icon-wrap desktop" title="{$GLOBALS['strings']['interface']['button_clearmap']}">
+					{"{$GLOBALS.PATHBaseInclude}/img/openViewer/toolbar/erase.svg"|file_get_contents}
 				</div>
 				
-				<span class="separator"></span>
-				
-				<div id="ov_print_map" onclick="open_viewer.loadPrintMap(ov_stampa_page);" class="ov-icon-wrap" title="{$GLOBALS['strings']['interface']['button_printmap']}">
-					{"{$GLOBALS.PATHBaseInclude}/img/openViewer/toolbar/print.svg"|file_get_contents}
-				</div>
 			</div>
 			
 			<span id="ov_progressbar"></span>
@@ -334,8 +252,6 @@
 					
 					<div id="ov_page_search" class="ov_info_tab_content {if isset($GLOBALS[$GLOBALS['package']]['app_right_tabs_enable']['ov_link_search']) && $GLOBALS[$GLOBALS['package']]['app_right_tabs_enable']['ov_link_search'] != true} hide {/if}"></div>
 					
-{* OVD SOSTITUITO     <div id="ov_page_search" class="ov_info_tab_content"></div> *}
-					
 					<div id="ov_page_custom" class="ov_info_tab_content {if isset($GLOBALS[$GLOBALS['package']]['app_right_tabs_enable']['ov_link_custom']) && $GLOBALS[$GLOBALS['package']]['app_right_tabs_enable']['ov_link_custom'] != true} hide {/if}"></div>
 					
 					<div id="ov_page_app_info" class="ov_info_tab_content {if isset($GLOBALS[$GLOBALS['package']]['app_right_tabs_enable']['ov_link_app_info']) && $GLOBALS[$GLOBALS['package']]['app_right_tabs_enable']['ov_link_app_info'] != true} hide {/if}"></div>
@@ -391,16 +307,9 @@
 	// settings for the help
 	var ov_info_help_init_params={json_encode($GLOBALS[$GLOBALS["package"]]["ov_info_help_init_params"])};
 	
-{* OVD ELIMINARE ???
-	// configuration of optional field to be add to the selected features
-	var ov_layers_selection_extra_fields={json_encode($GLOBALS[$GLOBALS["package"]]["ov_layers_selection_extra_fields"])};
-*}
-
-{* OVD ELIMINARE ??? E? NECESSARIO MODIFICARE ANCHE IL CODICE CHE GLI FA RIFERIMENTO *}
 	// Pagina di default per il vistasu
 	var ov_vistasu_page="{$GLOBALS.URLBaseInclude}/php/vistasu/vistasu_connector.ldpviewer.php";
 
-{* OVD E' POSSIBILE FARLA FUNZIONARE ??? *}
 	// Default page for the print dialog
 	// var ov_stampa_page="{$GLOBALS.URLBaseInclude}/php/stampa/stampa.ldpviewer.php";
 	var ov_stampa_page="{$GLOBALS.URLBaseInclude}/print/print.openviewer.php";
@@ -411,7 +320,6 @@
 		proxy_set = map_options.proxy;
 	var OpenViewer_proxy="{$GLOBALS.URLBaseInclude}/openViewer/openViewerProxy.php";
 	
-{* OVD A COSA SERVE ??? *}
 	// Configuration of external WMS
 	var external_wms = false;
 	if( typeof map_options.externalWms !== 'undefined'){
@@ -419,27 +327,22 @@
         var permitted_autentication =  map_options.permitted_autentication;
 	}
 
-{* OVD E' POSSIBILE ATTIVARE SOTTO ????            {json_encode($GLOBALS[$GLOBALS['package']]['app_right_tabs_page'].ov_page_custom)} *}
 	// Default page for the "QueryResult" tab
 	//var ov_info_page = "{json_encode($GLOBALS['ov_page_query_result_default'])}";
 	{if {$GLOBALS[$GLOBALS['package']]['app_right_tabs_page'].ov_page_query_result}}
 		//ov_info_page = '{json_encode($GLOBALS[$GLOBALS['package']]['app_right_tabs_page'].ov_page_query_result)}'; 
 	{/if}
 	
-{* OVD A COSA SERVE ??? *}
 	var ov_help_page="help.php";
 	
 	// URL of the interanl WMS server 
 	var ov_internal_wms_url = '{$GLOBALS['geoserver']['url_workspace']}';
 	
-{* OVD ELIMINARE ??? *}
-{* OVD E' POSSIBILE FARLO FUNZIONARE CON GLI USER WMS ??? *}
 	// Configuration of the information page for external WMS (getFeatureInfo)
 	{if {$GLOBALS[$GLOBALS["package"]]["WMSGetFeatureInfoCustomPage"]}}
 		ov_WMSGetFeatureInfoCustomPage = '{$GLOBALS[$GLOBALS["package"]]["WMSGetFeatureInfoCustomPage"]}';
 	{/if}
 	
-{* OVD ELIMINARE ??? E' NECESSARIO MODIFICARE ANCHE IL CODICE *}
 	// Configuration of the additional parameters for the map legislation
 	var string_info_help_init_params="";
 	if(ov_info_help_init_params!=null) {
@@ -486,7 +389,6 @@ if(flag_console_messages) console.log('Configuration of the base layers...');
 							};
 			mapBasemapLayersDefinition.push(aLayer);
 		{/for}
-{* if(flag_console_messages) console.log(mapBasemapLayersDefinition); *}
 
 	{else}
 		var mapBasemapListLayers = null;
@@ -652,14 +554,6 @@ if(flag_console_messages) console.log("Start adding events handling...");
 		open_viewer.loadInfoPage('tabCustom','{$GLOBALS[$GLOBALS['package']]['app_right_tabs_page'].ov_page_custom}'+string_info_help_init_params);
 		open_viewer.loadInfoPage('tabAppInfo','{$GLOBALS[$GLOBALS['package']]['app_right_tabs_page'].ov_page_app_info}'+string_info_help_init_params);
 		
-{* OVD ELIMINARE ???
-		//Si carica il contenuto del vistasu
-		open_viewer.loadVistaSu(ov_vistasu_page);
-		
-		//si nasconde il pannello del vistasu
-		open_viewer.toggleVistaSu(0);
-*}
-		
 		// Load the HELP settings (implemented with Bootstrap Tour)
 		open_viewer.loadTour();
 		if(ov_help_page!=null) {
@@ -681,10 +575,6 @@ if(flag_console_messages) console.log("Start adding events handling...");
 		var index = $('#tabs a[href="#ov_'+ ov_active_tab +'"]').parent().index();
         $('#ov_info_tabs').tabs({ active: index });
 				
-{* OVD ELIMINARE ???
-		$("#ov_legend_add_wms_layer").hide();
-		$("#ov_vistasu_container").hide();
-*}
 		$("#ov_legend_container").show();
 		
 		// Load the "libViewer" JavaScript library (it must be loaded after "open_viewer" object initialization, otherwise it does not work)

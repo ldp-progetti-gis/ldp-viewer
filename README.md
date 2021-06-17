@@ -38,13 +38,13 @@
 <br />
 <p align="center">
   <a href="https://github.com/ldp-progetti-gis/ldp-viewer">
-    <img src="images/logo.png" alt="Logo" width="80" height="80">
+    <img src="images/logo_solo_ldp_169x194.png" border="0" alt="Logo" width="194" height="169">
   </a>
 
   <h3 align="center">gisOpenViewer</h3>
 
   <p align="center">
-    Display spatial data and integrate with additional online data sources
+    Display spatial data and handle map navigation, querying attriute and on the fly adding of additional layers from online data sources
     <br />
     <a href="https://github.com/ldp-progetti-gis/ldp-viewer"><strong>Explore the docs »</strong></a>
     <br />
@@ -212,4 +212,5 @@ Project Link: [https://github.com/ldp-progetti-gis/ldp-viewer](https://github.co
 [license-shield]: https://img.shields.io/github/license/ldp-progetti-gis/repo.svg?style=for-the-badge
 [license-url]: https://github.com/ldp-progetti-gis/repo/blob/master/LICENSE.txt
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
-[linkedin-url]: https://linkedin.com/in/ldp-progetti-gis
+[linkedin-url]: https://it.linkedin.com/company/ldp-progetti-gis
+

@@ -59,12 +59,12 @@ generalUtilities.prototype.createElementsFromJSONCustom = function(json, html){
 }
 /** Format a JSON object as a bulleted list */
 generalUtilities.prototype.createElementsFromJSON = function(json){
-	//console.log(json);
+//console.log(json);
 	var key;
 	var html = "<ul class='page_container'>";
 	for (key in json) {
 		if (json.hasOwnProperty(key)) {
-			//console.log(key + " = " + json[key]);
+//console.log(key + " = " + json[key]);
 			html = html + "<li class='page_container'><label class='page_container'>" + key + "</label>&nbsp;<span class='page_container'><b>" + json[key] + "</b></span>"; 
 		}
 

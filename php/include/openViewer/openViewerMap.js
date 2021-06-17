@@ -164,20 +164,14 @@ ovMap.prototype.isGroupVisibleOnMap = function(olLayer,groupName) {
 /** Return the current scale */
 ovMap.prototype.getScale = function(flagMetricScale) {
 	if(typeof flagMetricScale === 'undefined') flagMetricScale = true;
-// console.log("flagMetricScale: "+flagMetricScale);
-// console.log("pixelRatio: "+window.devicePixelRatio);
+	
 	var view = this.map.getView();
 	var resolution = view.getResolution();
 	var scaleMapUnits = this.ipm * this.dpi * resolution;
-// console.log("scaleMapUnits: "+scaleMapUnits);
 	
-	//var metricResolution=ol.proj.getPointResolution(view.getProjection(),resolution,view.getCenter());
-	//var mpu = ol.proj.METERS_PER_UNIT[units];
-	//var scale = metricResolution * mpu * this.ipm * this.dpi;
 	var units = view.getProjection().getUnits();
 	var mpu = ol.proj.Units.METERS_PER_UNIT[units];
 	var scaleMeters = mpu * this.ipm * this.dpi * resolution;
-// console.log("scaleMeters: "+Math.round(scaleMeters));
 	
 	if(flagMetricScale) return Math.round(scaleMeters)
 	else return scaleMapUnits;
@@ -197,10 +191,9 @@ ovMap.prototype.getResolutionFromProjectionAndScale = function(scale, projection
 	var metricResolution=ol.proj.getPointResolution(projection,resolution,view.getCenter());
 	var metricResolutionRatio=metricResolution/resolution;
 	var units = projection.getUnits();
-	//var mpu = ol.proj.METERS_PER_UNIT[units];
 	var mpu = ol.proj.Units.METERS_PER_UNIT[units];
 	var resolution = scale / this.ipm / mpu / this.dpi;
-// console.log('Scale: '+scale+'\nResolution: '+resolution);
+	
 	return resolution;
 }
 /** Calculate the scale form the view resolution */
@@ -293,7 +286,7 @@ ovMap.prototype.LoadMap = function() {
 
     var ol_map_layers=new Array();
 	
-	ov_utils.ovLog('Start loading the map...'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
+ov_utils.ovLog('Start loading the map...'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
 	
 	/**
 	 * STYLES
@@ -388,18 +381,6 @@ ovMap.prototype.LoadMap = function() {
 			for(var j=0; j < map_baseLayers.length; j++){
                 
 				var aLayerDef = map_baseLayersDefinition[j]
-console.log('amaxLayerDef',aLayerDef);
-
-// console.log('- Layer '+map_baseLayers[j]);
-// console.log('  - key '+aLayerDef.key);
-// console.log('  - sourceType '+aLayerDef.sourceType);
-// console.log('  - wms_url '+aLayerDef.wms_url);
-// console.log('  - wms_layers_names '+aLayerDef.wms_layers_names);
-// console.log('  - wms_server_type '+aLayerDef.wms_server_type);
-// console.log('  - wms_layer_projection '+aLayerDef.wms_layer_projection);
-// console.log('  - layer_title '+aLayerDef.layer_title);
-// console.log('  - layer_visible '+aLayerDef.layer_visible);
-// console.log('  - is_basemap_layer '+aLayerDef.is_basemap_layer);
 
 				if(aLayerDef.wms_layers_names == undefined) { aLayerDef.wms_layers_names = '';}
 				if(aLayerDef.wms_query_layers_names == undefined) { aLayerDef.wms_query_layers_names = '';}
@@ -447,16 +428,10 @@ console.log('amaxLayerDef',aLayerDef);
 									'url: aLayerDef.wms_url'+
 								'}),'+
 								'maxZoom: '+aLayerDef.max_zoom+','+
-//								'maxZoom: '+5+','+
-//								'projection: aLayerDef.wms_layer_projection,'+
 								'name: "'+aLayerDef.layer_title+'",'+
 								'visible: '+aLayerDef.layer_visible+','+
 								'baselayer: '+aLayerDef.is_basemap_layer+
-//							');')
 							'});')
-console.log('maxurl: aLayerDef.wms_url');
-console.log('maxname: "'+aLayerDef.layer_title+'",');
-console.log('maxZoom: '+aLayerDef.max_zoom+',');
 						break;
 					case "":
 						eval('var '+aLayerDef.key+' = new ol.layer.Tile({'+
@@ -722,43 +697,6 @@ console.log('maxZoom: '+aLayerDef.max_zoom+',');
 		type: "Polygon"
 	});
 	
-// 	
-//	///Draw WKT
-//	var draw_wkt = this.drawWKTDiv;
-//
-// 	this.extraInteractions.draw.on('drawend',function(e) {
-// if(this.showConsoleMsg) console.log("general drawend");
-// 		var format = new ol.format.WKT();
-// 		wkt = format.writeGeometry(e.feature.getGeometry());
-// 		draw_wkt.html(wkt);
-// 		
-// 		//Chiamo una callback ?
-// 		fineDisegno(wkt);
-// // 		that.controlDoubleClickZoom(false);
-// 		//setTimeout(function() { that.controlDoubleClickZoom(true); }.bind(that),251);
-// 	});
-	
-// 	this.extraInteractions.select.on('boxend', function() {
-// 		// features that intersect the box are added to the collection of
-// 		// selected features, and their names are displayed in the "info"
-// 		// div
-// 		var info = [];
-// 		var extent = dragBox.getGeometry().getExtent();
-// 		vectorSource.forEachFeatureIntersectingExtent(extent, function(feature) {
-// 		selectedFeatures.push(feature);
-// 		info.push(feature.get('name'));
-// 		});
-// 		if (info.length > 0) {
-// 		infoBox.innerHTML = info.join(', ');
-// 		}
-// 	});
-// 
-// 	// clear selection when drawing a new box and when clicking on the map
-// 	this.extraInteractions.select.on('boxstart', function() {
-// 		selectedFeatures.clear();
-// 		infoBox.innerHTML = '&nbsp;';
-// 	});
-	
 	
 	/**
 	 * DEFINITION OF THE MAP CONTROLS (OL controls object)
@@ -776,16 +714,9 @@ console.log('maxZoom: '+aLayerDef.max_zoom+',');
 		undefinedHTML: '&nbsp;'
 	});
     
-	//var controls = [ new ol.control.ScaleLine(), new ol.control.Zoom(), mousePositionControl ];
-    //var controls = [ new ol.control.ScaleLine(), mousePositionControl ];
-
-    var attribution = new ol.control.Attribution({collapsible: false,});
-    
-    
     var controls = [];
     if(this.mapOptions['show_coordinates_mouse']) controls.push(mousePositionControl);
     if(this.mapOptions['show_view_scale']) controls.push(new ol.control.ScaleLine());
-    if(false) controls.push(attribution);
 	
 	
 	/**
@@ -812,11 +743,9 @@ console.log('maxZoom: '+aLayerDef.max_zoom+',');
 	
 	// Tooltip functionality
 	map.on('pointermove', function(evt) {
-// console.log("pointermove");
 		// hide the previous tooltip when the mouse position changes
 		tooltip_overlay.setPosition(undefined);
 		lastTimeMouseMoved = new Date().getTime();
-// 		var stato = this.stato;
         
 		/* Reverse loop over the OL layers to find the first layer with list_layers_tooltip != '';
          * Special case: no tooltip on "partial" WMS layer, because we should wait for the async response and it is not worthwhile
@@ -1119,59 +1048,14 @@ ov_utils.ovLog('Refresh the visibility of layer '+ol_layer+' ('+ol_type+')'); //
 	var stato = this.getStato();
 	var that = this;
 	
-
-	// make the SLD
-	var nameLayer = 'edifici';
-	var opacityValue = 0.5;
-	var textSLD = '<?xml version="1.0" encoding="ISO-8859-1"?>';
-	textSLD += '<StyledLayerDescriptor version="1.0.0" xmlns="http://www.opengis.net/sld" xmlns:ogc="http://www.opengis.net/ogc"';
-	textSLD += '   xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"';
-	textSLD += '   xsi:schemaLocation="http://www.opengis.net/sld http://schemas.opengis.net/sld/1.0.0/StyledLayerDescriptor.xsd">';
-	textSLD += '   <NamedLayer>';
-	textSLD += '      <Name>'+nameLayer+'</Name>';
-	textSLD += '      <UserStyle>';
-	textSLD += '         <Name>Opacity'+opacityValue+'</Name>';
-	textSLD += '         <Title>Opacity '+opacityValue+'</Title>';
-	textSLD += '         <FeatureTypeStyle>';
-	textSLD += '            <Rule>';
-	textSLD += '               <RasterSymbolizer>';
-	textSLD += '                  <Opacity>'+opacityValue+'</Opacity>';
-//	textSLD += '                  <ChannelSelection>alskjflaksjflkajsflkajslfkjaslf';
-	textSLD += '               </RasterSymbolizer>';
-	textSLD += '            </Rule>';
-	textSLD += '         </FeatureTypeStyle>';
-	textSLD += '      </UserStyle>';
-	textSLD += '   </NamedLayer>';
-	textSLD += '</StyledLayerDescriptor>';
-// console.log('textSLD',textSLD);
-//	var formatSLD = new that.Format.SLD();
-//	var aSLD = formatSLD.read(textSLD);
-// console.log('aSLD',aSLD);
-// Create the OL.Format.SLD
-// var format = new OpenLayers.Format.SLD();
-// Read the SLD Data
-// var mySLD = format.read('yourSLDstring');
-// var myWMSLayer = new OpenLayers.Layer.WMS("yourparams", ..., {SLD : mySLD}); 
-	
-	
-	
 	switch (ol_type) { // switch (ol_layer) {
 		case "wms_geoserver":
 			map_ol_layers.forEach(function(item,index){
 				if(item.get('name')==ol_layer) {
 					var source=item.getSource();
 					var list_visible_layers = stato[ol_layer].list_layers_visible;
-//					if(textSLD!='') {
-//						source.updateParams({'LAYERS': stato[ol_layer].list_layers_visible, 'SLD_BODY': textSLD});
-//					} else {
-						source.updateParams({'LAYERS': stato[ol_layer].list_layers_visible});
-//					}
+					source.updateParams({'LAYERS': stato[ol_layer].list_layers_visible});
 					source.refresh();
-// console.log('source after update', source);
-// console.log('sourceparams after update', source.getParams());
-//item.set('crossOrigin','anonymous');
-//item.set('crossOrigin','null');
-// console.log('properties',item.getProperties());
 				}   
 			},this);
 		break;
@@ -1409,13 +1293,15 @@ ovMap.prototype.formatArea = function(polygon){
 	//var area = ol.Sphere.getArea(polygon);
 	var area = polygon.getArea();
 	var output;
-	var aThreshold = Math.pow(this.mapOptions['map_measure_threshold'], 2);				// example: 1000 (1 km = 1000m) for metric projection, 1 for decimal degrees
+	var aThreshold = this.mapOptions['map_measure_threshold'];							// example: 700 (m) for metric projection, 0.5 for decimal degrees
+	aThreshold = aThreshold*aThreshold;
+	var aUnitsNum = this.mapOptions['map_measure_units_number'];						// example: 1000 (1 km = 1000m) for metric projection, 1 for decimal degrees
 	var aSubUnitsNum = Math.pow(this.mapOptions['map_measure_sub_units_number'], 2);	// example: 1 (m) for metric projection, 60 (1 minute = 1/60 of 1 degree) for decimal degrees
 	var aUnits = this.mapOptions['map_measure_units'];									// example: 'km' for metric projection, '°' or 'deg' or 'dd' for decimal degrees
 	var aSubUnits = this.mapOptions['map_measure_sub_units'];							// example: 'm' for metric projection, '\'' or 'min' or 'mm' for decimal degrees
 	
 	if (area > aThreshold) {
-		output = (Math.round(area / aThreshold * 100) / 100) +
+		output = (Math.round(area / (aUnitsNum*aUnitsNum) * 1000) / 1000) +
 			' ' + aUnits + '<sup>2</sup>';
 	} else {
 		output = (Math.round(area * aSubUnitsNum * 100) / 100) +
@@ -1430,12 +1316,13 @@ ovMap.prototype.formatLength = function(line) {
 	var length = line.getLength();
 	
 	var output;
-	var aThreshold = this.mapOptions['map_measure_threshold'];			// example: 1000 (1 km = 1000m) for metric projection, 1 for decimal degrees
+	var aThreshold = this.mapOptions['map_measure_threshold'];			// example: 700 (m) for metric projection, 0.5 for decimal degrees
+	var aUnitsNum = this.mapOptions['map_measure_units_number'];		// example: 1000 (1 km = 1000m) for metric projection, 1 for decimal degrees
 	var aSubUnitsNum = this.mapOptions['map_measure_sub_units_number'];	// example: 1 (m) for metric projection, 60 (1 minute = 1/60 of 1 degree) for decimal degrees
 	var aUnits = this.mapOptions['map_measure_units'];					// example: 'km' for metric projection, '°' or 'deg' or 'dd' for decimal degrees
 	var aSubUnits = this.mapOptions['map_measure_sub_units'];			// example: 'm' for metric projection, '\'' or 'min' or 'mm' for decimal degrees
 	if (length > aThreshold) {
-		output = (Math.round(length / aThreshold * 100) / 100) +
+		output = (Math.round(length / aUnitsNum * 100) / 100) +
 			' ' + aUnits;
 	} else {
 		output = (Math.round(length * aSubUnitsNum * 100) / 100) +
@@ -1448,16 +1335,6 @@ ovMap.prototype.formatLength = function(line) {
 
 /** OTHER METHODS  */
 
-/** OVD UNUSED - Show a tooltip at specific coordinates * /
-ovMap.prototype.TooltipOnData = function(data,coordinates){
-	tooltip_content.html(data);
-	tooltip_overlay.setPosition(coordinates);
-}
-/** OVD UNUSED (IT WAS USED ONLY ONCE IN OpenViewer.js) Recalculate the size of the map view * /
-ovMap.prototype.updateMapSize = function() {
-    return this.map.updateSize();
-}
-*/
 /** Save the current view in the views history (used to retrieve the previous zoom/extents) */
 ovMap.prototype.saveViewHistory = function() {
 ov_utils.ovLog('Saving an "historical" view...'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
@@ -1483,18 +1360,6 @@ ov_utils.ovLog('... '+this.historyViewIndex+ ' saved views ('+this.getZoom()+')'
 				this.historyViewCaller = this.historyViewPreviousCaller
 			break;
 	}
-/*        
-	// it is the current status
-	if(this.historyView.length-1==this.historyViewIndex) {
-		this.historyView.push({
-			center: this.map.getView().getCenter(), 
-			resolution: this.map.getView().getResolution()
-		});
-		this.historyViewIndex++;
-	} else {
-		// it is a different status than the last
-	}
-*/
 
 }
 // Convert the features defeined as GML to JSON
@@ -1514,11 +1379,10 @@ ovMap.prototype.layerViewToggle = function(layer_name, visible) {
 		
 	},this);
     if(selectLayer!=undefined) {
-// console.log('Layer to toggle: '+layer_name);
 		selectLayer.setVisible(visible);
     }
     else {
-// console.log('Layer '+layer_name+' not found!');	
+        // nothing to do
     }
 }
 /** Clear all "service" layers or one of them, and optionally cancel the features selection */
@@ -1624,7 +1488,6 @@ function getTooltip (response){
 				}
 			}
 		}
-// console.log(layer_tooltip);
 
 		if(layer_tooltip!='') {
 
@@ -1643,484 +1506,4 @@ function getTooltip (response){
 		}
 	}
 }
-
-
-
-
-
-/** UNUSED - GENERAL PROCEDURES (REDLINE, TRACKING, ... )
- * UNUSED - Set the view extents to fit the bounding box of the features defined as WKT, with a defined padding around * /
-ovMap.prototype.fit = function(wkt, crs, pixelPadding) {
-	if ( typeof crs == "undefined" ) crs = this.dataProjection // "EPSG:3003";
-	if ( typeof pixelPadding == "undefined" ) pixelPadding = 0;
-	
-	var view = this.map.getView();
-	var viewProjectionCode = view.getProjection().getCode();
-	var size = this.map.getSize();
-// console.log("map.fit: view",view);
-// console.log("wkt",wkt,"viewProjectionCode",viewProjectionCode,"size",size,"crs",crs,"pixelPadding",pixelPadding);
-	
-	var format = new ol.format.WKT();
-	var feature = format.readFeature(wkt, {
-	dataProjection: crs,
-	featureProjection: viewProjectionCode
-	});
-// console.log("feature",feature);
-	view.fit( feature.getGeometry(), size, { padding: [pixelPadding, pixelPadding, pixelPadding, pixelPadding] } );
-}
-
-/** UNUSED - Add the features defined as "WKT" to a target layer * /
-ovMap.prototype.addRedlineWKT = function(ol_layer,wkt,clear_before) {
-	clear_before = (typeof clear_before !== 'undefined') ?  clear_before : true;
-	
-	var redline = this.getMapLayerByName(ol_layer);
-
-	// Fallback, if the target layer is not defined (ol_layer), we use the default layer "redline"
-	if(redline == null) {
-		var redline = this.getMapLayerByName("redline");
-	}
-	
-	// Clear the previous redline
-	if(clear_before) {
-		redline.getSource().clear();
-	}
-	
-	var formatWKT=new ol.format.WKT();
-	var feature=formatWKT.readFeature(wkt);
-
-	feature.getGeometry().transform(this.dataProjection, this.mapProjection);
-	redline.getSource().addFeature(feature);
-	
-};
-
-
-/** UNUSED - Create a temporary layer and define the style * /
-ovMap.prototype.createTempLayer = function (layer_name, fill_color, stroke_color, stroke_width) {
-
-	// Check if the layer is already existing
-	var redline = this.getMapLayerByName(layer_name);
-	if(redline!=null) {
-		return;
-	}
-	
-	// Create the temporary layer
-	var fill_templayer=new ol.style.Fill({
-		// color can be a tring or an array of RGB or RGBA values
-		color: fill_color
-	});
-	var stroke_templayer=new ol.style.Stroke({
-		color: stroke_color,
-		width: stroke_width
-	});
-	
-	var tempLayer = new ol.layer.Vector({
-		style: new ol.style.Style({
-			fill: fill_templayer,
-			stroke: stroke_templayer,
-			image: new ol.style.Circle({
-				radius: 7,
-				fill: fill_templayer,
-				stroke: stroke_templayer
-			})
-			
-		}),
-		source: new ol.source.Vector(),
-		name:layer_name
-	});
-	
-	this.map.addLayer(tempLayer);
-	this.ol_map_layers.push(layer_name);
-// console.log("The temporary layer "+layer_name+" has been added successfully.");
-};
-
-/** UNUSED - Add a text label at the position defined as WKT * /
-ovMap.prototype.addLabelInLayer = function(layer_name, wkt, labelText, size, angle, clear){
-	
-	var templayer = this.getMapLayerByName(layer_name);
-	
-	if (clear){
-		this.clearTempLayers(layer_name);
-	}
-	
-	var formatWKT=new ol.format.WKT();
-	var feature=formatWKT.readFeature(wkt);
-	feature.getGeometry().transform(this.dataProjection, this.mapProjection);
-	var text = new ol.style.Style({
-		text: new ol.style.Text({
-			text:labelText,
-			rotation: -angle*3.14/180,
-			scale: size,
-			textAlign: 'end',
-			fill: new ol.style.Fill({
-				color: "#ff8080"
-			})
-		})
-	});
-	feature.setStyle(text);
-	templayer.getSource().addFeature(feature);
-}
-
-/** UNUSED - Tracking / Geolocation * /
-ovMap.prototype.mapSetTracking = function(value){
-	var geolocation = new ol.Geolocation({
- 			projection: this.map.getView().getProjection()
-// 			,tracking: true,
-// 			trackingOptions: {
-// 					enableHighAccuracy: true,
-// 					maximumAge: 2000
-// 			}
-	});
-
-	var positionFeature = new ol.Feature();
-	positionFeature.setStyle(new ol.style.Style({
-			image: new ol.style.Circle({
-					radius: 9,
-					fill: new ol.style.Fill({
-							color: '#16a228b0'
-					}),
-					stroke: new ol.style.Stroke({
-							color: '#fff',
-							width: 2
-					})
-			})
-	}));
-
-	var positionSource = new ol.source.Vector({
-			features: [positionFeature]
-	});
-	var positionLayer = new ol.layer.Vector({
-			source: positionSource
-	});
-    
-	this.map.addLayer(positionLayer);
-	
-	var that = this;
-	
-	
-	geolocation.setTracking(true);
-	
-	geolocation.on('change', function() {
-		var pos = geolocation.getPosition();
-		positionFeature.setGeometry(new ol.geom.Point(pos));
-		that.map.getView().setCenter(pos);
-		geolocation.setTracking(false);
-	});
-	
-	
-	var geolocationReturnMessage = function(ev) {
-		if (ev.data.message === "deliverResult") {
-// console.log("result: " + ev.data.result);
-			
-			if(!isNaN(parseFloat(ev.data.result[0])) && !isNaN(parseFloat(ev.data.result[1]))) {
-				ev.source.close();
-				
-				var center = ol.proj.transform(ev.data.result, 'EPSG:4326', 'EPSG:3003');
-				positionFeature.setGeometry(new ol.geom.Point(center));
-						
-				that.map.getView().setCenter(center);
-			} else {
-				ev.source.close();
-                var mess = strings_interface.sentence_trackingerror;
-				alert(mess);
-			}
-			
-			
-		}
-	}
-	
-	// Fallback with an unsecure origin (http)
-	geolocation.on('error', function(error) {
-// console.log('Error geolocation');
-// console.log(error.message);
-		
-			var index = Math.floor(Math.random() * 900000000) + 100000000;
-			
-			window.addEventListener("message", geolocationReturnMessage,{once: true});
-			
-			var child = window.open("https://geolocation.ldpgis.it/get_position.php?key=VAAGgq20MfG9lezhyzmLc3NLDsmefg07Z4NFqQ2GKMoxvRTlzh&index="+index, "geolocation_window");
-			
-			
-			setTimeout(function() {
-				try {
-					
-					if ((typeof child == 'undefined') || (child == null) || child.closed) {
-						var mess = strings_interface.sentence_trackingerror;
-						alert(mess);
-					} else {
-						child.postMessage({ message: "requestResult" }, "*");
-					}
-					
-				} catch(e) {
-					// we're here when the child window has been navigated away or closed
-					if (child.closed) {
-						console.log("closed");
-						return; 
-					}
-				}
-			}, 500);
-		
-	});
-
-}
-
-/** UNUSED - Adding layer ??? * /
-ovMap.prototype.addingLayer = function(layer){
-	this.map.addLayer(layer);
-}
-
-/** UNUSED - DRAWING INTERACTION TOOL - Start drawing * /
-ovMap.prototype.startDraw = function(type,callback_function) {
-	var that=this;
-	var draw_wkt = this.drawWKTDiv;
-	var drawingOverlay=this.getMapLayerByName('drawing');
-
- 	// //Erase previous drawings
- 	//drawingOverlay.getSource().clear();
-
-	var coords_length=0;
-	
-	this.map.removeInteraction(this.extraInteractions.draw);
-	
-	this.extraInteractions.draw = new ol.interaction.Draw({
-		source: drawingOverlay.getSource(),
-		type: type
-	});
-	
-	this.extraInteractions.draw.on('drawstart', function(e){
-		// Click "ESC" to erase last entered point
-		$(document).on('keyup', function(event){
-			if(event.keyCode === 27){
-				that.extraInteractions.draw.removeLastPoint();
-			}
-		});
-	});
-	
-	this.extraInteractions.draw.on('drawend',function(e) {
-		// Eliminate the event on pressing "ESC"
-		$(document).off('keyup');
-
-		var format = new ol.format.WKT();
-		// The circle geometry (a center with a radius) is not a supported by the WKT format. The best chance is to transform your Circle geometry in an approximate Polygon
-		if(type=='Circle'){
-			var circularPolygon = ol.geom.Polygon.fromCircle(e.feature.getGeometry());
-			e.feature.setGeometry(circularPolygon);
-		}
-		// This is required to preserve the projection of the map, while transforming the WKT string to the data projection
-		var feature_cloned = e.feature.clone();
-
-		wkt = format.writeGeometry(feature_cloned.getGeometry().transform(that.mapProjection, that.dataProjection));
-		draw_wkt.html(wkt);
-
-		// Call to callback function (if defined)
-		if (typeof eval(callback_function) === "function") {
-			var callbackFunction=callback_function+"(wkt)";
-			eval(callbackFunction);
-		}
-	});
-	this.map.addInteraction(this.extraInteractions.draw);
-	this.map.addInteraction(this.extraInteractions.snap);
-}
-
-/** UNUSED - DRAWING INTERACTION TOOL - Cancel drawing * /
-ovMap.prototype.cancelDraw = function(type,callback_function) {
-	var drawingOverlay=this.getMapLayerByName('drawing');
-
- 	// Erase previous drawings
-	drawingOverlay.getSource().clear();
-}
-
-/** UNUSED - Get selected features * /
-ovMap.prototype.getSelectedFeatures = function(xml,a_layers,callback_function,primary_key,extra_field) {
-	// For backward compatibility xml=null is accepted
-	// WARNING : the parameters primary_key and extra_field are not yet used
-	
-	layers=a_layers.split(",");
-	
-	var selectOverlay=this.getMapLayerByName('selection');
-	var features=selectOverlay.getSource().getFeatures();
-// console.log("features",features);
-
-	var id_list='';
-	var noLayer=true;
-	
-	for (var i=0; i < features.length; i++) {
-		var featureAttributes=features[i].getProperties();
-// console.log(layers);
-// console.log(featureAttributes);
-
-		if (jQuery.inArray( featureAttributes.layer, layers )!=-1) {
-			noLayer=false;
-			
-			if (id_list!='') {
-				id_list += '|';
-			}
-
-			// If "primary_key" is not null, I use this column, otherwise "feature_id"
-			if (primary_key!="") {
-				
-				if(typeof featureAttributes.extra_fields[primary_key] != "undefined") {
-					id_list += featureAttributes.layer+';'+featureAttributes.extra_fields[primary_key];
-				} else {
-					id_list += featureAttributes.layer+';'+featureAttributes.feature_id;
-				}
-			} else {
-				id_list += featureAttributes.layer+';'+featureAttributes.feature_id;
-			}
-
-
-			// If "extra_field" is not null, the value of this column is added to the result
-			if (extra_field!="") {
-				id_list+=';'+featureAttributes.extra_fields[extra_field];
-			}
-
-		}
-	}
-
-// console.log(id_list);
-	
-	if (noLayer) {
-        // this case should not happen (this check is also inside libviewer.js)
-		alert(strings_interface.sentence_noselfeaturesinsidelayer+": ("+a_layers+")");
-	} else {
-		// call the callback function (if it is defined)
-		if (typeof eval(callback_function) === "function") {
-			var callbackFunction=callback_function+"(id_list)";
-			eval(callbackFunction);
-		}
-	}
-
-	return features;
-};
-*/
-
-/** UNUSED - MAPGUIDE LAYERS INTEGRATION
- * ---------------------------------------------------------------
- * - creation of a session
- * - ping (keep alive)
- * - return layer information
- * - get selected features
- * /
-
-/** Create a MapGuide session - MAIN LAYERS INTEGRATION (MAPGUIDE, WMS, WMS_GEOSERVER) * /
-ovMap.prototype.MapguideCreateSessionGGGG = function(ol_layer) {
-// console.log("MapguideCreateSession()");
-	var that = this;
-	var mg_session_info=null;
-	if ( ol_layer.api_url != '' ) {
-        // AJAX call to sychronously get the value of some variables
-		$.ajax({
-			url: ol_layer.api_url,
-			async: false,
-			method: 'GET',
-			dataType: 'json',
-			data: {mapDefinition: ol_layer.mapDefinition, action: 'CREATE_SESSION'},
-			error: function(a, b, c) {
-// console.log("MapguideCreateSession() - ERROR");
-			},
-			success: function(response) {
-				
-				if ( typeof response.status == 'undefined' || response.status != 'ok' ) {
-// console.log("MapguideCreateSession() - ERROR: " + (typeof response.data != 'undefined' ? response.data : '<undefined>'));
-				} else {
-					mg_session_info=response.data;
-				}
-			}
-		});
-	}
-	return mg_session_info;
-}
-/** Ping a MapGuide layer - MAIN LAYERS INTEGRATION (MAPGUIDE, WMS, WMS_GEOSERVER) * /
-ovMap.prototype.MapguidePingGGGG = function(ol_layer) {
-	var that = this;
-	if ( ol_layer.api_url != '' ) {
-
-		$.ajax({
-			url: ol_layer.api_url,
-			method: 'GET',
-			dataType: 'json',
-			data: {mapSession: ol_layer.mg_session_info.mapSession, mapName: ol_layer.mg_session_info.mapName, action: 'PING'},
-			error: function(a, b, c) {
-				that.mg_ping_failures++;
-				if(that.mg_ping_failures > that.mg_ping_max_failures) {
-					clearInterval(that.mg_ping_timer);
-				}
-				console.log("ping() - ERROR");
-			},
-			success: function(response) {
-
-				if ( typeof response.status == 'undefined' || response.status != 'ok' ) {
-					that.mg_ping_failures++;
-					if(that.mg_ping_failures > that.mg_ping_max_failures) {
-						clearInterval(that.mg_ping_timer);
-					}
-					
-					console.log("ping() - ERROR: " + (typeof response.data != 'undefined' ? response.data : '<undefined>'));
-				} else {
-					//console.log(response);
-					
-					//Do nothing
-				}
-			}
-		});
-	}
-}
-/** Return MapGuide layer information - MAIN LAYERS INTEGRATION (MAPGUIDE, WMS, WMS_GEOSERVER) * /
-ovMap.prototype.MapguideGetLayersInfoGGGG = function(ol_layer) {
-// console.log("Map.MapguideGetLayersInfo");
-
-	var that = this;
-// console.log(this.mg_session_info);
-	
-	if ( ol_layer.api_url != '' ) {
-		$.ajax({
-			url: ol_layer.api_url,
-			method: 'GET',
-			dataType: 'json',
-			data: {mapSession: that.mg_session_info.mapSession, mapName: that.mg_session_info.mapName, action: 'GET_LAYERS'},
-			error: function(a, b, c) {
-				console.log("getMapLayers() - ERROR");
-			},
-			success: function(response) {
-				
-				if ( typeof response.status == 'undefined' || response.status != 'ok' ) {
-					console.log("getMapLayers() - ERROR: " + (typeof response.data != 'undefined' ? response.data : '<undefined>'));
-				} else {
-					//console.log(response);
-					
-					///TODO
-				}
-			}
-		});
-	}
-}
-/** Get the array of selected features (ids, layers) - MAIN LAYERS INTEGRATION (MAPGUIDE, WMS, WMS_GEOSERVER) * /
-ovMap.prototype.getMapGuideSelectionGGGG = function() {
-
-	var stato = this.getStato();
-	var ol_layer = 'mapguide';
-	var selectOverlay=this.getMapLayerByName('selection');
-	var features=selectOverlay.getSource().getFeatures();
-
-	var ids = new Array(), lys= new Array();
-	for (var i=0; i < features.length; i++) {
-		
-		var attributi=features[i].getProperties();
-
-		var layers=stato[ol_layer].layers_info;
-		var a_layers_info=Object.keys(layers);
-		for (var j=0;j<a_layers_info.length;j++) {
-			if(layers[a_layers_info[j]].name==attributi.layer) {
-				// if found
-				var layer_id = a_layers_info[j];
-				var id = attributi.feature_id;
-			}
-		}
-
-		lys.push(layer_id);
-		ids.push(id);
-		
-	}
-	return {ids:ids, lys:lys };
-};
-*/
 

@@ -36,13 +36,11 @@ var ovWmsLayers = function(params) {
 	this.userWmsURL = null;					// URL of the WMS called
 	this.userWmsFormats = null;				// array of the formats supported by the WMS server
 	this.userWmsInfoFormats = null;			// array of the feature info formats supported by the WMS server
-	// UNUSED this.userWmsGetCapabilities	= null;		// panel to show the GetCapabilities of a WMS server
-	// UNUSED this.userWmsQueryable = false;			// store the queryability of a wms layer
 	
 	this.WmsLayerAdded=false;
 }
 
-/** Retrive the information/capabilities associated to a WMS url - STEP 1 (call WMSuserLaunchScanUrl) */
+/** Initialize the library */
 ovWmsLayers.prototype.init = function(ovMap, ovStato, ovCorrOffsetScaleMin, ovCorrOffsetScaleMax){
 	this.mapClass = ovMap;
     this.stato = ovStato;
@@ -55,11 +53,6 @@ ovWmsLayers.prototype.init = function(ovMap, ovStato, ovCorrOffsetScaleMin, ovCo
  * ---------------------------------------------------------------
  */
 
-/* OVD ELIMINARE - WMSInternalCatalog function has been renamed WMSuserOpenCatalog * /
-ovWmsLayers.prototype.WMSInternalCatalog = function(internalUrl){
-    this.WMSuserOpenCatalog(internalUrl);
-}
-*/
 /** Retrive the information/capabilities associated to a WMS url - STEP 1 (call WMSuserLaunchScanUrl) */
 ovWmsLayers.prototype.WMSuserOpenCatalog = function(anUrl){
 // 	$("#overlay_wms_selector_url").val(anUrl);
@@ -136,7 +129,7 @@ ovWmsLayers.prototype.WMSuserShowAvailableData = function(){
 	var html = '';
 	var img_html= '';
 	
-	// OVD added the visualization of the "get capabilities" 
+	// add a link for the visualization of the "get capabilities" (OVD)
 	// --------------------------------------------------------------------------------
     if(that.showGetCapButton) {
 		html += '<table id="overlay_wms_selector_layers_table"><tr><td>';
@@ -144,14 +137,14 @@ ovWmsLayers.prototype.WMSuserShowAvailableData = function(){
 		html += '</td></tr></table>';
 	}
 	
-	// OVD added the visualization of the supported coordinates systems 
+	// add the visualization of the supported coordinates systems (OVD)
 	// --------------------------------------------------------------------------------
 	// We assume that the CRS supported by the server are the same for each layer
 	// then we only look to the supported CRSs of the first layer found (layersData[0])
 	html += '<table id="overlay_wms_selector_layers_table">';
 	//html += '<thead><tr class="head"><th scope="col" id="CRSsupported">'+strings_interface.wms_supportedCRS+'</th></tr></thead>';
 	
-	// OVD start the main information table
+	// start the main information table (OVD)
 	// --------------------------------------------------------------------------------
 	var getCapTool_html = "<a id='overlay_wms_selector_layers_table_spec_getcapabilities' href='javascript:;' onclick='ov_wms_plugin.showWMSserverCapabilities(\""+that.userWmsURL+"\",\"overlay_wms_selector_layers_get_capabilities\","+that.showGetCapNewTab+")' title='"+strings_interface.wms_showhidestyle+"'>";
 	getCapTool_html += strings_interface.sentence_servercapabilities;
@@ -206,7 +199,6 @@ ovWmsLayers.prototype.WMSuserShowAvailableData = function(){
 		var layer_gfiformats = gfi_formats.join(', ');
 		var layer_minscale = layersData[i].min_scale; // minimum scale of visibility allowed by the server
 		var layer_maxscale = layersData[i].max_scale; // maximum scale of visibility allowed by the server
-// console.log('layersData[i]',layersData[i],'QUERYABLE',layersData[i].queryable, layer_queryability);
 		
 		if ( layer_title.toLowerCase().indexOf(filterText) == -1 && 
 			layer_name.toLowerCase().indexOf(filterText) == -1 && 
@@ -225,17 +217,10 @@ ovWmsLayers.prototype.WMSuserShowAvailableData = function(){
 			layersData[i].maxResolution = Math.min(that.mapClass.getMapView().getMaxResolution(), (layer_maxscale * scaleToResolution)+that.correctionOffsetScaleMax);
 		else
 			layersData[i].maxResolution = that.mapClass.getMapView().getMaxResolution();
-		            
-		//layersData[i].minZoom = that.mapClass.getMapView().getZoomForResolution(layersData[i].maxResolution);
-		//layersData[i].maxZoom = that.mapClass.getMapView().getZoomForResolution(layersData[i].minResolution);
-// console.log(layer_title+':\n- min resolution '+layersData[i].minResolution +'\n- max resolution '+layersData[i].maxResolution +'\n- min scale '+layer_minscale +'\n- max scale '+layer_maxscale +'\n- scaleToResolution '+scaleToResolution );
-		
 		
 		html += '<tr class="';
 		if ( (i % 2) == 0 ) { html += 'odd'; } else { html += 'even'; }
-//		if (layersData[i].styles[style_name].legend_url_height > 200){
-//			img_scroll="class=\"scroll_y\"";
-//		}
+		
 		// fill column "TITLE"
 		html += '"><td headers="title">' + layer_title + '</td>';
 		        
@@ -246,83 +231,26 @@ ovWmsLayers.prototype.WMSuserShowAvailableData = function(){
 		if(flagTwoLinesVersion != true) html += '<td '+abs_class+' headers="description">' + layer_abstract + '</td>';
 		
 		// fill columns "ADDLAYER" and "STYLES"
-        
 		for (var style_name in layersData[i].styles) {
-            // style_name equals layersData[i].styles[style_name].name
             var style_leg_url = layersData[i].styles[style_name].legend_url_href;
 			var style_leg_width = layersData[i].styles[style_name].legend_url_width;
 			
-/* OVD OLD VERSION - DELETE
-			if(style_leg_height<200){
-				img_html = '<td headers="addlayer"><center>';
-			}
-			else{
-				//style_leg_height=200;
-                var img_scroll="<td class=\"scroll_y\">";
-				img_html = img_scroll;
-			}
-			html+=img_html;
-*/	
-/* OVD OLD VERSION - DELETE
-			if ( typeof style_leg_url != 'undefined' && style_leg_url != '') {
-				legend_html = "<a href='javascript:;' onclick='open_viewer.openCloseDiv(\"img_"+ hash + "_" + i +"\")' title='"+strings_interface.wms_showhidestyle+"'><img id='img_" + hash + "_" + i +"' src='"+style_leg_url+"' class='hide' style='width: "+ style_leg_width + "px; height: " + style_leg_height + "px;'/><span class='fa fa-eye'></span>";
-				//legend_html += " "+strings_interface.wms_showhidestyle.toLowerCase();
-				legend_html += "</a>";
-            } else {
-                legend_html = strings_interface.wms_notavailable.toLowerCase();
-            }
-*/            
 			// If the source is an internal WMS server, we call the Proxy to get the legend image server
 			var wms_url_internal = that.internalWmsURL;
-/* OVD OLD VERSION - DELETE
-			if(wms_url == wms_url_internal) {
-				var scala=""; //Non serve?
-				var returned_img = that.getWMSlegendViaProxy(wms_url, scala, layer_name,'wms');
 			
-				html += "<div><a class='overlay_wms_selector_layers_layer_add nowrap' href='javascript:;' onclick='open_viewer.WMSuserDefinePropertiesLayerToBeAdded(\"" + wms_url + "\", \"" + i + "\", \"" + layersData[i].styles[style_name].name + "\")' title='Aggiungi questo layer alla mappa'><span class='fa fa-plus-circle'></span> aggiungi</a></div></td><td headers='layerstyles' class='nowrap'><a href='javascript:;' onclick='open_viewer.openCloseDiv(\"img_"+ hash + "_" + i +"\")'><img id='img_" + hash + "_" + i +"' src='data:image/png;base64," + returned_img + "' class='hide' style='width: \'"+ layersData[i].styles[style_name].legend_url_width + "\'px; height: \'" + layersData[i].styles[style_name].legend_url_height + "\' px;/><span class='fa fa-eye'></span> "+strings_interface.wms_showhidestyle.toLowerCase()+"</a><br/>";
-			} else if (false) {
-				html += "<div><a class='overlay_wms_selector_layers_layer_add nowrap' href='javascript:;' onclick='open_viewer.WMSuserDefinePropertiesLayerToBeAdded(\"" + wms_url + "\", \"" + i + "\", \"" + layersData[i].styles[style_name].name + "\")' title='Aggiungi questo layer alla mappa'><span class='fa fa-plus-circle'></span> aggiungi</a></div></td><td headers='layerstyles' class='nowrap'><a href='javascript:;' onclick='open_viewer.openCloseDiv(\"img_"+ hash + "_" + i +"\")'><img id='img_" + hash + "_" + i +"' src='"+layersData[i].styles[style_name].legend_url_href+"' class='hide' style='width: \'"+ layersData[i].styles[style_name].legend_url_width + "\'px; height: \'" + layersData[i].styles[style_name].legend_url_height + "\' px;/><span class='fa fa-eye'></span> "+strings_interface.wms_showhidestyle.toLowerCase()+"</a><br/>";
-			}
-*/
-            if(wms_url == wms_url_internal) { // wms_url is the URL selected by the user, from which we must retrieve the layers
+			if(wms_url == wms_url_internal) { // wms_url is the URL selected by the user, from which we must retrieve the layers
 				var scala="";
 				var returned_img = that.getWMSlegendViaProxy(wms_url, scala, layer_name,'wms');
-                var img_source_html = " src='data:image/png;base64," + returned_img+"' ";
+				var img_source_html = " src='data:image/png;base64," + returned_img+"' ";
 			
-/* OVD OLD VERSION - DELETE
-				// fill column "ADDLAYER"
-				html += '<td headers="addlayer"><center>';
-				html += "<div><a class='overlay_wms_selector_layers_layer_add nowrap' href='javascript:;' onclick='open_viewer.WMSuserDefinePropertiesLayerToBeAdded(\"" + wms_url + "\", \"" + i + "\", \"" + style_name + "\", \"" + style_leg_url + "\")' title='"+strings_interface.sentence_addlayertomap+"'/><span class='fa fa-plus-circle'></span>";
-				//html += " "+strings_interface.sentence_addtomap.toLowerCase();
-				html += "</a></div></center></td>";
-				
-				// fill column "LAYERSTYLES"
-				html += "<td headers='layerstyles' class='nowrap'><a href='javascript:;' onclick='open_viewer   .openCloseDiv(\"img_"+ hash + "_" + i +"\")'><img id='img_" + hash + "_" + i +"' src='data:image/png;base64," + returned_img + "' class='hide' style='width: \'"+ style_leg_width + "\'px; height: \'" + style_leg_height + "\' px; title='"+strings_interface.wms_showhidestyle+"'/><center><span class='fa fa-eye'></span>";
-				//html += " "+strings_interface.wms_showhidestyle.toLowerCase();
-				html += "</a><br/>";
-*/
-                
 			} else {
                 var img_source_html = "' src='"+style_leg_url+"' ";
-/* OVD OLD VERSION - DELETE
-				// fill column "ADDLAYER"
-				html += '<td headers="addlayer"><center>';
-				html += "<div><a class='overlay_wms_selector_layers_layer_add nowrap' href='javascript:;' onclick='open_viewer.WMSuserDefinePropertiesLayerToBeAdded(\"" + wms_url + "\", \"" + i + "\", \"" + style_name + "\", \"" + style_leg_url + "\")' title='"+strings_interface.sentence_addlayertomap+"'><center><span class='fa fa-plus-circle'></span>";
-				//html += " "+strings_interface.sentence_addtomap.toLowerCase();
-				html += "</a></div></center></td>";
-				
-				// fill column "LAYERSTYLES"
-				html += "<td headers='layerstyles' class='nowrap'><center>" + legend_html + "<br/>";
-*/
 			}
 			
 			// create the content of the column "LAYERSTYLES"
 			if ( typeof style_leg_url != 'undefined' && style_leg_url != '') {
 				legend_html = "<a href='javascript:;' onclick='open_viewer.openCloseDiv(\"img_"+ hash + "_" + i +"\")' title='"+strings_interface.wms_showhidestyle+"'>";
-				//legend_html = "<img id='img_" + hash + "_" + i +img_source_html+" class='hide' style='width: "+ style_leg_width + "px; height: " + style_leg_height + "px;'/><span class='fa fa-eye'></span>";
-				//legend_html += "<img id='img_" + hash + "_" + i +img_source_html+" class='hide' style='width: "+ style_leg_width + "px;'/><span class='fa fa-eye'></span>";
 				legend_html += "<span class='fa fa-eye'></span>"+"<img id='img_" + hash + "_" + i +img_source_html+" class='hide' style='width: "+ style_leg_width + "px;'/>";
-				//legend_html += " "+strings_interface.wms_showhidestyle.toLowerCase();
 				legend_html += "</a>";
 			} else {
 				legend_html = strings_interface.wms_notavailable.toLowerCase();
@@ -344,22 +272,16 @@ ovWmsLayers.prototype.WMSuserShowAvailableData = function(){
 			
 			// fill column "QUERYABILITY" (SUPPORTED FORMATS)
 			html += '<td headers="infoqueryability">';
-            if(layer_queryability) html += strings_interface.word_queryableas+'<br>'+gfi_formats.join('<br>');
-            else html += strings_interface.word_no;
+			if(layer_queryability) html += strings_interface.word_queryableas+'<br>'+gfi_formats.join('<br>');
+			else html += strings_interface.word_no;
 			html += '</td>';
             
-//            var layer_queryability = (layersData[i].queryable='1');
-//		var layer_gfiformats = gfi_formats.join(', ');
-
-			
 			// fill column "ADDLAYER"
 			html += '<td headers="addlayer"><center>';
 			html += "<div><a class='overlay_wms_selector_layers_layer_add nowrap' href='javascript:;' onclick='ov_wms_plugin.WMSuserDefinePropertiesLayerToBeAdded(\"" + wms_url + "\", \"" + i + "\", \"" + style_name + "\", \"" + style_leg_url + "\")' title='"+strings_interface.sentence_addlayertomap+"'><center><span class='fa fa-plus-circle'></span>";
-			//html += " "+strings_interface.sentence_addtomap.toLowerCase();
 			html += "</a></div></center></td>";
 			
 		}
-//		html += '</center></td>';
 	
         html += '</tr>';
         
@@ -427,7 +349,7 @@ ovWmsLayers.prototype.WMSuserDefinePropertiesLayerToBeAdded = function(wms_url, 
 	}
 	
 	var gfi_formats = this.userWmsInfoFormats;
-	//var is_queryable = this.userWmsQueryable;
+
 	// set the best get_fature_info format among the supported ones (priorities: javascript, plain)
 	var gfi_format = 'unsupported';
 	gfi_formats.forEach(function(f) {
@@ -475,7 +397,6 @@ ovWmsLayers.prototype.WMSuserDefinePropertiesLayerToBeAdded = function(wms_url, 
 	} else {
 		var newLayer = this.addWmsLayer(wms_url, layersData, i, style_name, format, gfi_format);
 	}
-	//if (typeof newLayer != "undefined" && newLayer != '') newLayer.set('legendUrl','uffa'); //style_url);
 	
 	var responseMsg = '';
 	var responseType = 'ok';
@@ -486,7 +407,6 @@ ovWmsLayers.prototype.WMSuserDefinePropertiesLayerToBeAdded = function(wms_url, 
 	else {
 		// update the response string with a notification related to the automatic reprojection of data
 		responseMsg += strings_interface.sentence_layerwillbereprojected+'<br>';
-		//responseType = 'warning';
 		responseType = 'ok';
 	}
 	
@@ -503,23 +423,6 @@ ovWmsLayers.prototype.WMSuserDefinePropertiesLayerToBeAdded = function(wms_url, 
 		responseMsg += strings_interface.sentence_layeradded+'<br>';
 		this.printMessages(this.editOverlayMessages,'<span>'+responseMsg+'</span>',responseType,true);
 	
-        /* OVD - UNUSED AND PROBABLY USELESS
-		if ( $('#map_wms_custom_label').length == 0 ) {
-			var label = $('<div>');
-			label.attr('id','map_wms_custom_label');
-			label.html(strings_interface.sentence_thirdpartyWMS);
-			$('#ov_legend_wmsUser').append(label);
-			var div = $('<div>');
-			div.attr('id','map_wms_custom_container');
-			div.addClass('form-checkboxes');
-			$('#ov_legend_wmsUser').append(div);
-			var ul = $('<ul>');
-			ul.attr('id','map_ul_legenda_wms_custom');
-			ul.attr('class', 'legenda childrenof');
-			$('#map_wms_custom_container').append(ul);
-		}
-		*/
-
 		if(wms_url == wms_url_internal) {
 			var scale=''; // needed?
 			var returned_img = ov_wms_plugin.getWMSlegendViaProxy(wms_url, scale, layer_name,'wms');
@@ -533,12 +436,11 @@ ovWmsLayers.prototype.WMSuserDefinePropertiesLayerToBeAdded = function(wms_url, 
 	
 		var labelTip = strings_interface.sentence_scalevisibility+layersData[i].min_scale+'-'+layersData[i].max_scale+' ('+layerCrs+')';
         var labelDef = '<li><a id="expand_' + hash + '_' + i +'" href="javascript:;" onclick="open_v/*i*/ewer.openCloseDiv(\'custom_wms_layer_legend_' + hash + '_' + i + '\')" class="plus_stile"></a><input id="custom_wms_layer_checkbox_' + hash + '_' + i + '" type="checkbox" checked="checked" onclick="open_viewer.userWmsLayerViewToggle(\'' + hash + '_' + i + '\', \'' + layer_title +'\')" class="form-checkbox">&nbsp;</input><label title="'+labelTip+'">'+ layer_title +'</label><br/>' + div_legend_html + '</li>';
-		// OVD changed "append" to "prepend" to create a list of legend items coherent with the real list of layers
 		$("#map_ul_legenda_wms_custom").prepend(labelDef);
 	}
 	this.editWMSContainer.scrollTop(0);
 }
-/** Add a new user WMS layer - WMS LAYERS INTEGRATION
+/** Add a new user WMS layer
  *  - wms_url is the url of the analyzed WMS server
  *  - layersData contains the information of all layers available at "wms_url"
  *  - i is the choosen layer
@@ -563,8 +465,6 @@ ov_utils.ovLog('INPUT\n-----------------\nlayersData\n'+i,layersData[i], '\nstyl
 	var wms_group_layer_label = layersData[i].title;
     var wms_feature_name = layersData[i].name;
 	
-	//var scale_min = parseInt(layersData[i].min_scale)
-	//var scale_max = parseInt(layersData[i].max_scale)
 	var legend_url = layersData[i].styles[style_name].legend_url_href;
 	var legend_width = layersData[i].styles[style_name].legend_url_width;
 	if(typeof legend_width == 'undefined' || legend_width == '') legend_width = '';
@@ -584,11 +484,6 @@ ov_utils.ovLog('INPUT\n-----------------\nlayersData\n'+i,layersData[i], '\nstyl
 
 	else{
 		
-		// OVD change: previously the projection was set as this.dataProjection
-        //             now it is set to this.mapClass.mapProjection, if it is supported,
-        //             otherwise to CRS:84,if the map projection is EPSG:4326, EPSG:3857 or EPSG:900913 (SPECIAL CASE)
-        //             otherwise to EPSG:4326 as a first alternative
-        //             otherwise to the first supported projection
 		if (layersData[i].crs_supported.some( aCrs => aCrs === that.mapClass.mapProjection ))
 			var layerCrs = that.mapClass.mapProjection;
 		else if (that.mapClass.mapProjection=='EPSG:4326'||that.mapClass.mapProjection=='EPSG:3857'||that.mapClass.mapProjection=='EPSG:900913')
@@ -600,22 +495,6 @@ ov_utils.ovLog('INPUT\n-----------------\nlayersData\n'+i,layersData[i], '\nstyl
 				var layerCrs = layersData[i].crs_supported[0];
         }
 
-// OVD test:
-// RT    :   CRS:84, 3003, 3004, 25832, 25833,        4326, 3857,       6707, 6708
-// AE    :                       25832, 25833, 25834,             6706,           , 4258, 3044, 3045, 3046 
-// NASA  :   CRS:84
-// 3003  :   xxx     Tx    Tx    TT     TT     TT     Tx    Tx    xx    xx    xx    xx    
-// 25834 :   xx      Tx    Tx    TT     TT     TT     Tx    Tx    xx    xx
-// 4326  :   TT      Tx                        TT     Tx          xx    xx
-// 4358  :   TT
-// 3857  :   TT
-// 4265  :   TT
-// 900913:   TT
-// 4806  :   NOR WORKING
-//var layerCrs = 'CRS:84';
-
-// console.log('WMS layer added:\n- '+wms_ol_layer_name+'\n- '+layerCrs+' layer projection\n- '+this.mapClass.getView().getProjection().getCode()+' map projection')
-            
 		var wmsSource = new ol.source.TileWMS({
                 url: wms_url,
 			params: {'LAYERS': wms_feature_name, 'FORMAT':format, 'STYLES' : style_name},
@@ -628,9 +507,6 @@ ov_utils.ovLog('INPUT\n-----------------\nlayersData\n'+i,layersData[i], '\nstyl
 		var wmsLayer = new ol.layer.Tile({
 			source: wmsSource,
 			opacity: 1,//0.7,  // from 0 to 1
-			// zIndex: 1000,
-			// minZoom: layersData[i].minZoom,
-			// maxZoom: layersData[i].maxZoom,
 			minResolution: layerMinResolution,
 			maxResolution: layerMaxResolution,
 			name: wms_ol_layer_name,
@@ -741,7 +617,7 @@ ov_utils.ovLog(currentStatus, 'CurrentStatus updated:'); // supported types: <em
 	this.mapClass.refreshStatus();
 	
 }
-/** Add a new internal WMS layer - WMS LAYERS INTEGRATION
+/** Add a new internal WMS layer
  *  - wms_url is the url of the "internal" WMS server
  *  - layersData contains the information of all layers available at "wms_url"
  *  - i is the choosen layer
@@ -771,8 +647,6 @@ ovWmsLayers.prototype.addWmsInternalLayer = function(wms_url, layersData, i, sty
 		wmsSource = new ol.source.TileWMS ({
 				url: OpenViewer_proxy,
 				params: {'LAYERS': wms_layer, 'FORMAT':format, 'WMSURL': wms_url}
-// 				,serverType: 'geoserver',
-// 				ratio: 1.2
 		});
 		
 		var wmsLayer = new ol.layer.Tile({
@@ -785,7 +659,7 @@ ovWmsLayers.prototype.addWmsInternalLayer = function(wms_url, layersData, i, sty
         return wmsLayer;
 	}
 }
-/** Remove all WMS "user" layers - WMS LAYERS INTEGRATION */
+/** Remove all WMS "user" layers */
 ovWmsLayers.prototype.removeAllWmsUserLayers = function() {
 	
 	var that = this;
@@ -834,7 +708,6 @@ ov_utils.ovLog('Retrieve information from\n'+serverUrl, 'Show Server Capabilitie
     if(!flagShowInTheDiv&&!flagOpenInNewTab) return false;
 	
 	// build the URL
-	//var GCstr = 'SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities';
 	var GCstr = 'SERVICE=WMS&REQUEST=GetCapabilities';
 	if(serverUrl.substr(serverUrl.length - 1)=='?') {
 		serverUrl = serverUrl+GCstr;
@@ -893,12 +766,6 @@ ov_utils.ovLog(strings_interface.sentence_problemsgetcapabilities+'\n'+serverUrl
 		});
 	}
 }
-/** Retrive the feature information from a WMS source, and call the callback function
- *  - "layerNameOL" is the name of the layer OpenLayers
- *  - "listSelectableLayers" can be a single layer or a comma separated list of layers defined inside "stato"
- *    and all contained inside the OpenLayers layer "layerNameOL"
- *  - for the WMS on-the-fly layer "listSelectableLayers" is the name of the layer inside "stato"
- */
 /** Retrieve the bitmap of the legend for a WMS layer */
 ovWmsLayers.prototype.getWMSlegendViaProxy = function(url, scala, layer, tipo) {
 
@@ -911,8 +778,6 @@ ovWmsLayers.prototype.getWMSlegendViaProxy = function(url, scala, layer, tipo) {
 		async: false,
 		data: {'service_type': 'legends', 'service_url': url, 'action': 'GetLegendGraphic', 'request': url_legend_action, 'tipo': tipo, 'layer' : layer },
 		success: function(ret) {
-			//html_stile="<br/><img id='stile_"+layerName+"' "+stile_immagine+" src='"+url+"REQUEST=GetLegendGraphic&VERSION=1.3.0&FORMAT=image/png&LEGEND_OPTIONS=fontName:Serif;fontAntiAliasing:true;fontSize=6;dpi:100&WIDTH=20&HEIGHT=20&SCALE="+scala+"&LAYER="+image_legend_layer+"' title='' />";
-			//htmlLegenda+="<li "+style+">"+htmlExpandCollapse+"<input id='"+layerName+"' type='checkbox' "+checked+" class='legenda_layer_checkbox' /><label for='"+layerName+"'><img class='legend-small' src='"+url+"REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=20&HEIGHT=20&SCALE="+scala+"&LAYER="+image_legend_layer+"' title='' />"+legend_label+"</label>"+html_stile+"</li>";
 			returned = ret.data;
 		},
 		error: function() {
@@ -921,14 +786,15 @@ ovWmsLayers.prototype.getWMSlegendViaProxy = function(url, scala, layer, tipo) {
 	});
 	return returned;
 }
+/** Retrive the feature information from a WMS source, and call the callback function
+ *  - "layerNameOL" is the name of the layer OpenLayers
+ *  - "listSelectableLayers" can be a single layer or a comma separated list of layers defined inside "stato"
+ *    and all contained inside the OpenLayers layer "layerNameOL"
+ *  - for the WMS on-the-fly layer "listSelectableLayers" is the name of the layer inside "stato"
+ */
 ovWmsLayers.prototype.getWmsInfoByCoordinates = function(layerNameOL, sourceOL, coordinates, mapResolution, mapProjection, infoFormat, listSelectableLayers, pointerType, touchBuffer, callbackFunction, flagNewSelection, flagShowFeaturesAttributes, flagShowOnlyLastSelected, flagLastLayerToProcess) {
 	
 	if(typeof infoFormat == 'undefined'||infoFormat == '') infoFormat = 'text/javascript';
-	//infoFormat = 'text/html'
-	//infoFormat = 'text/xml'
-	//infoFormat = 'text/plain'
-	//infoFormat = 'application/json';
-	//infoFormat = 'application/vnd.ogc.wms_xml';
 	switch (infoFormat.toLowerCase()) {
 		
 		case 'text/javascript':
@@ -936,9 +802,6 @@ ovWmsLayers.prototype.getWmsInfoByCoordinates = function(layerNameOL, sourceOL, 
 			if(pointerType=='mouse')    var params = {'INFO_FORMAT': infoFormat,'QUERY_LAYERS': listSelectableLayers, 'format_options': 'callback:parseResponseSelect'};
 			else                        var params = {'INFO_FORMAT': infoFormat,'QUERY_LAYERS': listSelectableLayers, 'format_options': 'callback:parseResponseSelect', 'buffer': touchBuffer};
 			var url = sourceOL.getFeatureInfoUrl( coordinates, mapResolution, mapProjection, params );
-// console.log('URL',url);
-// console.log('sourceOL',sourceOL);
-// console.log('layerNameOL',layerNameOL);
 			
 			$.ajax({
 				url: url,
@@ -961,9 +824,6 @@ ovWmsLayers.prototype.getWmsInfoByCoordinates = function(layerNameOL, sourceOL, 
 			url += '&INFO_FORMAT='+infoFormat;
 			// add FEATURE_COUNT to handle multiple features "below" the selected coordinates (otherwise it returns only the first one)
 			url += '&FEATURE_COUNT=100';
-// console.log('URL',url);
-// console.log('sourceOL',sourceOL);
-// console.log('layerNameOL',layerNameOL);
 			
 			$.ajax({
 				url: OpenViewer_proxy,
@@ -978,14 +838,6 @@ ovWmsLayers.prototype.getWmsInfoByCoordinates = function(layerNameOL, sourceOL, 
 					} else {
 						return false;
 					}
-/*
-					response = ret.datatext;
-					if(response!='') {
-						callbackFunction(response, infoFormat.toLowerCase(), listSelectableLayers, flagNewSelection, flagShowFeaturesAttributes, flagShowOnlyLastSelected, flagLastLayerToProcess);
-					} else {
-						return false;
-					}
-*/
 				},
 				error: function(xhr, status, error) {
 ov_utils.ovLog(xhr.responseText, 'Get Info By Coordinates AJAX Error', 'error', false); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
@@ -1044,101 +896,4 @@ ovWmsLayers.prototype.printMessages = function(div,message,status,timeout){
 		}, 4000);
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-/* OVD Previous version located in openViewer.js: this function has not yet checked, because no main data "WMS" available
-
-/ ** Callback of a new selection of features over a WMS layer (the previous selection is deleted) * /
-openViewer.prototype.getWMSlayerSelectionGGGGG = function(response) {
-ov_utils.ovLog(response,'getWMSlayerSelection'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
-	var that = open_viewer; // as "this" does not work because it is a callback from another class
-	var geojsonFormat = new ol.format.GeoJSON();
-
-	var selectOverlay=that.map.getMapLayerByName('selection');
-	// clear previous selection
-	selectOverlay.getSource().clear();
-	
-	// "response" is a geoJson object
-	features=geojsonFormat.readFeatures(response,{dataProjection: that.map.dataProjection,featureProjection: that.map.mapProjection});
-	if(features.length > 0) {
-		selectOverlay.getSource().addFeatures(features);
-	}
-
-	// refresh the footer message with the number of selected features
-	that.footerUpdateText();
-ov_utils.ovLog('FINE','getWMSlayerSelection'); // supported types: <empty> or "consolelog" (console/flag_console_messages depending) "error" (console-forced) "warning" (console-forced) "alert" (statusbar alert)
-}
-
-*/
-
-/** WMS LAYERS INTEGRATION - CURRENTLY UNUSED
- * ---------------------------------------------------------------
- */
-
-/** OVD UNUSED REPLACED - Fill the "QueryResult" page with plain text, and open it
-openViewer.prototype.openInfoWMS = function(response) {
-console.log(response);
-	var that = open_viewer;
-	if (typeof ov_WMSGetFeatureInfoCustomPage !== "undefined") {
-		this.loadInfoPage('tabQueryResult',ov_WMSGetFeatureInfoCustomPage, false, response);
-	} else {
-		this.loadInfoPage('tabQueryResult',this.infoPanel); // this.loadInfoPage('tabQueryResult','infoWMSGetFeatureInfo.php');
-		//var json = this.map.gmlToJson(response);
-		var features = response.features;
-		if(features.length > 0) {
-			var html='<p>'+strings_interface.sentence_foundfeatures+' : '+features.length+'</p>';
-			for(var i=0;i<features.length;i++) {
-// console.log(features[i].geometry.type);
-// console.log(features[i].properties);
-				html = html + '<p>'+features[i].geometry.type+' ('+features[i].id+')</p>'; // strings_interface.word_feature
-			
-				// retrieve the feature attributes
-				properties=features[i].properties;
-				// format the attributes
-				var html = html + this.createElementsFromJSON(properties);
-			}
-			
-			setTimeout(function(){$("#ov_info_wms_container").html(html);}, 500);
-			if (that.titleToggleInfo.hasClass("active")) {that.toggleInfo(0);} // OVD strange behviour
-			
-		}
-	}
-}
-*/
-/** OVD CURRENTLY UNUSED - Fill the "QueryResult" page with plain text, and open it
-openViewer.prototype.openInfoExtWMS = function(response) {
-	if (typeof ov_WMSGetFeatureInfoCustomPage !== "undefined") {
-		this.loadInfoPage('tabQueryResult',ov_WMSGetFeatureInfoCustomPage, false, response);
-	} else {
-		this.loadInfoPage('tabQueryResult',this.infoPanel); // this.loadInfoPage('tabQueryResult','infoWMSGetFeatureInfo.php');
-		//var json = this.map.gmlToJson(response);
-		var features = response.features;
-		if(features.length > 0) {
-			var html="<h1>Oggetti trovati: "+features.length+"</h1>";
-			for(var i=0;i<features.length;i++) {
-				html = html + "<h2>Oggetto</h2>";
-	// 			//Per generare l'hyperlink mi prendo solamente la prima feature dell'array
-	// 			feature=features[0];
-				
-				//Mi ricavo gli attributi
-				properties=features[i].properties;
-				//Mi ricavo il nome del layer
-				var html = html + this.createElementsFromJSON(properties);
-			}
-			
-			setTimeout(function(){$("#ov_info_wms_container").html(html);}, 500);
-		}
-	}
-}
-*/
-
 
