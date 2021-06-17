@@ -197,7 +197,7 @@
                                            'target="_blank">GNU General Public License</a></i></u> for more details.',
          'application_description'      => 'is an Internet application that allows the publication of geographic data. The interactive viewer '.
                                            'allows users to navigate the map (zoom, pan, view at a defined scale), modify the displayed geographic levels, '.
-                                           'add on the fly geographic layers published by WMS servers, query the associated data and generate print reports.',
+                                           'add on the fly geographic layers published by WMS servers, query the associated data.', // and generate print reports.',
          'application_mainfeatures'     => 'Supported data: <ul>'.
                                            '<li> WMS data sources </li>'.
                                            '<li> MapGuide data sources </li>'.

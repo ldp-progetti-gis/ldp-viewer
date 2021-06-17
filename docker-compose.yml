@@ -4,8 +4,10 @@ services:
                 build:
                         context: ./php
                         dockerfile: Dockerfile
-                container_name: php73new
+                container_name: php73_release01
                 volumes:
                         - ./php:/var/www/html/
                 ports:
-                        - 9000:80
+                        - 9001:80
+
+                        

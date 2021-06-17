@@ -203,7 +203,7 @@
          'application_description'      => '&egrave; una applicazione internet che consente la pubblicazione di dati geografici. Il '.
                                            'visualizzatore interattivo permette agli utenti di navigare la mappa (zoom, pan, visualizzazione '.
                                            'ad una scala definita), modificare i livelli geografici visualizzati, aggiungere al volo strati '.
-                                           'geografici pubblicati da server WMS, interrogare i dati associati e generare elaborati di stampa.',
+                                           'geografici pubblicati da server WMS, interrogare i dati associati.', // e generare elaborati di stampa.',
          'application_mainfeatures'     => 'Dati supportati:<ul>'.
                                            '<li>fonti dati WMS</li>'.
                                            '<li>fonti dati MapGuide</li>'.
