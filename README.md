@@ -354,6 +354,7 @@ Project Link: [https://github.com/ldp-progetti-gis/ldp-viewer](https://github.co
 
 [license-shield]: https://img.shields.io/github/license/ldp-progetti-gis/repo.svg?style=for-the-badge
 [license-url]: https://github.com/ldp-progetti-gis/ldp-viewer/blob/main/LICENSE.txt
+
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://it.linkedin.com/company/ldp-progetti-gis
 
