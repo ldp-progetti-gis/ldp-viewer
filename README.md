@@ -46,7 +46,7 @@
   <h3 align="center">gisOpenViewer</h3>
 
   <p align="center">
-    Display spatial data and handle map navigation, querying attriute and on the fly adding of additional layers from online data sources
+    Display spatial data and handle map navigation, querying attribute and on the fly adding of additional layers from online data sources
     <br />
     <a href="https://github.com/ldp-progetti-gis/ldp-viewer"><strong>Explore the docs »</strong></a>
     <br />
@@ -76,8 +76,9 @@
       <ul>
         <li><a href="#prerequisites">Prerequisites</a></li>
         <li><a href="#installation">Installation</a></li>
-        <li><a href="#customization">Customization</a></li>
         <li><a href="#make-it-working">Make it working</a></li>
+        <li><a href="#customization">Customization</a></li>
+        
       </ul>
     </li>
     <li><a href="#roadmap">Roadmap</a></li>
@@ -121,11 +122,58 @@ The application has no prerequisites.
 It was developed using PHP and JavaScript, and for almost all used libraries (listed above) there is a local copy of the related code (with the exception of few exceptions where there is a link to an online resource).
 
 ### Installation
+If you don't have git installed in your system, follow the installation instructions of the official git site
+<a href="https://git-scm.com/book/en/v2/Getting-Started-Installing-Git">Getting Started - Installing Git</a>
 
 Clone the repo in your folder
    ```sh
    git clone https://github.com/ldp-progetti-gis/ldp-viewer.git
    ```
+
+
+TODO : spiegazione struttura dei file di configurazione del progetto
+   
+   
+   
+Add read/write permission to the folder php/include/tpl<br/>
+This is necessary because tha application needs to write runtime files on that directory.<br/>
+Linux command example:
+   ```sh
+   chmod 777 php/include/tpl
+   ```
+   
+   
+### Make it working
+
+You may decide to publish the application using your own infrastructure and following your own habit.
+
+As an alternative, in the git folder there is a "docker" configuration file which allows to publish the application directly from your local computer.
+
+[Docker](https://www.docker.com/) is an open platform for developing, shipping, and running applications. Docker enables you to separate your applications from your infrastructure so you can deliver software quickly. With Docker, you can manage your infrastructure in the same ways you manage your applications. By taking advantage of Docker’s methodologies for shipping, testing, and deploying code quickly, you can significantly reduce the delay between writing code and running it in production.
+
+Below an example of Docker configuration file (for Linux) to start a php server named "php73" on the port 7000:80
+
+   ```sh
+    version: '3.3'
+    services:
+            web:
+                    build:
+                            context: ./php
+                            dockerfile: Dockerfile
+                    container_name: php73
+                    volumes:
+                            - ./php:/var/www/html/
+                    ports:
+                            - 7000:80
+   ```
+To launch the server you must run from the console:
+```sh
+	sudo docker-compose up
+	... and type the password of the "sudo"
+```
+   
+   
+   
 ### Customization
 
 1. Configure the php/etc/config.inc.php file<br>
@@ -275,34 +323,6 @@ Clone the repo in your folder
    - definition of additional "service" parameter
 
 
-### Make it working
-
-You may decide to publish the application using your own infrastructure and following your own habit.
-
-As an alternative, in the git folder there is a "docker" configuration file which allows to publish the application directly from your local computer.
-
-[Docker](https://www.docker.com/) is an open platform for developing, shipping, and running applications. Docker enables you to separate your applications from your infrastructure so you can deliver software quickly. With Docker, you can manage your infrastructure in the same ways you manage your applications. By taking advantage of Docker’s methodologies for shipping, testing, and deploying code quickly, you can significantly reduce the delay between writing code and running it in production.
-
-Below an example of Docker configuration file to start a php server named "php73" on the port 7000:80
-
-   ```sh
-    version: '3.3'
-    services:
-            web:
-                    build:
-                            context: ./php
-                            dockerfile: Dockerfile
-                    container_name: php73
-                    volumes:
-                            - ./php:/var/www/html/
-                    ports:
-                            - 7000:80
-   ```
-To launch the server you must run from the console:
-```sh
-	sudo docker-compose.yml up
-	... and type the password of the "sudo"
-```
 
 <!-- ROADMAP -->
 ## Roadmap
