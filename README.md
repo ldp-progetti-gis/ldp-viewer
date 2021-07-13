@@ -122,7 +122,7 @@ It was developed using PHP and JavaScript, and for almost all used libraries (li
 
 ### Installation
 If you don't have git installed in your system, follow the installation instructions of the official git site
-<a href="https://git-scm.com/book/en/v2/Getting-Started-Installing-Git" target="_blank">Getting Started - Installing Git</a>
+<a href="https://git-scm.com/book/en/v2/Getting-Started-Installing-Git">Getting Started - Installing Git</a>
 
 Clone the repo in your folder
    ```sh
