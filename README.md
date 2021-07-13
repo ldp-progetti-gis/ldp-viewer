@@ -78,7 +78,6 @@
         <li><a href="#installation">Installation</a></li>
         <li><a href="#make-it-working">Make it working</a></li>
         <li><a href="#customization">Customization</a></li>
-        
       </ul>
     </li>
     <li><a href="#roadmap">Roadmap</a></li>
@@ -123,7 +122,7 @@ It was developed using PHP and JavaScript, and for almost all used libraries (li
 
 ### Installation
 If you don't have git installed in your system, follow the installation instructions of the official git site
-<a href="https://git-scm.com/book/en/v2/Getting-Started-Installing-Git">Getting Started - Installing Git</a>
+<a href="https://git-scm.com/book/en/v2/Getting-Started-Installing-Git" target="_blank">Getting Started - Installing Git</a>
 
 Clone the repo in your folder
    ```sh
@@ -135,8 +134,8 @@ TODO : spiegazione struttura dei file di configurazione del progetto
    
    
    
-Add read/write permission to the folder php/include/tpl<br/>
-This is necessary because tha application needs to write runtime files on that directory.<br/>
+Add read/write permissions to the folder php/include/tpl<br/>
+This is necessary because the application needs to write runtime files on that directory.<br/>
 Linux command example:
    ```sh
    chmod 777 php/include/tpl
@@ -172,6 +171,8 @@ To launch the server you must run from the console:
 	... and type the password of the "sudo"
 ```
    
+
+To see the viewer running in a browser open <a href="http://localhost:9001/">http://localhost:9001/</a>
    
    
 ### Customization
