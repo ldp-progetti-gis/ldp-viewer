@@ -51,8 +51,8 @@
     <!-- <a href="https://github.com/ldp-progetti-gis/ldp-viewer"><strong>Explore the docs »</strong></a>
     <br />
     <br />
-    <a href="https://github.com/ldp-progetti-gis/ldp-viewer">View Demo</a> -->
-    ·
+    <a href="https://github.com/ldp-progetti-gis/ldp-viewer">View Demo</a>
+    · -->
     <a href="https://github.com/ldp-progetti-gis/ldp-viewer/issues">Report Bug</a>
     ·
     <a href="https://github.com/ldp-progetti-gis/ldp-viewer/issues">Request Feature</a>
@@ -130,7 +130,7 @@ Clone the repo in your folder
    ```
 
 
-TODO : spiegazione struttura dei file di configurazione del progetto
+<!--TODO : spiegazione struttura dei file di configurazione del progetto-->
    
    
    
