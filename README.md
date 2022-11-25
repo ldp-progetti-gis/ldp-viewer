@@ -48,10 +48,10 @@
   <p align="center">
     Display spatial data and handle map navigation, querying attribute and on the fly adding of additional layers from online data sources
     <br />
-    <a href="https://github.com/ldp-progetti-gis/ldp-viewer"><strong>Explore the docs »</strong></a>
+    <!-- <a href="https://github.com/ldp-progetti-gis/ldp-viewer"><strong>Explore the docs »</strong></a>
     <br />
     <br />
-    <a href="https://github.com/ldp-progetti-gis/ldp-viewer">View Demo</a>
+    <a href="https://github.com/ldp-progetti-gis/ldp-viewer">View Demo</a> -->
     ·
     <a href="https://github.com/ldp-progetti-gis/ldp-viewer/issues">Report Bug</a>
     ·
